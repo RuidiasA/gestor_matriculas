@@ -1,5 +1,7 @@
 package com.example.matriculas.model;
 
+import com.example.matriculas.model.enums.EstadoUsuario;
+import com.example.matriculas.model.enums.Turno;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -39,9 +41,14 @@ public class Alumno {
     private String dni;
 
     /* Información de contacto */
+    @Column(name = "telefono_personal", length = 9)
     private String telefonoPersonal;
 
+    @Column(name = "correo_personal")
     private String correoPersonal;
+
+    @Column(length = 150)
+    private String direccion;
 
     @Column(nullable = false, unique = true)
     private String correoInstitucional;
@@ -53,6 +60,13 @@ public class Alumno {
     /* Ciclo actual del alumno (2–10) */
     @Column(nullable = false)
     private Integer cicloActual;
+
+    @Enumerated(EnumType.STRING)
+    private Turno turno;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private EstadoUsuario estado = EstadoUsuario.ACTIVO;
 
     /* Relación con carrera */
     @ManyToOne
