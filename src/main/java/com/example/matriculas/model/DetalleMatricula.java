@@ -27,12 +27,7 @@ public class DetalleMatricula {
     @JoinColumn(name = "seccion_id")
     private Seccion seccion;
 
-    /* Docente asignado a esa sección */
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "docente_id")
-    private Docente docente;
-
-    /* Datos directos para evitar JOINs innecesarios */
+    /* Datos directos para evitar JOINs innecesarios (snapshot) */
     @Column(nullable = false)
     private Integer creditos;
 
@@ -47,7 +42,7 @@ public class DetalleMatricula {
     @Column(nullable = false)
     private String aula;
 
-    /* Horario final (8–10 AM, 12–14 PM, etc) */
+    /* Horario final (por ejemplo "Lun 08:00-10:00") */
     @Column(nullable = false)
     private String horarioTexto;
 }

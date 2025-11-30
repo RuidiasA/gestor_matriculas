@@ -52,6 +52,6 @@ public class Docente {
     private Usuario usuario;
 
     /* Relación con las secciones que este docente dicta */
-    @OneToMany(mappedBy = "docente", cascade = CascadeType.ALL, orphanRemoval = false)
+    @OneToMany(mappedBy = "docente", fetch = FetchType.LAZY)
     private List<Seccion> secciones = new ArrayList<>();
 }

@@ -24,8 +24,8 @@
     <!-- MAIN CONTENT -->
     <main>
         <!-- CURSOS -->
-        <section id="cursos" class="admin-section active">
-            <h2>Mantenimiento de Cursos</h2>
+        <section id="cursos" class="admin-section">
+        <h2>Mantenimiento de Cursos</h2>
             <!-- Aquí se cargará dinámicamente la lista de cursos desde el backend -->
         </section>
 
@@ -34,41 +34,97 @@
             <h2>Mantenimiento de Secciones</h2>
         </section>
 
-        <!-- ALUMNOS -->
-        <section id="alumnos" class="admin-section">
-            <h2>Mantenimiento de Alumnos</h2>
-            <form class="admin-form alumnos">
-                <input type="hidden" name="action" value="save">
-                <label>Código:</label> <input type="text" name="codigo_alumno" required>
-                <label>Apellidos:</label><input type="text" name="apellidos_alumno" required>
-                <label>Nombres:</label><input type="text" name="nombres_alumno" required>
-                <label>DNI:</label><input type="text" name="dni_alumno" pattern="[0-9]{8}" required>
-                <label>Dirección:</label><input type="text" name="direccion_alumno">
-                <label>Correo:</label><input type="email" name="correo_alumno">
-                <label>Teléfono:</label><input type="tel" name="telefono_alumno">
-                <label>Estado:</label>
-                <select name="estado">
-                    <option>Activo</option>
-                    <option>Inactivo</option>
-                    <option>Suspendido</option>
-                </select>
-                <button type="submit">Agregar/Actualizar</button>
-            </form>
+        <!-- ======================== -->
+        <!--   SECCIÓN ALUMNOS       -->
+        <!-- ======================== -->
+        <section id="alumnos" class="admin-section active">
 
+        <h2>Gestión de Matrícula por Alumno</h2>
+
+            <!-- BÚSQUEDA -->
             <div class="search-container">
-                <input class="search-input" type="text" placeholder="Código, nombre, apellido o DNI">
-                <button class="search-button">Buscar</button>
-                <button type="button" id="btnLimpiar" class="clear-button">Limpiar</button>
+                <input class="search-input" id="busqueda" placeholder="Nombre, apellido, código o DNI">
+                <button id="btnBuscar" class="search-button">Buscar</button>
+                <button id="btnLimpiar" class="clear-button">Limpiar</button>
             </div>
 
-            <table class="admin-table" id="alumnos-table">
+            <!-- CONTENEDOR PRINCIPAL -->
+            <div class="alumno-panel">
+
+                <!-- COLUMNA IZQUIERDA: TABLA DE CURSOS -->
+                <div class="cursos-col">
+                    <h3>Cursos Matriculados</h3>
+
+                    <table class="admin-table" id="tablaCursos">
+                        <thead>
+                        <tr>
+                            <th>Sección</th>
+                            <th>Curso</th>
+                            <th>Docente</th>
+                            <th>Aula</th>
+                            <th>Ciclo</th>
+                            <th>Créditos</th>
+                            <th>Horas</th>
+                            <th>Tipo</th>
+                            <th>Modalidad</th>
+                        </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+                <!-- COLUMNA DERECHA: TARJETAS -->
+                <div class="info-col">
+
+                    <!-- TARJETA DE ALUMNO -->
+                    <div class="card alumno-info-card">
+                        <h3>Datos del Alumno</h3>
+
+                        <p><strong>Código:</strong> <span id="info_codigo"></span></p>
+                        <p><strong>Nombres:</strong> <span id="info_nombres"></span></p>
+                        <p><strong>Apellidos:</strong> <span id="info_apellidos"></span></p>
+                        <p><strong>DNI:</strong> <span id="info_dni"></span></p>
+                        <p><strong>Correo institucional:</strong> <span id="info_correo"></span></p>
+                        <p><strong>Carrera:</strong> <span id="info_carrera"></span></p>
+                        <p><strong>Año de ingreso:</strong> <span id="info_anio"></span></p>
+                        <p><strong>Ciclo actual:</strong> <span id="info_ciclo"></span></p>
+                        <p><strong>Estado:</strong> <span id="info_estado"></span></p>
+                    </div>
+
+                    <!-- TARJETA RESUMEN -->
+                    <div class="card resumen-card">
+                        <h3>Resumen de Matrícula</h3>
+
+                        <label>Ciclo:</label>
+                        <select id="selectCiclo"></select>
+
+                        <p><strong>Cursos:</strong> <span id="resumen_cursos"></span></p>
+                        <p><strong>Créditos:</strong> <span id="resumen_creditos"></span></p>
+                        <p><strong>Horas:</strong> <span id="resumen_horas"></span></p>
+                        <p><strong>Monto:</strong> S/ <span id="resumen_monto"></span></p>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- HISTORIAL DE MATRÍCULAS -->
+            <h3>Historial de Matrículas</h3>
+            <table class="admin-table" id="tablaHistorial">
+                <thead>
                 <tr>
-                    <th>Código</th><th>Apellidos</th><th>Nombres</th><th>DNI</th>
-                    <th>Dirección</th><th>Correo</th><th>Teléfono</th><th>Estado</th><th>Acciones</th>
+                    <th>Ciclo</th>
+                    <th>Cursos</th>
+                    <th>Créditos</th>
+                    <th>Horas</th>
+                    <th>Monto</th>
+                    <th>Fecha Matrícula</th>
                 </tr>
-                <!-- Aquí se insertarán dinámicamente los alumnos desde el backend -->
+                </thead>
+                <tbody></tbody>
             </table>
+
         </section>
+
 
         <!-- DOCENTES -->
         <section id="docentes" class="admin-section">
@@ -107,6 +163,6 @@
     </main>
 </div>
 
-<script src="../static/js/portal_admin.js"></script>
+<script src="/js/portal_admin.js"></script>
 </body>
 </html>

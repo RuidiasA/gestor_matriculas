@@ -4,6 +4,7 @@ import com.example.matriculas.model.enums.Modalidad;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -21,7 +22,7 @@ public class Seccion {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /* Código de sección: A1, B2, C3, 101, etc. */
+    /* Código de sección: A1, B2, C3, 101, etc. (luego podemos combinar con curso.codigo si quieres IA401-A1) */
     @Column(nullable = false)
     private String codigo;
 
@@ -50,10 +51,9 @@ public class Seccion {
 
     /* Horarios de esta sección (1 o varios) */
     @OneToMany(mappedBy = "seccion", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<SeccionHorario> horarios;
+    private List<SeccionHorario> horarios = new ArrayList<>();
 
     /* Relación con matrícula detalle */
     @OneToMany(mappedBy = "seccion", fetch = FetchType.LAZY)
-    private List<DetalleMatricula> matriculas;
-
+    private List<DetalleMatricula> matriculas = new ArrayList<>();
 }
