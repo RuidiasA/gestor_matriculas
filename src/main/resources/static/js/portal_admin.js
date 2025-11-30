@@ -52,6 +52,56 @@ document.addEventListener("DOMContentLoaded", () => {
     const contenedorHistorial = document.getElementById("contenedorHistorial");
     const subtituloHistorial = document.getElementById("subtituloHistorial");
 
+    // DOCENTES
+    const tablaDocentes = document.querySelector("#tablaDocentes tbody");
+    const formBusquedaDocentes = document.getElementById("formBusquedaDocentes");
+    const filtroDocente = document.getElementById("filtroDocente");
+    const filtroCursoDictable = document.getElementById("filtroCursoDictable");
+    const filtroEstadoDocente = document.getElementById("filtroEstadoDocente");
+    const estadoBusquedaDocentes = document.getElementById("estadoBusquedaDocentes");
+    const selectCursoDictable = document.getElementById("selectCursoDictable");
+    const btnAgregarCursoDictable = document.getElementById("btnAgregarCursoDictable");
+    const tablaCursosDictables = document.querySelector("#tablaCursosDictables tbody");
+    const tablaSeccionesDocente = document.querySelector("#tablaSeccionesDocente tbody");
+    const resumenSeccionesDocente = document.getElementById("resumenSeccionesDocente");
+    const tablaHistorialDocente = document.querySelector("#tablaHistorialDocente tbody");
+    const btnEditarDocente = document.getElementById("btnEditarDocente");
+    const btnEditarContactoDocente = document.getElementById("btnEditarContactoDocente");
+    const formDatosDocente = document.getElementById("formDatosDocente");
+    const formContactoDocente = document.getElementById("formContactoDocente");
+    const estadoDatosDocente = document.getElementById("estadoDatosDocente");
+    const estadoContactoDocente = document.getElementById("estadoContactoDocente");
+    const btnCancelarDatosDocente = document.getElementById("btnCancelarDatosDocente");
+    const btnCancelarContactoDocente = document.getElementById("btnCancelarContactoDocente");
+    const inputsDocente = {
+        codigo: document.getElementById("docCodigo"),
+        estado: document.getElementById("docEstado"),
+        apellidos: document.getElementById("docApellidos"),
+        nombres: document.getElementById("docNombres"),
+        dni: document.getElementById("docDni"),
+        especialidad: document.getElementById("docEspecialidad"),
+        correoInst: document.getElementById("docCorreoInst"),
+        correoPer: document.getElementById("docCorreoPer"),
+        telefono: document.getElementById("docTelefono"),
+        direccion: document.getElementById("docDireccion"),
+    };
+
+    const formInputsDocente = {
+        apellidos: document.getElementById("inputDocApellidos"),
+        nombres: document.getElementById("inputDocNombres"),
+        dni: document.getElementById("inputDocDni"),
+        especialidad: document.getElementById("inputDocEspecialidad"),
+        correoInst: document.getElementById("inputDocCorreoInst"),
+        estado: document.getElementById("inputDocEstado"),
+    };
+
+    const formContactoInputs = {
+        correoInst: document.getElementById("inputDocCorreoInstContacto"),
+        correoPer: document.getElementById("inputDocCorreoPer"),
+        telefono: document.getElementById("inputDocTelefono"),
+        direccion: document.getElementById("inputDocDireccion"),
+    };
+
     const btnLimpiarAlumnos = document.getElementById("btnLimpiar");
     if (btnLimpiarAlumnos) {
         btnLimpiarAlumnos.addEventListener("click", () => {
@@ -64,15 +114,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const btnLimpiarDocentes = document.getElementById("btnLimpiarDocentes");
     if (btnLimpiarDocentes) {
         btnLimpiarDocentes.addEventListener("click", () => {
-            document.querySelectorAll(".admin-form.docentes input, .admin-form.docentes select").forEach(el => {
-                if (el.type !== "hidden") el.value = "";
-            });
+            limpiarBusquedaDocentes();
         });
     }
 
     let alumnoSeleccionado = null;
     let historialMatriculasCache = [];
     let cursosPorCicloCache = {};
+    let docenteSeleccionado = null;
 
     if (formBusqueda) {
         formBusqueda.addEventListener("submit", (e) => {
@@ -101,6 +150,55 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    if (formBusquedaDocentes) {
+        formBusquedaDocentes.addEventListener("submit", (e) => {
+            e.preventDefault();
+            buscarDocentes();
+        });
+    }
+
+    if (btnAgregarCursoDictable) {
+        btnAgregarCursoDictable.addEventListener("click", agregarCursoDictable);
+    }
+
+    if (btnEditarDocente) {
+        btnEditarDocente.addEventListener("click", () => {
+            if (!docenteSeleccionado) return;
+            mostrarFormularioDatos(true);
+        });
+    }
+
+    if (btnEditarContactoDocente) {
+        btnEditarContactoDocente.addEventListener("click", () => {
+            if (!docenteSeleccionado) return;
+            mostrarFormularioContacto(true);
+        });
+    }
+
+    if (btnCancelarDatosDocente) {
+        btnCancelarDatosDocente.addEventListener("click", () => mostrarFormularioDatos(false));
+    }
+
+    if (btnCancelarContactoDocente) {
+        btnCancelarContactoDocente.addEventListener("click", () => mostrarFormularioContacto(false));
+    }
+
+    if (formDatosDocente) {
+        formDatosDocente.addEventListener("submit", (e) => {
+            e.preventDefault();
+            if (!docenteSeleccionado) return;
+            guardarDatosDocente();
+        });
+    }
+
+    if (formContactoDocente) {
+        formContactoDocente.addEventListener("submit", (e) => {
+            e.preventDefault();
+            if (!docenteSeleccionado) return;
+            guardarContactoDocente();
+        });
+    }
+
     if (btnEditarContacto) {
         btnEditarContacto.addEventListener("click", () => habilitarEdicion(true));
     }
@@ -119,6 +217,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     buscarAlumnos();
+    cargarCatalogoCursos();
+    buscarDocentes();
 
     async function buscarAlumnos() {
         mostrarEstado(estadoBusqueda, "Cargando alumnos...", false);
@@ -471,5 +571,295 @@ document.addEventListener("DOMContentLoaded", () => {
             document.body.appendChild(container);
         }
         return container;
+    }
+
+    // =====================
+    // DOCENTES
+    // =====================
+    async function cargarCatalogoCursos() {
+        try {
+            const resp = await fetch("/admin/docentes/cursos");
+            if (!resp.ok) throw new Error();
+            const cursos = await resp.json();
+            [selectCursoDictable, filtroCursoDictable].forEach(select => {
+                if (!select) return;
+                select.innerHTML = "";
+                const baseOption = document.createElement("option");
+                baseOption.value = "";
+                baseOption.textContent = select === selectCursoDictable ? "Selecciona curso" : "Todos";
+                select.appendChild(baseOption);
+                cursos.forEach(c => {
+                    const opt = document.createElement("option");
+                    opt.value = c.idCurso;
+                    opt.textContent = `${c.codigo} - ${c.nombre}`;
+                    select.appendChild(opt);
+                });
+            });
+        } catch (e) {
+            mostrarToast("No se pudo cargar el catálogo de cursos", "error");
+        }
+    }
+
+    function limpiarBusquedaDocentes() {
+        filtroDocente.value = "";
+        if (filtroCursoDictable) filtroCursoDictable.value = "";
+        if (filtroEstadoDocente) filtroEstadoDocente.value = "";
+        limpiarSeleccionDocente();
+        buscarDocentes();
+    }
+
+    async function buscarDocentes() {
+        if (!tablaDocentes) return;
+        mostrarEstado(estadoBusquedaDocentes, "Buscando docentes...", false);
+        const params = new URLSearchParams();
+        params.append("filtro", filtroDocente?.value?.trim() || "");
+        if (filtroCursoDictable?.value) params.append("cursoId", filtroCursoDictable.value);
+        if (filtroEstadoDocente?.value) params.append("estado", filtroEstadoDocente.value);
+        try {
+            const resp = await fetch(`/admin/docentes/buscar?${params.toString()}`);
+            if (!resp.ok) throw new Error("No se pudo buscar docentes");
+            const docentes = await resp.json();
+            renderizarDocentes(docentes);
+            if (!docentes.length) mostrarEstado(estadoBusquedaDocentes, "Sin resultados", true);
+            else estadoBusquedaDocentes.hidden = true;
+        } catch (err) {
+            renderizarDocentes([]);
+            mostrarEstado(estadoBusquedaDocentes, err.message, true);
+        }
+    }
+
+    function renderizarDocentes(docentes) {
+        tablaDocentes.innerHTML = "";
+        if (!docentes.length) {
+            tablaDocentes.innerHTML = `<tr><td colspan="4" class="muted">Sin resultados</td></tr>`;
+            return;
+        }
+        docentes.forEach(doc => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td>${doc.codigo || "-"}</td>
+                <td>${doc.nombreCompleto || "-"}</td>
+                <td>${doc.dni || "-"}</td>
+                <td>${doc.estado || "-"}</td>
+            `;
+            tr.addEventListener("click", () => {
+                tablaDocentes.querySelectorAll("tr").forEach(f => f.classList.remove("selected"));
+                tr.classList.add("selected");
+                cargarDetalleDocente(doc.id);
+            });
+            tablaDocentes.appendChild(tr);
+        });
+    }
+
+    async function cargarDetalleDocente(id) {
+        limpiarSeleccionDocente();
+        try {
+            const resp = await fetch(`/admin/docentes/${id}`);
+            if (!resp.ok) throw new Error("No se pudo obtener el detalle del docente");
+            const detalle = await resp.json();
+            docenteSeleccionado = detalle;
+            renderizarFichaDocente(detalle);
+            renderizarCursosDictables(detalle.cursosDictables || []);
+            renderizarSeccionesDocente(detalle);
+            renderizarHistorialDocente(detalle.historial || []);
+        } catch (err) {
+            mostrarToast(err.message, "error");
+        }
+    }
+
+    function renderizarFichaDocente(detalle) {
+        inputsDocente.codigo.textContent = detalle.codigo || "-";
+        inputsDocente.estado.textContent = detalle.estado || "-";
+        inputsDocente.estado.className = "badge";
+        inputsDocente.estado.classList.add(detalle.estado === "ACTIVO" || detalle.estado === "Activo" ? "badge--success" : "badge--info");
+        inputsDocente.apellidos.textContent = detalle.apellidos || "-";
+        inputsDocente.nombres.textContent = detalle.nombres || "-";
+        inputsDocente.dni.textContent = detalle.dni || "-";
+        inputsDocente.especialidad.textContent = detalle.especialidad || "-";
+        inputsDocente.correoInst.textContent = detalle.correoInstitucional || "-";
+        inputsDocente.correoPer.textContent = detalle.correoPersonal || "-";
+        inputsDocente.telefono.textContent = detalle.telefono || "-";
+        inputsDocente.direccion.textContent = detalle.direccion || "-";
+
+        formInputsDocente.apellidos.value = detalle.apellidos || "";
+        formInputsDocente.nombres.value = detalle.nombres || "";
+        formInputsDocente.dni.value = detalle.dni || "";
+        formInputsDocente.especialidad.value = detalle.especialidad || "";
+        formInputsDocente.correoInst.value = detalle.correoInstitucional || "";
+        formInputsDocente.estado.value = detalle.estado || "ACTIVO";
+
+        formContactoInputs.correoInst.value = detalle.correoInstitucional || "";
+        formContactoInputs.correoPer.value = detalle.correoPersonal || "";
+        formContactoInputs.telefono.value = detalle.telefono || "";
+        formContactoInputs.direccion.value = detalle.direccion || "";
+        mostrarFormularioDatos(false);
+        mostrarFormularioContacto(false);
+    }
+
+    function renderizarCursosDictables(cursos) {
+        tablaCursosDictables.innerHTML = "";
+        if (!cursos.length) {
+            tablaCursosDictables.innerHTML = `<tr><td colspan="5" class="muted">Sin cursos asignados</td></tr>`;
+            return;
+        }
+        cursos.forEach(c => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td>${c.nombre || "-"}</td>
+                <td>${c.codigo || "-"}</td>
+                <td>${c.creditos ?? "-"}</td>
+                <td>${c.ciclo ?? "-"}</td>
+                <td><button class="btn-outline" data-curso="${c.idCurso}">Eliminar</button></td>
+            `;
+            tr.querySelector("button").addEventListener("click", () => eliminarCursoDictable(c.idCurso));
+            tablaCursosDictables.appendChild(tr);
+        });
+    }
+
+    function renderizarSeccionesDocente(detalle) {
+        const secciones = detalle.seccionesActuales || [];
+        tablaSeccionesDocente.innerHTML = "";
+        if (!secciones.length) {
+            tablaSeccionesDocente.innerHTML = `<tr><td colspan="9" class="muted">Sin secciones</td></tr>`;
+            resumenSeccionesDocente.textContent = "-";
+            return;
+        }
+        secciones.forEach(s => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td>${s.curso || "-"}</td>
+                <td>${s.codigoSeccion || "-"}</td>
+                <td>${s.periodo || "-"}</td>
+                <td>${s.modalidad || "-"}</td>
+                <td>${s.creditos ?? "-"}</td>
+                <td>${s.turno || "-"}</td>
+                <td>${s.horario || "-"}</td>
+                <td>${s.aula || "-"}</td>
+                <td>${s.estudiantesInscritos ?? 0}</td>
+            `;
+            tablaSeccionesDocente.appendChild(tr);
+        });
+        resumenSeccionesDocente.textContent = `${detalle.totalSeccionesActuales || 0} secciones · ${detalle.totalCreditosActuales || 0} créditos · ${detalle.totalHorasSemanalesActuales || 0} h/semana · ${detalle.totalCursosActuales || 0} cursos`;
+    }
+
+    function renderizarHistorialDocente(historial) {
+        tablaHistorialDocente.innerHTML = "";
+        if (!historial.length) {
+            tablaHistorialDocente.innerHTML = `<tr><td colspan="10" class="muted">Sin historial</td></tr>`;
+            return;
+        }
+        historial.forEach(h => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td>${h.periodo || "-"}</td>
+                <td>${h.curso || "-"}</td>
+                <td>${h.seccion || "-"}</td>
+                <td>${h.modalidad || "-"}</td>
+                <td>${h.creditos ?? "-"}</td>
+                <td>${h.horario || "-"}</td>
+                <td>${h.estudiantesFinalizados ?? "-"}</td>
+                <td>${h.notaPromedio ?? "-"}</td>
+                <td>${h.porcentajeAprobacion ?? "-"}</td>
+                <td>${h.observaciones || "-"}</td>
+            `;
+            tablaHistorialDocente.appendChild(tr);
+        });
+    }
+
+    async function guardarDatosDocente() {
+        try {
+            const body = {
+                apellidos: formInputsDocente.apellidos.value.trim(),
+                nombres: formInputsDocente.nombres.value.trim(),
+                dni: formInputsDocente.dni.value.trim(),
+                especialidad: formInputsDocente.especialidad.value.trim(),
+                correoInstitucional: formInputsDocente.correoInst.value.trim(),
+                estado: formInputsDocente.estado.value,
+            };
+            const resp = await fetch(`/admin/docentes/${docenteSeleccionado.id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(body)
+            });
+            if (!resp.ok) throw new Error("No se pudo actualizar los datos del docente");
+            mostrarToast("Datos personales actualizados", "success");
+            cargarDetalleDocente(docenteSeleccionado.id);
+        } catch (err) {
+            mostrarEstado(estadoDatosDocente, err.message, true);
+        }
+    }
+
+    async function guardarContactoDocente() {
+        try {
+            const body = {
+                correoInstitucional: formContactoInputs.correoInst.value.trim(),
+                correoPersonal: formContactoInputs.correoPer.value.trim(),
+                telefono: formContactoInputs.telefono.value.trim(),
+                direccion: formContactoInputs.direccion.value.trim(),
+            };
+            const resp = await fetch(`/admin/docentes/${docenteSeleccionado.id}/contacto`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(body)
+            });
+            if (!resp.ok) throw new Error("No se pudo actualizar el contacto");
+            mostrarToast("Contacto actualizado", "success");
+            cargarDetalleDocente(docenteSeleccionado.id);
+        } catch (err) {
+            mostrarEstado(estadoContactoDocente, err.message, true);
+        }
+    }
+
+    async function agregarCursoDictable() {
+        if (!docenteSeleccionado) {
+            mostrarToast("Selecciona un docente", "info");
+            return;
+        }
+        const cursoId = selectCursoDictable.value;
+        if (!cursoId) return;
+        try {
+            const resp = await fetch(`/admin/docentes/${docenteSeleccionado.id}/cursos?cursoId=${cursoId}`, { method: "POST" });
+            if (!resp.ok) throw new Error("No se pudo agregar el curso");
+            mostrarToast("Curso añadido", "success");
+            cargarDetalleDocente(docenteSeleccionado.id);
+        } catch (err) {
+            mostrarToast(err.message, "error");
+        }
+    }
+
+    async function eliminarCursoDictable(cursoId) {
+        if (!docenteSeleccionado) return;
+        try {
+            const resp = await fetch(`/admin/docentes/${docenteSeleccionado.id}/cursos/${cursoId}`, { method: "DELETE" });
+            if (!resp.ok) throw new Error("No se pudo eliminar el curso");
+            mostrarToast("Curso removido", "info");
+            cargarDetalleDocente(docenteSeleccionado.id);
+        } catch (err) {
+            mostrarToast(err.message, "error");
+        }
+    }
+
+    function mostrarFormularioDatos(valor) {
+        formDatosDocente.hidden = !valor;
+        estadoDatosDocente.hidden = true;
+    }
+
+    function mostrarFormularioContacto(valor) {
+        formContactoDocente.hidden = !valor;
+        estadoContactoDocente.hidden = true;
+    }
+
+    function limpiarSeleccionDocente() {
+        docenteSeleccionado = null;
+        [inputsDocente.codigo, inputsDocente.apellidos, inputsDocente.nombres, inputsDocente.dni, inputsDocente.especialidad,
+            inputsDocente.correoInst, inputsDocente.correoPer, inputsDocente.telefono, inputsDocente.direccion].forEach(el => {
+            if (el) el.textContent = "-";
+        });
+        inputsDocente.estado.textContent = "-";
+        renderizarCursosDictables([]);
+        renderizarSeccionesDocente({ seccionesActuales: [] });
+        renderizarHistorialDocente([]);
+        mostrarFormularioContacto(false);
+        mostrarFormularioDatos(false);
     }
 });

@@ -567,7 +567,7 @@ button.btnEliminar:hover {
     z-index: 1000;
 }
 
-.toast {
+.toast { 
     min-width: 250px;
     padding: 0.8rem 1rem;
     border-radius: 10px;
@@ -580,6 +580,7 @@ button.btnEliminar:hover {
 .toast--info { background: var(--color-primario); }
 
 /* ========================
+   DOCENTES
    RESPONSIVE
 ======================== */
 @media (max-width: 1200px) {
