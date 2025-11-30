@@ -2,10 +2,13 @@ package com.example.matriculas.controller;
 
 import com.example.matriculas.dto.ActualizarAlumnoDTO;
 import com.example.matriculas.dto.AlumnoDTO;
-import com.example.matriculas.model.Alumno;
-import com.example.matriculas.repository.AlumnoRepository;
+import com.example.matriculas.service.AdminAlumnoService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+
+import jakarta.validation.Valid;
 
 import java.util.List;
 
@@ -14,17 +17,14 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AdminAlumnoController {
 
-    private final AlumnoRepository alumnoRepository;
+    private final AdminAlumnoService adminAlumnoService;
 
     // ====================================================================
     // 1. LISTAR TODOS
     // ====================================================================
     @GetMapping("/listar")
     public List<AlumnoDTO> listar() {
-        return alumnoRepository.findAll()
-                .stream()
-                .map(AlumnoDTO::fromEntity)
-                .toList();
+        return adminAlumnoService.listar();
     }
 
     // ====================================================================
@@ -32,20 +32,7 @@ public class AdminAlumnoController {
     // ====================================================================
     @GetMapping("/buscar")
     public List<AlumnoDTO> buscar(@RequestParam String filtro) {
-
-        String f = filtro.toLowerCase();
-
-        return alumnoRepository.findAll()
-                .stream()
-                .filter(a ->
-                        (a.getNombres() != null && a.getNombres().toLowerCase().contains(f)) ||
-                                (a.getApellidos() != null && a.getApellidos().toLowerCase().contains(f)) ||
-                                (a.getCodigoAlumno() != null && a.getCodigoAlumno().toLowerCase().contains(f)) ||
-                                (a.getDni() != null && a.getDni().contains(f)) ||
-                                (a.getCorreoInstitucional() != null && a.getCorreoInstitucional().toLowerCase().contains(f))
-                )
-                .map(AlumnoDTO::fromEntity)
-                .toList();
+        return adminAlumnoService.buscar(filtro);
     }
 
 
@@ -54,29 +41,21 @@ public class AdminAlumnoController {
     // ====================================================================
     @GetMapping("/{id}")
     public AlumnoDTO obtener(@PathVariable Long id) {
-        Alumno a = alumnoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Alumno no encontrado"));
-
-        return AlumnoDTO.fromEntity(a);
+        return adminAlumnoService.obtener(id);
     }
 
-    // ====================================================================
+// ====================================================================
 // 4. ACTUALIZAR DATOS EDITABLES: nombres, apellidos, correo y teléfono
 // ====================================================================
     @PutMapping("/{id}")
     public void actualizar(
             @PathVariable Long id,
-            @RequestBody ActualizarAlumnoDTO dto
+            @Valid @RequestBody ActualizarAlumnoDTO dto
     ) {
-        Alumno a = alumnoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Alumno no encontrado"));
-
-        // Solo campos editables
-        a.setNombres(dto.getNombres());
-        a.setApellidos(dto.getApellidos());
-        a.setCorreoPersonal(dto.getCorreoPersonal());
-        a.setTelefonoPersonal(dto.getTelefonoPersonal());
-
-        alumnoRepository.save(a);
+        if (dto.getNombres() == null && dto.getApellidos() == null
+                && dto.getCorreoPersonal() == null && dto.getTelefonoPersonal() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No se enviaron campos para actualizar");
+        }
+        adminAlumnoService.actualizar(id, dto);
     }
 }
