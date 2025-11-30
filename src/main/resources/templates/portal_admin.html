@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="/css/portal_admin.css">
+    <title>Portal Admin</title>
+</head>
+<body>
+<div class="admin-layout">
+    <!-- ASIDE LEFT -->
+    <aside class="aside-left">
+        <div class="aside-left__container">
+            <div class="logo"></div>
+            <nav class="admin-nav">
+                <a href="#" class="active" data-section="cursos">Cursos</a>
+                <a href="#" data-section="secciones">Secciones</a>
+                <a href="#" data-section="alumnos">Alumnos</a>
+                <a href="#" data-section="docentes">Docentes</a>
+            </nav>
+            <a class="logout" href="/logout">CERRAR SESIÓN</a>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main>
+        <!-- CURSOS -->
+        <section id="cursos" class="admin-section active">
+            <h2>Mantenimiento de Cursos</h2>
+            <!-- Aquí se cargará dinámicamente la lista de cursos desde el backend -->
+        </section>
+
+        <!-- SECCIONES -->
+        <section id="secciones" class="admin-section">
+            <h2>Mantenimiento de Secciones</h2>
+        </section>
+
+        <!-- ALUMNOS -->
+        <section id="alumnos" class="admin-section">
+            <h2>Mantenimiento de Alumnos</h2>
+            <form class="admin-form alumnos">
+                <input type="hidden" name="action" value="save">
+                <label>Código:</label> <input type="text" name="codigo_alumno" required>
+                <label>Apellidos:</label><input type="text" name="apellidos_alumno" required>
+                <label>Nombres:</label><input type="text" name="nombres_alumno" required>
+                <label>DNI:</label><input type="text" name="dni_alumno" pattern="[0-9]{8}" required>
+                <label>Dirección:</label><input type="text" name="direccion_alumno">
+                <label>Correo:</label><input type="email" name="correo_alumno">
+                <label>Teléfono:</label><input type="tel" name="telefono_alumno">
+                <label>Estado:</label>
+                <select name="estado">
+                    <option>Activo</option>
+                    <option>Inactivo</option>
+                    <option>Suspendido</option>
+                </select>
+                <button type="submit">Agregar/Actualizar</button>
+            </form>
+
+            <div class="search-container">
+                <input class="search-input" type="text" placeholder="Código, nombre, apellido o DNI">
+                <button class="search-button">Buscar</button>
+                <button type="button" id="btnLimpiar" class="clear-button">Limpiar</button>
+            </div>
+
+            <table class="admin-table" id="alumnos-table">
+                <tr>
+                    <th>Código</th><th>Apellidos</th><th>Nombres</th><th>DNI</th>
+                    <th>Dirección</th><th>Correo</th><th>Teléfono</th><th>Estado</th><th>Acciones</th>
+                </tr>
+                <!-- Aquí se insertarán dinámicamente los alumnos desde el backend -->
+            </table>
+        </section>
+
+        <!-- DOCENTES -->
+        <section id="docentes" class="admin-section">
+            <h2>Mantenimiento de Docentes</h2>
+            <form class="admin-form docentes">
+                <input type="hidden" name="action" value="save">
+                <label>Código:</label><input type="text" name="codigo_docente" required>
+                <label>Apellidos:</label><input type="text" name="apellidos_docente" required>
+                <label>Nombres:</label><input type="text" name="nombres_docente" required>
+                <label>DNI:</label><input type="text" name="dni_docente" pattern="[0-9]{8}" required>
+                <label>Dirección:</label><input type="text" name="direccion_docente">
+                <label>Correo:</label><input type="email" name="correo_docente">
+                <label>Teléfono:</label><input type="tel" name="telefono_docente">
+                <label>Estado:</label>
+                <select name="estado_docente">
+                    <option>Activo</option>
+                    <option>Inactivo</option>
+                </select>
+                <button type="submit">Agregar/Actualizar</button>
+            </form>
+
+            <div class="search-container">
+                <input class="search-input" type="text" placeholder="Código, nombre o DNI">
+                <button class="search-button">Buscar</button>
+                <button type="button" id="btnLimpiarDocentes" class="clear-button">Limpiar</button>
+            </div>
+
+            <table class="admin-table" id="docentes-table">
+                <tr>
+                    <th>Código</th><th>Apellidos</th><th>Nombres</th><th>DNI</th>
+                    <th>Dirección</th><th>Correo</th><th>Teléfono</th><th>Estado</th><th>Acciones</th>
+                </tr>
+                <!-- Aquí se insertarán dinámicamente los docentes desde el backend -->
+            </table>
+        </section>
+    </main>
+</div>
+
+<script src="../static/js/portal_admin.js"></script>
+</body>
+</html>

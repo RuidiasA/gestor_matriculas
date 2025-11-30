@@ -1,0 +1,86 @@
+/* ============================================================ */
+/*                   CONTENEDOR GENERAL                        */
+/* ============================================================ */
+#vista-horario {
+    padding: 0 !important;
+}
+#vista-horario .main__container-item:first-child {
+    margin-top: 0 !important;
+}
+
+/* ============================================================ */
+/*                       GRID PRINCIPAL                         */
+/* ============================================================ */
+.horario-layout {
+    display: grid;
+    grid-template-columns: 500px 1fr;
+    gap: 20px;
+    /* ESTA ES LA CLAVE */
+    align-items: center;
+    min-height: calc(100vh - 100px);
+}
+
+/* ============================================================ */
+/*                   COLUMNA IZQ: CURSOS                        */
+/* ============================================================ */
+.cursos-inscritos {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    /* SOLO ESTA ALTURA ES LA CORRECTA */
+    height: calc(100vh - 100px);
+    overflow-y: auto;
+    padding: 6px;
+    scrollbar-width: none;
+}
+.cursos-inscritos::-webkit-scrollbar { display: none; }
+.curso-card {
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 20px 22px;
+    box-shadow: 0 4px 12px rgba(27, 59, 111, 0.15);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.curso-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px 12px;
+}
+
+/* ============================================================ */
+/*                 COLUMNA DER: TABLA HORARIO                  */
+/* ============================================================ */
+.tabla-horario-completa {
+    display: flex;
+    padding: 0;
+    overflow: visible;
+    min-height: calc(100vh - 100px);
+}
+.horario-completo {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 14px;
+    background: white;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(27, 59, 111, 0.15);
+}
+.horario-completo th {
+    background: #1B3B6F;
+    color: white;
+    padding: 0.82rem;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+.horario-completo td {
+    padding: 10px;
+    border: 1px solid #E3E7EF;
+    background: #F9FBFF;
+}
+.horario-completo td.empty {
+    background: #ffffff;
+}
+

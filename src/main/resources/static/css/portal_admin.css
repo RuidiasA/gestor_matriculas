@@ -1,0 +1,249 @@
+/* ========================
+   VARIABLES Y RESET
+======================== */
+:root {
+    --color-primario: #1B3B6F;
+    --color-secundario: #6EC6E6;
+    --color-fondo: #F4F6FB;
+    --color-texto: #1B3B6F;
+    --color-blanco: #fff;
+    --color-rojo: #B22222;
+    --color-rojo-hover: #7F1D1D;
+    --border-radius: 6px;
+    --font-family: "Montserrat", sans-serif;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: var(--font-family);
+    text-decoration: none;
+    text-align: center;
+}
+
+body {
+    background-color: var(--color-fondo);
+    color: var(--color-texto);
+}
+
+/* ========================
+   LAYOUT
+======================== */
+.admin-layout {
+    display: grid;
+    grid-template-columns: 250px 1fr;
+    height: 100vh;
+    overflow-x: hidden;
+}
+
+/* ASIDE */
+.aside-left__container {
+    background-color: var(--color-primario);
+    display: grid;
+    grid-template-rows: 100px 1fr 40px;
+    height: 100%;
+    padding: 30px;
+    gap: 30px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.6);
+}
+
+.logo {
+    width: 80px;
+    height: 80px;
+    margin: auto;
+    background-color: var(--color-blanco);
+    border-radius: 15px;
+}
+
+.admin-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.admin-nav a {
+    padding: 0.7rem 0;
+    border-radius: var(--border-radius);
+    font-weight: bold;
+    background-color: var(--color-blanco);
+    color: var(--color-texto);
+    transition: 0.2s;
+    cursor: pointer;
+}
+
+.admin-nav a.active {
+    background-color: var(--color-secundario);
+    color: var(--color-primario);
+}
+
+.logout {
+    background-color: var(--color-rojo);
+    color: var(--color-blanco);
+    font-weight: bold;
+    border-radius: 10px;
+    line-height: 40px;
+    display: block;
+}
+
+/* MAIN */
+main {
+    overflow-x: auto;
+    width: 100%;
+}
+
+/* ========================
+   SECCIONES
+======================== */
+.admin-section {
+    margin: 30px;
+    padding: 2rem;
+    background-color: var(--color-blanco);
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(27,59,111,0.12);
+    display: none;
+    width: calc(100% - 60px);
+}
+
+.admin-section.active {
+    display: block;
+}
+
+.admin-section h2 {
+    color: var(--color-primario);
+    margin-bottom: 1rem;
+}
+
+/* ========================
+   TABLAS
+======================== */
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1.5rem;
+    min-width: 700px;
+}
+
+.admin-table th, .admin-table td {
+    border: 1px solid var(--color-secundario);
+    padding: 0.5rem;
+    font-size: 1rem;
+}
+
+.admin-table th {
+    background-color: var(--color-secundario);
+    color: var(--color-primario);
+    font-weight: bold;
+}
+
+.admin-actions button {
+    padding: 0.3rem 0.7rem;
+    border-radius: var(--border-radius);
+    border: none;
+    background-color: var(--color-primario);
+    color: var(--color-blanco);
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: 0.2s;
+}
+
+button.btnEliminar {
+    background-color: var(--color-rojo);
+}
+
+button.btnEliminar:hover {
+    background-color: var(--color-rojo-hover);
+}
+
+/* ========================
+   FORMULARIOS
+======================== */
+.admin-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.admin-form label {
+    font-weight: 600;
+}
+
+.admin-form input,
+.admin-form select {
+    padding: 0.4rem;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--color-secundario);
+    background-color: var(--color-fondo);
+    font-size: 1rem;
+}
+
+.admin-form button[type="submit"],
+.clear-button {
+    background-color: var(--color-primario);
+    color: var(--color-blanco);
+    border: none;
+    border-radius: var(--border-radius);
+    padding: 0.5rem 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.admin-form button[type="submit"]:hover,
+.clear-button:hover {
+    background-color: #16305a;
+}
+
+/* ========================
+   BÚSQUEDA
+======================== */
+.search-container {
+    display: flex;
+    justify-content: flex-start;
+    margin-bottom: 1rem;
+}
+
+.search-input {
+    width: 250px;
+    padding: 0.4rem;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--color-secundario);
+}
+
+.search-button {
+    margin-left: 10px;
+    padding: 0.5rem 1.2rem;
+    background-color: var(--color-primario);
+    color: var(--color-blanco);
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.2s;
+}
+
+.search-button:hover {
+    background-color: #16305a;
+}
+
+/* ========================
+   RESPONSIVE
+======================== */
+@media (max-width: 1200px) {
+    .admin-table { min-width: 600px; }
+}
+
+@media (max-width: 900px) {
+    .admin-layout { grid-template-columns: 1fr; }
+    aside { width: 100%; flex-direction: row; justify-content: center; gap: 1rem; padding: 1rem 0.5rem; }
+    main { padding: 1rem; }
+    .admin-section { padding: 1rem; }
+}
+
+@media (max-width: 700px) {
+    .admin-table { min-width: 400px; font-size: 0.95rem; }
+    .admin-section { padding: 0.5rem; }
+    .admin-form { flex-direction: column; align-items: stretch; }
+}

@@ -1,0 +1,67 @@
+/* ============================= */
+/*       GLOBAL / RESET          */
+/* ============================= */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Montserrat", sans-serif;
+    text-decoration: none;
+}
+
+/* Texto por defecto */
+body {
+    background-color: #F4F6FB;
+    color: #22223B;
+}
+
+/* Titulares */
+h1, h2, h3{
+    color: #1B3B6F;
+    font-weight: 600;
+}
+h4, h5{
+    color: #E3F6FF;
+}
+
+/* Enlaces heredan color */
+a {
+    color: inherit;
+}
+
+/* Utilidades */
+.hidden {
+    display: none !important;
+}
+
+/* Clase que tu JS usa (no cambia el layout,
+   pero la dejamos por compatibilidad) */
+body.layout-2-cols {
+    /* mismo grid que el layout base */
+}
+
+/* Scrollbar */
+html {
+    scrollbar-width: thin;
+    scrollbar-color: #1B3B6F rgba(0,0,0,0.04);
+}
+
+html::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+html::-webkit-scrollbar-track {
+    background: rgba(0,0,0,0.03);
+    border-radius: 10px;
+}
+html::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #6EC6E6 0%, #1B3B6F 100%);
+    border-radius: 10px;
+    border: 3px solid transparent;
+    background-clip: padding-box;
+}
+.hidden {
+    display: none !important;
+}

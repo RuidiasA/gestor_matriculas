@@ -1,0 +1,124 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Montserrat", sans-serif;
+}
+
+body {
+    background-color: #F4F6FB;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* GRID PRINCIPAL */
+.login-page {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 90%;
+    max-width: 1200px;
+    height: 80vh;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(27, 59, 111, 0.12);
+}
+
+/* MITAD IZQUIERDA */
+.login-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: blur(2px);
+}
+
+/* MITAD DERECHA */
+.forms-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #fff;
+    position: relative;
+}
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* FORMULARIOS */
+.form-box {
+    position: absolute;
+    width: 80%;
+    max-width: 350px;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.form-box h1,
+.form-box h2 {
+    text-align: center;
+    color: #1B3B6F;
+    font-weight: 700;
+}
+
+/* INPUTS */
+.form-box input {
+    padding: .6rem;
+    border-radius: 6px;
+    border: 1px solid #6EC6E6;
+    background: #F4F6FB;
+}
+
+/* BOTONES */
+.form-box button {
+    padding: .7rem;
+    background: #1B3B6F;
+    border: none;
+    color: #fff;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+/* LINKS */
+.olvide, .volver {
+    text-align: center;
+    color: #6EC6E6;
+    cursor: pointer;
+}
+
+.olvide:hover, .volver:hover {
+    color: #1B3B6F;
+}
+
+/* ANIMACIONES */
+.hidden {
+    display: none;
+}
+
+.fade-out { animation: fadeOut .25s forwards; }
+.fade-in { animation: fadeIn .25s forwards; }
+
+@keyframes fadeOut {
+    from { opacity: 1; transform: scale(1); }
+    to { opacity: 0; transform: scale(.95); }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+/* RESPONSIVE */
+@media (max-width: 800px) {
+    .login-page {
+        grid-template-columns: 1fr;
+        height: auto;
+    }
+    .login-image { display: none; }
+    .forms-wrapper { padding: 3rem 1rem; }
+}
