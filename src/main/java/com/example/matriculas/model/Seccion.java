@@ -1,6 +1,7 @@
 package com.example.matriculas.model;
 
 import com.example.matriculas.model.enums.Modalidad;
+import com.example.matriculas.model.enums.Turno;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -37,6 +38,14 @@ public class Seccion {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Modalidad modalidad;
+
+    /* Turno académico de la sección */
+    @Enumerated(EnumType.STRING)
+    private Turno turno;
+
+    /* Periodo académico en el que se dicta la sección (ej: 2024-I) */
+    @Column(name = "periodo_academico")
+    private String periodoAcademico;
 
     /* Relación con el curso */
     @ManyToOne

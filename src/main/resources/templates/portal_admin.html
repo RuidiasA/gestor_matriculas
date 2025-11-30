@@ -36,77 +36,406 @@
 
         <!-- ALUMNOS -->
         <section id="alumnos" class="admin-section">
-            <h2>Mantenimiento de Alumnos</h2>
-            <form class="admin-form alumnos">
-                <input type="hidden" name="action" value="save">
-                <label>Código:</label> <input type="text" name="codigo_alumno" required>
-                <label>Apellidos:</label><input type="text" name="apellidos_alumno" required>
-                <label>Nombres:</label><input type="text" name="nombres_alumno" required>
-                <label>DNI:</label><input type="text" name="dni_alumno" pattern="[0-9]{8}" required>
-                <label>Dirección:</label><input type="text" name="direccion_alumno">
-                <label>Correo:</label><input type="email" name="correo_alumno">
-                <label>Teléfono:</label><input type="tel" name="telefono_alumno">
-                <label>Estado:</label>
-                <select name="estado">
-                    <option>Activo</option>
-                    <option>Inactivo</option>
-                    <option>Suspendido</option>
-                </select>
-                <button type="submit">Agregar/Actualizar</button>
-            </form>
-
-            <div class="search-container">
-                <input class="search-input" type="text" placeholder="Código, nombre, apellido o DNI">
-                <button class="search-button">Buscar</button>
-                <button type="button" id="btnLimpiar" class="clear-button">Limpiar</button>
+            <div class="section-header">
+                <div>
+                    <p class="subtitle">Portal Administrador / Gestión de Alumnos</p>
+                    <h2>Alumnos</h2>
+                </div>
+                <div class="section-actions">
+                    <button id="btnRefrescarAlumnos" class="btn-outline">Refrescar</button>
+                </div>
             </div>
 
-            <table class="admin-table" id="alumnos-table">
-                <tr>
-                    <th>Código</th><th>Apellidos</th><th>Nombres</th><th>DNI</th>
-                    <th>Dirección</th><th>Correo</th><th>Teléfono</th><th>Estado</th><th>Acciones</th>
-                </tr>
-                <!-- Aquí se insertarán dinámicamente los alumnos desde el backend -->
-            </table>
+            <div class="panel-grid">
+                <article class="panel shadow">
+                    <h3>Búsqueda de alumnos</h3>
+                    <form id="formBusquedaAlumnos" class="search-form">
+                        <div class="form-field">
+                            <label for="filtroAlumno">DNI, código, nombre o correo</label>
+                            <input id="filtroAlumno" name="filtro" type="text" placeholder="Ej. 74589632 o Juan Pérez">
+                        </div>
+                        <div class="search-actions">
+                            <button type="submit" class="btn-primary">Buscar</button>
+                            <button type="button" id="btnLimpiarBusqueda" class="btn-secondary">Limpiar</button>
+                        </div>
+                    </form>
+                    <div id="estadoBusqueda" class="status-message" hidden></div>
+
+                    <div class="table-wrapper">
+                        <table class="admin-table" id="tablaAlumnos">
+                            <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Nombre completo</th>
+                                <th>DNI</th>
+                                <th>Correo institucional</th>
+                                <th>Correo personal</th>
+                                <th>Teléfono</th>
+                                <th>Año ingreso</th>
+                                <th>Ciclo actual</th>
+                                <th>Turno/Prioridad</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr class="skeleton-row" aria-hidden="true">
+                                <td colspan="9">Cargando alumnos...</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </article>
+
+                <article class="panel shadow" id="fichaAlumno">
+                    <div class="panel-header">
+                        <h3>Ficha del alumno</h3>
+                        <span class="badge" id="estadoAlumno">-</span>
+                    </div>
+                    <div class="ficha">
+                        <div class="avatar">👤</div>
+                        <div class="ficha__data">
+                            <p class="ficha__titulo" id="nombreAlumno">Selecciona un alumno</p>
+                            <p class="muted" id="codigoAlumno">-</p>
+                            <div class="ficha__grid">
+                                <div>
+                                    <p class="label">Carrera</p>
+                                    <p id="carreraAlumno">-</p>
+                                </div>
+                                <div>
+                                    <p class="label">Ciclo actual</p>
+                                    <p id="cicloAlumno">-</p>
+                                </div>
+                                <div>
+                                    <p class="label">Año de ingreso</p>
+                                    <p id="ingresoAlumno">-</p>
+                                </div>
+                                <div>
+                                    <p class="label">Correo institucional</p>
+                                    <p id="correoInstitucionalAlumno">-</p>
+                                </div>
+                                <div>
+                                    <p class="label">Correo personal</p>
+                                    <p id="correoPersonalAlumno">-</p>
+                                </div>
+                                <div>
+                                    <p class="label">Teléfono</p>
+                                    <p id="telefonoAlumno">-</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel-divider"></div>
+
+                    <form id="formContactoAlumno" class="contact-form">
+                        <h4>Datos de contacto</h4>
+                        <div class="form-row">
+                            <div class="form-field">
+                                <label for="correoPersonalInput">Correo personal</label>
+                                <input type="email" id="correoPersonalInput" name="correoPersonal" disabled>
+                            </div>
+                            <div class="form-field">
+                                <label for="telefonoInput">Teléfono (9 dígitos)</label>
+                                <input type="tel" id="telefonoInput" name="telefono" pattern="\\d{9}" maxlength="9" disabled>
+                            </div>
+                            <div class="form-field">
+                                <label for="direccionInput">Dirección</label>
+                                <input type="text" id="direccionInput" name="direccion" disabled>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" id="btnEditarContacto" class="btn-secondary">Editar datos de contacto</button>
+                            <button type="submit" id="btnGuardarContacto" class="btn-primary" disabled>Guardar</button>
+                        </div>
+                        <p id="estadoContacto" class="status-message" hidden></p>
+                    </form>
+                </article>
+
+                <article class="panel shadow" id="detalleAcademico">
+                    <div class="panel-header">
+                        <h3>Detalle académico</h3>
+                        <div class="form-field compact">
+                            <label for="selectorCiclo">Ciclo</label>
+                            <select id="selectorCiclo"></select>
+                        </div>
+                    </div>
+
+                    <div class="table-wrapper">
+                        <table class="admin-table" id="tablaCursosMatriculados">
+                            <thead>
+                            <tr>
+                                <th>Código sección</th>
+                                <th>Curso</th>
+                                <th>Docente</th>
+                                <th>Créditos</th>
+                                <th>Horas</th>
+                                <th>Modalidad</th>
+                                <th>Aula</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr class="skeleton-row" aria-hidden="true">
+                                <td colspan="7">Selecciona un alumno para ver sus cursos</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="resumen-grid">
+                        <div class="resumen-card">
+                            <p class="label">Total cursos</p>
+                            <p id="totalCursos">-</p>
+                        </div>
+                        <div class="resumen-card">
+                            <p class="label">Créditos</p>
+                            <p id="totalCreditos">-</p>
+                        </div>
+                        <div class="resumen-card">
+                            <p class="label">Horas semanales</p>
+                            <p id="totalHoras">-</p>
+                        </div>
+                        <div class="resumen-card">
+                            <p class="label">Monto estimado</p>
+                            <p id="montoEstimado">-</p>
+                        </div>
+                    </div>
+
+                    <div class="historial">
+                        <div class="historial__header">
+                            <h4>Historial de matrículas</h4>
+                            <span class="muted" id="subtituloHistorial">-</span>
+                        </div>
+                        <div id="contenedorHistorial" class="historial__items">
+                            <p class="muted">Sin registros</p>
+                        </div>
+                    </div>
+                </article>
+            </div>
         </section>
 
         <!-- DOCENTES -->
         <section id="docentes" class="admin-section">
-            <h2>Mantenimiento de Docentes</h2>
-            <form class="admin-form docentes">
-                <input type="hidden" name="action" value="save">
-                <label>Código:</label><input type="text" name="codigo_docente" required>
-                <label>Apellidos:</label><input type="text" name="apellidos_docente" required>
-                <label>Nombres:</label><input type="text" name="nombres_docente" required>
-                <label>DNI:</label><input type="text" name="dni_docente" pattern="[0-9]{8}" required>
-                <label>Dirección:</label><input type="text" name="direccion_docente">
-                <label>Correo:</label><input type="email" name="correo_docente">
-                <label>Teléfono:</label><input type="tel" name="telefono_docente">
-                <label>Estado:</label>
-                <select name="estado_docente">
-                    <option>Activo</option>
-                    <option>Inactivo</option>
-                </select>
-                <button type="submit">Agregar/Actualizar</button>
-            </form>
+            <h2>Gestión de Docentes</h2>
+            <div class="docentes-grid">
+                <div class="docentes-col docentes-col--left">
+                    <article class="card" id="fichaDocente">
+                        <header class="card__header">
+                            <div>
+                                <p class="muted">Código</p>
+                                <h3 id="docCodigo">-</h3>
+                            </div>
+                            <div class="badge" id="docEstado">-</div>
+                        </header>
+                        <div class="card__body">
+                            <div class="ficha-grid">
+                                <div>
+                                    <p class="label">Apellidos</p>
+                                    <p id="docApellidos">-</p>
+                                </div>
+                                <div>
+                                    <p class="label">Nombres</p>
+                                    <p id="docNombres">-</p>
+                                </div>
+                                <div>
+                                    <p class="label">DNI</p>
+                                    <p id="docDni">-</p>
+                                </div>
+                                <div>
+                                    <p class="label">Especialidad</p>
+                                    <p id="docEspecialidad">-</p>
+                                </div>
+                                <div>
+                                    <p class="label">Correo institucional</p>
+                                    <p id="docCorreoInst">-</p>
+                                </div>
+                                <div>
+                                    <p class="label">Correo personal</p>
+                                    <p id="docCorreoPer">-</p>
+                                </div>
+                                <div>
+                                    <p class="label">Teléfono</p>
+                                    <p id="docTelefono">-</p>
+                                </div>
+                                <div>
+                                    <p class="label">Dirección</p>
+                                    <p id="docDireccion">-</p>
+                                </div>
+                            </div>
+                            <div class="ficha-acciones">
+                                <button class="btn-secondary" id="btnEditarDocente">Editar datos personales</button>
+                                <button class="btn-primary" id="btnEditarContactoDocente">Editar contacto</button>
+                            </div>
+                            <form id="formDatosDocente" class="docente-form" hidden>
+                                <div class="form-grid">
+                                    <label>Apellidos<input type="text" id="inputDocApellidos" required></label>
+                                    <label>Nombres<input type="text" id="inputDocNombres" required></label>
+                                    <label>DNI<input type="text" id="inputDocDni" pattern="[0-9]{8}" required></label>
+                                    <label>Especialidad<input type="text" id="inputDocEspecialidad"></label>
+                                    <label>Correo institucional<input type="email" id="inputDocCorreoInst" required></label>
+                                    <label>Estado
+                                        <select id="inputDocEstado">
+                                            <option value="ACTIVO">Activo</option>
+                                            <option value="INACTIVO">Inactivo</option>
+                                        </select>
+                                    </label>
+                                </div>
+                                <div class="form-actions">
+                                    <button type="submit" class="btn-primary">Guardar</button>
+                                    <button type="button" class="btn-secondary" id="btnCancelarDatosDocente">Cancelar</button>
+                                </div>
+                                <p id="estadoDatosDocente" class="muted" hidden></p>
+                            </form>
+                            <form id="formContactoDocente" class="docente-form" hidden>
+                                <div class="form-grid">
+                                    <label>Correo institucional<input type="email" id="inputDocCorreoInstContacto" required></label>
+                                    <label>Correo personal<input type="email" id="inputDocCorreoPer"></label>
+                                    <label>Teléfono<input type="tel" id="inputDocTelefono" pattern="[0-9]{9}"></label>
+                                    <label>Dirección<input type="text" id="inputDocDireccion"></label>
+                                </div>
+                                <div class="form-actions">
+                                    <button type="submit" class="btn-primary">Guardar contacto</button>
+                                    <button type="button" class="btn-secondary" id="btnCancelarContactoDocente">Cancelar</button>
+                                </div>
+                                <p id="estadoContactoDocente" class="muted" hidden></p>
+                            </form>
+                        </div>
+                    </article>
 
-            <div class="search-container">
-                <input class="search-input" type="text" placeholder="Código, nombre o DNI">
-                <button class="search-button">Buscar</button>
-                <button type="button" id="btnLimpiarDocentes" class="clear-button">Limpiar</button>
+                    <article class="card">
+                        <header class="card__header">
+                            <h3>Cursos que puede dictar</h3>
+                            <div class="agregar-curso">
+                                <select id="selectCursoDictable">
+                                    <option value="">Selecciona curso</option>
+                                </select>
+                                <button class="btn-primary" id="btnAgregarCursoDictable" type="button">Agregar</button>
+                            </div>
+                        </header>
+                        <div class="table-wrapper">
+                            <table class="admin-table" id="tablaCursosDictables">
+                                <thead>
+                                <tr>
+                                    <th>Curso</th>
+                                    <th>Código</th>
+                                    <th>Créditos</th>
+                                    <th>Ciclo</th>
+                                    <th>Acción</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr><td colspan="5" class="muted">Sin cursos asignados</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </article>
+
+                    <article class="card">
+                        <header class="card__header">
+                            <div>
+                                <h3>Secciones asignadas actualmente</h3>
+                                <p class="muted" id="resumenSeccionesDocente">-</p>
+                            </div>
+                        </header>
+                        <div class="table-wrapper">
+                            <table class="admin-table" id="tablaSeccionesDocente">
+                                <thead>
+                                <tr>
+                                    <th>Curso</th>
+                                    <th>Código Sección</th>
+                                    <th>Periodo</th>
+                                    <th>Modalidad</th>
+                                    <th>Créditos</th>
+                                    <th>Turno</th>
+                                    <th>Horario</th>
+                                    <th>Aula</th>
+                                    <th>Estudiantes</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr><td colspan="9" class="muted">Sin secciones</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </article>
+
+                    <article class="card">
+                        <header class="card__header">
+                            <h3>Historial académico</h3>
+                        </header>
+                        <div class="table-wrapper">
+                            <table class="admin-table" id="tablaHistorialDocente">
+                                <thead>
+                                <tr>
+                                    <th>Año/Ciclo</th>
+                                    <th>Curso</th>
+                                    <th>Sección</th>
+                                    <th>Modalidad</th>
+                                    <th>Créditos</th>
+                                    <th>Horario</th>
+                                    <th>Estudiantes finalizados</th>
+                                    <th>Nota promedio</th>
+                                    <th>% Aprobación</th>
+                                    <th>Observaciones</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr><td colspan="10" class="muted">Sin historial</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </article>
+                </div>
+
+                <div class="docentes-col docentes-col--right">
+                    <article class="card">
+                        <header class="card__header">
+                            <h3>Buscar docentes</h3>
+                            <div class="card__actions">
+                                <button type="button" id="btnLimpiarDocentes" class="clear-button">Limpiar</button>
+                            </div>
+                        </header>
+                        <form id="formBusquedaDocentes" class="docente-form">
+                            <div class="form-grid">
+                                <label>Filtro general<input type="text" id="filtroDocente" placeholder="Código, DNI, nombre, correo"></label>
+                                <label>Curso dictable
+                                    <select id="filtroCursoDictable">
+                                        <option value="">Todos</option>
+                                    </select>
+                                </label>
+                                <label>Estado
+                                    <select id="filtroEstadoDocente">
+                                        <option value="">Todos</option>
+                                        <option value="ACTIVO">Activo</option>
+                                        <option value="INACTIVO">Inactivo</option>
+                                    </select>
+                                </label>
+                            </div>
+                            <div class="form-actions">
+                                <button class="btn-primary" type="submit">Buscar</button>
+                            </div>
+                        </form>
+                        <div class="table-wrapper">
+                            <table class="admin-table" id="tablaDocentes">
+                                <thead>
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Apellidos y Nombres</th>
+                                    <th>DNI</th>
+                                    <th>Estado</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr><td colspan="4" class="muted">Sin resultados</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <p id="estadoBusquedaDocentes" class="muted" hidden></p>
+                    </article>
+                </div>
             </div>
-
-            <table class="admin-table" id="docentes-table">
-                <tr>
-                    <th>Código</th><th>Apellidos</th><th>Nombres</th><th>DNI</th>
-                    <th>Dirección</th><th>Correo</th><th>Teléfono</th><th>Estado</th><th>Acciones</th>
-                </tr>
-                <!-- Aquí se insertarán dinámicamente los docentes desde el backend -->
-            </table>
         </section>
     </main>
 </div>
 
-<script src="../static/js/portal_admin.js"></script>
+<script src="/js/portal_admin.js"></script>
 </body>
 </html>
