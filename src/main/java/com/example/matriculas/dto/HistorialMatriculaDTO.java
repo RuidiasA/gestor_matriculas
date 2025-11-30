@@ -11,5 +11,9 @@ import lombok.NoArgsConstructor;
 @Builder
 public class HistorialMatriculaDTO {
     private String ciclo;
-    private String detalle;
+    private String estado;
+    private Integer totalCursos;
+    private Integer totalCreditos;
+    private Integer totalHoras;
+    private Double montoTotal;
 }

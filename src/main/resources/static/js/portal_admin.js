@@ -71,6 +71,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     let alumnoSeleccionado = null;
+    let historialMatriculasCache = [];
+    let cursosPorCicloCache = {};
 
     if (formBusqueda) {
         formBusqueda.addEventListener("submit", (e) => {
@@ -157,6 +159,9 @@ document.addEventListener("DOMContentLoaded", () => {
             tr.addEventListener("click", () => {
                 document.querySelectorAll("#tablaAlumnos tbody tr").forEach(fila => fila.classList.remove("selected"));
                 tr.classList.add("selected");
+                historialMatriculasCache = [];
+                cursosPorCicloCache = {};
+                renderizarHistorial([], null);
                 alumnoSeleccionado = alumno;
                 cargarFicha(alumno);
                 cargarPeriodos(alumno);
@@ -219,9 +224,10 @@ document.addEventListener("DOMContentLoaded", () => {
             const resumen = await resumenRes.json();
             const historial = await historialRes.json();
 
+            historialMatriculasCache = historial;
             renderizarCursos(cursos);
             renderizarResumen(resumen);
-            renderizarHistorial(historial);
+            renderizarHistorial(historial, idAlumno);
         } catch (err) {
             mostrarSkeletonCursos(err.message || "Sin información");
             mostrarToast("No se pudo cargar el detalle académico", "error");
@@ -256,23 +262,118 @@ document.addEventListener("DOMContentLoaded", () => {
         montoEstimado.textContent = resumen?.montoEstimado ? `S/. ${resumen.montoEstimado}` : "-";
     }
 
-    function renderizarHistorial(historial) {
+    function renderizarHistorial(historial, idAlumno) {
         contenedorHistorial.innerHTML = "";
+
         if (!historial?.length) {
             contenedorHistorial.innerHTML = `<p class="muted">Sin registros</p>`;
             subtituloHistorial.textContent = "-";
             return;
         }
+
         subtituloHistorial.textContent = `${historial.length} ciclo(s) previos`;
-        historial.forEach(registro => {
+
+        historial.forEach(h => {
             const item = document.createElement("div");
             item.className = "historial-item";
-            item.innerHTML = `
-                <strong>${registro.ciclo || "-"}</strong>
-                <span class="muted">${registro.detalle || ""}</span>
+            item.dataset.ciclo = h.ciclo;
+
+            const header = document.createElement("div");
+            header.className = "historial-item__header";
+            header.innerHTML = `
+                <div>
+                    <strong>${h.ciclo || "-"}</strong>
+                    <p class="historial-item__summary">
+                        ${h.totalCursos ?? 0} curso(s) ·
+                        ${h.totalCreditos ?? 0} créditos ·
+                        ${h.totalHoras ?? 0} horas
+                        ${h.montoTotal != null ? ` · S/. ${h.montoTotal}` : ""}
+                    </p>
+                </div>
+                <span class="badge badge--estado badge--${(h.estado || "").toLowerCase()}">
+                    ${h.estado || "-"}
+                </span>
             `;
+
+            const toggle = document.createElement("button");
+            toggle.type = "button";
+            toggle.className = "historial-item__toggle btn-secondary";
+            toggle.textContent = "Ver cursos";
+            header.appendChild(toggle);
+
+            const coursesContainer = document.createElement("div");
+            coursesContainer.className = "historial-item__courses";
+            coursesContainer.hidden = true;
+
+            item.appendChild(header);
+            item.appendChild(coursesContainer);
             contenedorHistorial.appendChild(item);
+
+            toggle.addEventListener("click", async () => {
+                const ciclo = h.ciclo;
+                const abierto = !coursesContainer.hidden;
+
+                if (abierto) {
+                    coursesContainer.hidden = true;
+                    toggle.textContent = "Ver cursos";
+                    return;
+                }
+
+                if (!cursosPorCicloCache[ciclo]) {
+                    try {
+                        coursesContainer.innerHTML = `<p class=\"muted\">Cargando cursos...</p>`;
+                        const resp = await fetch(`/admin/alumnos/${idAlumno}/matriculas?ciclo=${encodeURIComponent(ciclo)}`);
+                        if (!resp.ok) throw new Error();
+                        const cursos = await resp.json();
+                        cursosPorCicloCache[ciclo] = cursos;
+                        coursesContainer.innerHTML = crearTablaCursosHTML(cursos);
+                    } catch (e) {
+                        coursesContainer.innerHTML = `<p class=\"muted\">No se pudieron cargar los cursos</p>`;
+                    }
+                } else {
+                    coursesContainer.innerHTML = crearTablaCursosHTML(cursosPorCicloCache[ciclo]);
+                }
+
+                coursesContainer.hidden = false;
+                toggle.textContent = "Ocultar cursos";
+            });
         });
+    }
+
+    function crearTablaCursosHTML(cursos) {
+        if (!cursos || !cursos.length) {
+            return `<p class="muted">Sin cursos para este ciclo</p>`;
+        }
+        const rows = cursos.map(c => `
+            <tr>
+                <td>${c.codigoSeccion || "-"}</td>
+                <td>${c.nombreCurso || "-"}</td>
+                <td>${c.docente || "-"}</td>
+                <td>${c.creditos ?? "-"}</td>
+                <td>${c.horasSemanales ?? "-"}</td>
+                <td>${c.modalidad || "-"}</td>
+                <td>${c.aula || "-"}</td>
+            </tr>
+        `).join("");
+
+        return `
+            <div class="table-wrapper historial-table-wrapper">
+                <table class="admin-table historial-table">
+                    <thead>
+                        <tr>
+                            <th>Código sección</th>
+                            <th>Curso</th>
+                            <th>Docente</th>
+                            <th>Créditos</th>
+                            <th>Horas</th>
+                            <th>Modalidad</th>
+                            <th>Aula</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rows}</tbody>
+                </table>
+            </div>
+        `;
     }
 
     function mostrarSkeletonCursos(texto) {
@@ -288,12 +389,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function limpiarSeleccion() {
         alumnoSeleccionado = null;
+        historialMatriculasCache = [];
+        cursosPorCicloCache = {};
         tablaAlumnos.querySelectorAll("tr").forEach(fila => fila.classList.remove("selected"));
         cargarFicha({});
         selectorCiclo.innerHTML = "";
         renderizarCursos([]);
         renderizarResumen({});
-        renderizarHistorial([]);
+        renderizarHistorial([], null);
     }
 
     function validarContacto() {

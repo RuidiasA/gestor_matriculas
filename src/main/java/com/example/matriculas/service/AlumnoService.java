@@ -255,7 +255,11 @@ public class AlumnoService {
         return matriculas.stream()
                 .map(m -> HistorialMatriculaDTO.builder()
                         .ciclo(m.getCicloAcademico())
-                        .detalle("Créditos: " + m.getTotalCreditos() + " · Horas: " + m.getTotalHoras() + " · Estado: " + m.getEstado())
+                        .estado(m.getEstado() != null ? m.getEstado().name() : null)
+                        .totalCursos(m.getDetalles() != null ? m.getDetalles().size() : 0)
+                        .totalCreditos(m.getTotalCreditos())
+                        .totalHoras(m.getTotalHoras())
+                        .montoTotal(m.getMontoTotal())
                         .build())
                 .collect(Collectors.toList());
     }
