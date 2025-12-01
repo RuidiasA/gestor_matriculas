@@ -1,8 +1,11 @@
 package com.example.matriculas.service;
 
 import com.example.matriculas.dto.EstudianteSeccionDTO;
+import com.example.matriculas.dto.SeccionActualizarDTO;
 import com.example.matriculas.dto.SeccionCatalogoDTO;
 import com.example.matriculas.dto.SeccionDetalleDTO;
+import com.example.matriculas.dto.SeccionHistorialDTO;
+import com.example.matriculas.dto.SeccionHorariosActualizarDTO;
 import com.example.matriculas.dto.SeccionListadoDTO;
 import com.example.matriculas.model.Curso;
 import com.example.matriculas.model.Docente;
@@ -26,6 +29,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.text.Normalizer;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -156,6 +160,29 @@ public class SeccionService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<SeccionHistorialDTO> obtenerHistorial(Long seccionId) {
+        if (!seccionRepository.existsById(seccionId)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Sección no encontrada");
+        }
+
+        return detalleMatriculaRepository.findHistorialBySeccion(seccionId)
+                .stream()
+                .map(detalle -> SeccionHistorialDTO.builder()
+                        .matriculaId(detalle.getMatricula().getId())
+                        .alumnoCodigo(detalle.getMatricula().getAlumno().getCodigoAlumno())
+                        .alumnoNombre(formatearNombre(detalle.getMatricula().getAlumno().getApellidos(),
+                                detalle.getMatricula().getAlumno().getNombres()))
+                        .estadoMatricula(formatearEstadoMatricula(detalle.getMatricula().getEstado()))
+                        .periodo(detalle.getMatricula().getCicloAcademico())
+                        .fechaMatricula(detalle.getMatricula().getFechaMatricula())
+                        .observacion(detalle.getMatricula().getEstado() == EstadoMatricula.ANULADA
+                                ? "Matrícula anulada"
+                                : null)
+                        .build())
+                .toList();
+    }
+
     @Transactional
     public void anular(Long seccionId) {
         Seccion seccion = seccionRepository.findById(seccionId)
@@ -174,12 +201,99 @@ public class SeccionService {
         seccionRepository.save(seccion);
     }
 
+    @Transactional
+    public void actualizar(Long seccionId, SeccionActualizarDTO dto) {
+        Seccion seccion = seccionRepository.findDetalleById(seccionId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Sección no encontrada"));
+
+        if (EstadoSeccion.ANULADA.equals(seccion.getEstado())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "No se puede editar una sección anulada");
+        }
+
+        if (dto.getDocenteId() != null) {
+            Docente docente = docenteRepository.findById(dto.getDocenteId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Docente no encontrado"));
+            seccion.setDocente(docente);
+        }
+
+        if (StringUtils.hasText(dto.getAula())) {
+            seccion.setAula(dto.getAula().trim());
+        }
+
+        if (dto.getModalidad() != null) {
+            seccion.setModalidad(parsearModalidad(dto.getModalidad()));
+        }
+
+        if (dto.getCupos() != null) {
+            long matriculadosActivos = detalleMatriculaRepository.contarMatriculadosActivosPorSeccion(seccionId);
+            if (dto.getCupos() < matriculadosActivos) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT,
+                        "El cupo no puede ser menor a los estudiantes matriculados (" + matriculadosActivos + ")");
+            }
+            seccion.setCapacidad(dto.getCupos());
+        }
+
+        if (dto.getHorarios() != null) {
+            List<SeccionHorario> horariosActualizados = construirHorarios(dto.getHorarios(), seccion);
+            reemplazarHorarios(seccion, horariosActualizados);
+        }
+
+        seccionRepository.save(seccion);
+    }
+
+    @Transactional
+    public void actualizarHorarios(Long seccionId, SeccionHorariosActualizarDTO dto) {
+        Seccion seccion = seccionRepository.findDetalleById(seccionId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Sección no encontrada"));
+
+        if (EstadoSeccion.ANULADA.equals(seccion.getEstado())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "No se puede editar una sección anulada");
+        }
+
+        List<SeccionHorario> horariosActualizados = construirHorarios(dto.getHorarios(), seccion);
+        reemplazarHorarios(seccion, horariosActualizados);
+
+        seccionRepository.save(seccion);
+    }
+
     private SeccionCatalogoDTO.CursoCatalogoDTO mapearCursoCatalogo(Curso curso) {
         return SeccionCatalogoDTO.CursoCatalogoDTO.builder()
                 .idCurso(curso.getId())
                 .codigo(curso.getCodigo())
                 .nombre(curso.getNombre())
                 .build();
+    }
+
+    private List<SeccionHorario> construirHorarios(List<SeccionActualizarDTO.HorarioEdicionDTO> horariosDto, Seccion seccion) {
+        if (horariosDto == null || horariosDto.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Debes registrar al menos un horario");
+        }
+
+        List<SeccionHorario> horariosActualizados = horariosDto.stream()
+                .map(horarioDTO -> {
+                    DiaSemana dia = parsearDia(horarioDTO.getDia());
+                    String horaInicio = validarHora(horarioDTO.getHoraInicio());
+                    String horaFin = validarHora(horarioDTO.getHoraFin());
+                    validarRangoHorario(horaInicio, horaFin, dia);
+                    return SeccionHorario.builder()
+                            .dia(dia)
+                            .horaInicio(horaInicio)
+                            .horaFin(horaFin)
+                            .seccion(seccion)
+                            .build();
+                })
+                .toList();
+
+        validarCruceHorarios(horariosActualizados);
+        return horariosActualizados;
+    }
+
+    private void reemplazarHorarios(Seccion seccion, List<SeccionHorario> horariosActualizados) {
+        if (seccion.getHorarios() == null) {
+            seccion.setHorarios(new ArrayList<>());
+        }
+        seccion.getHorarios().clear();
+        seccion.getHorarios().addAll(horariosActualizados);
     }
 
     private SeccionCatalogoDTO.DocenteCatalogoDTO mapearDocenteCatalogo(Docente docente) {
@@ -213,6 +327,7 @@ public class SeccionService {
                 .idSeccion(seccion.getId())
                 .curso(seccion.getCurso() != null ? seccion.getCurso().getNombre() : null)
                 .codigoSeccion(seccion.getCodigo())
+                .docenteId(seccion.getDocente() != null ? seccion.getDocente().getId() : null)
                 .docente(seccion.getDocente() != null ? formatearNombre(seccion.getDocente().getApellidos(), seccion.getDocente().getNombres()) : null)
                 .periodo(seccion.getPeriodoAcademico())
                 .modalidad(formatearModalidad(seccion.getModalidad()))
@@ -221,7 +336,29 @@ public class SeccionService {
                 .cupos(seccion.getCapacidad())
                 .matriculados(matriculados)
                 .estado(formatearEstadoSeccion(seccion.getEstado()))
+                .horarios(mapearHorarios(seccion.getHorarios()))
                 .build();
+    }
+
+    private List<SeccionDetalleDTO.HorarioDTO> mapearHorarios(List<SeccionHorario> horarios) {
+        if (horarios == null) return Collections.emptyList();
+        Map<DiaSemana, Integer> orden = Map.of(
+                DiaSemana.LUNES, 1,
+                DiaSemana.MARTES, 2,
+                DiaSemana.MIERCOLES, 3,
+                DiaSemana.JUEVES, 4,
+                DiaSemana.VIERNES, 5,
+                DiaSemana.SABADO, 6,
+                DiaSemana.DOMINGO, 7
+        );
+        return horarios.stream()
+                .sorted(Comparator.comparing(h -> orden.getOrDefault(h.getDia(), 9)))
+                .map(h -> SeccionDetalleDTO.HorarioDTO.builder()
+                        .dia(h.getDia() != null ? h.getDia().name() : null)
+                        .horaInicio(h.getHoraInicio())
+                        .horaFin(h.getHoraFin())
+                        .build())
+                .toList();
     }
 
     private Map<Long, Integer> obtenerMatriculados(List<Seccion> secciones) {
@@ -250,6 +387,60 @@ public class SeccionService {
             case "HIBRIDO", "HÍBRIDO", "SEMIPRESENCIAL" -> Modalidad.SEMIPRESENCIAL;
             default -> throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Modalidad no soportada: " + modalidad);
         };
+    }
+
+    private DiaSemana parsearDia(String dia) {
+        if (!StringUtils.hasText(dia)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Día de horario inválido");
+        }
+        try {
+            return DiaSemana.valueOf(dia.trim().toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Día de horario no soportado: " + dia);
+        }
+    }
+
+    private String validarHora(String valor) {
+        if (!StringUtils.hasText(valor)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Hora de horario inválida");
+        }
+        try {
+            return LocalTime.parse(valor.trim()).toString();
+        } catch (Exception ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Formato de hora inválido: " + valor);
+        }
+    }
+
+    private void validarRangoHorario(String horaInicio, String horaFin, DiaSemana dia) {
+        LocalTime inicio = LocalTime.parse(horaInicio);
+        LocalTime fin = LocalTime.parse(horaFin);
+        if (!fin.isAfter(inicio)) {
+            String diaTexto = dia != null ? dia.name().toLowerCase(Locale.ROOT) : "el día seleccionado";
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "La hora fin debe ser mayor a la hora inicio para " + diaTexto);
+        }
+    }
+
+    private void validarCruceHorarios(List<SeccionHorario> horarios) {
+        Map<DiaSemana, List<SeccionHorario>> agrupados = horarios.stream()
+                .collect(Collectors.groupingBy(SeccionHorario::getDia));
+
+        for (Map.Entry<DiaSemana, List<SeccionHorario>> entry : agrupados.entrySet()) {
+            List<SeccionHorario> delDia = entry.getValue().stream()
+                    .sorted(Comparator.comparing(h -> LocalTime.parse(h.getHoraInicio())))
+                    .toList();
+
+            LocalTime ultimoFin = null;
+            for (SeccionHorario horario : delDia) {
+                LocalTime inicio = LocalTime.parse(horario.getHoraInicio());
+                LocalTime fin = LocalTime.parse(horario.getHoraFin());
+                if (ultimoFin != null && !inicio.isAfter(ultimoFin)) {
+                    throw new ResponseStatusException(HttpStatus.CONFLICT,
+                            "Los horarios se sobreponen para el día " + entry.getKey().name().toLowerCase(Locale.ROOT));
+                }
+                ultimoFin = fin;
+            }
+        }
     }
 
     private String formatearModalidad(Modalidad modalidad) {

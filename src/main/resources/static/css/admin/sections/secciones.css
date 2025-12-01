@@ -120,3 +120,71 @@
     background: #ffe5e5 !important;
 }
 
+#tablaSecciones tr.anulada {
+    background: #ffe5e5 !important;
+    color: #b10000 !important;
+}
+
+.secciones-historial {
+    grid-column: 1 / -1;
+}
+
+.swal-form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 0.75rem;
+    text-align: left;
+}
+
+.swal-form-grid label {
+    font-size: 0.9rem;
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.swal-form-grid input,
+.swal-form-grid select {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid var(--color-borde);
+    border-radius: 8px;
+}
+
+.horarios-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.horario-row {
+    display: grid;
+    grid-template-columns: 1fr 1.1fr 0.9fr 0.9fr auto;
+    gap: 0.45rem;
+    align-items: end;
+}
+
+.horario-row label {
+    font-size: 0.85rem;
+    color: #555;
+}
+
+.horario-row select,
+.horario-row input[type="time"] {
+    padding: 0.45rem;
+    border: 1px solid var(--color-borde);
+    border-radius: 8px;
+}
+
+.horarios-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.btn-link.btn-remove-horario {
+    color: #c0392b;
+    font-weight: 600;
+    padding: 0.35rem 0.6rem;
+    border: none;
+}
+
