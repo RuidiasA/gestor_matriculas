@@ -122,7 +122,9 @@ function createAlumnosModule(tools) {
     const totalCursos = document.getElementById('totalCursos');
     const totalCreditos = document.getElementById('totalCreditos');
     const totalHoras = document.getElementById('totalHoras');
-    const montoEstimado = document.getElementById('montoEstimado');
+    const montoMatricula = document.getElementById('montoMatricula');
+    const montoPension = document.getElementById('montoPension');
+    const montoTotal = document.getElementById('montoTotal');
     const contenedorHistorial = document.getElementById('contenedorHistorial');
     const subtituloHistorial = document.getElementById('subtituloHistorial');
 
@@ -222,7 +224,7 @@ function createAlumnosModule(tools) {
                 tools.markSelectedRow(tablaAlumnos, tr);
                 historialMatriculasCache = [];
                 cursosPorCicloCache = {};
-                renderizarHistorial([], null);
+                renderizarHistorial([], null, null);
                 alumnoSeleccionado = alumno;
                 cargarFicha(alumno);
                 cargarPeriodos(alumno);
@@ -255,16 +257,22 @@ function createAlumnosModule(tools) {
     function cargarPeriodos(alumno) {
         selectorCiclo.innerHTML = '';
         const periodos = alumno.periodos || [];
-        if (!periodos.length) {
+        const ordenados = [...periodos].sort((a, b) => b.localeCompare(a));
+        const cicloActual = ordenados[0];
+        selectorCiclo.disabled = true;
+
+        if (!cicloActual) {
             selectorCiclo.innerHTML = '<option value="">Sin ciclos</option>';
+            renderizarCursos([]);
+            renderizarResumen({});
             return;
         }
-        periodos.forEach(p => {
-            const opt = document.createElement('option');
-            opt.value = p;
-            opt.textContent = p;
-            selectorCiclo.appendChild(opt);
-        });
+
+        const opt = document.createElement('option');
+        opt.value = cicloActual;
+        opt.textContent = cicloActual;
+        selectorCiclo.appendChild(opt);
+        selectorCiclo.value = cicloActual;
     }
 
     async function cargarDetalleAcademico(idAlumno, ciclo) {
@@ -285,10 +293,11 @@ function createAlumnosModule(tools) {
             const resumen = await resumenRes.json();
             const historial = await historialRes.json();
 
-            historialMatriculasCache = historial;
+            const historialNormalizado = Array.isArray(historial) ? historial : [];
+            historialMatriculasCache = historialNormalizado;
             renderizarCursos(cursos);
             renderizarResumen(resumen);
-            renderizarHistorial(historial, idAlumno);
+            renderizarHistorial(historialNormalizado, idAlumno, ciclo);
         } catch (err) {
             mostrarSkeletonCursos(err.message || 'Sin información');
             tools.showToast('No se pudo cargar el detalle académico', 'error');
@@ -317,36 +326,82 @@ function createAlumnosModule(tools) {
     }
 
     function renderizarResumen(resumen) {
-        totalCursos.textContent = resumen.totalCursos ?? '-';
-        totalCreditos.textContent = resumen.totalCreditos ?? '-';
-        totalHoras.textContent = resumen.totalHoras ?? '-';
-        montoEstimado.textContent = resumen.montoTotal ? `S/ ${resumen.montoTotal}` : '-';
+        const tieneDatos = resumen && Object.keys(resumen).length;
+        totalCursos.textContent = tieneDatos && resumen.totalCursos != null ? resumen.totalCursos : '-';
+        totalCreditos.textContent = tieneDatos && resumen.totalCreditos != null ? resumen.totalCreditos : '-';
+        totalHoras.textContent = tieneDatos && resumen.totalHoras != null ? resumen.totalHoras : '-';
+        montoMatricula.textContent = tieneDatos && resumen.matricula != null ? formatoMoneda(resumen.matricula) : '-';
+        montoPension.textContent = tieneDatos && resumen.pension != null ? formatoMoneda(resumen.pension) : '-';
+        montoTotal.textContent = tieneDatos && resumen.montoTotal != null ? formatoMoneda(resumen.montoTotal) : '-';
     }
 
-    function renderizarHistorial(historial, alumnoId) {
-        if (!historial || !historial.length) {
+    function formatoMoneda(valor) {
+        if (valor === null || valor === undefined || Number.isNaN(Number(valor))) return '-';
+        return `S/ ${Number(valor).toFixed(2)}`;
+    }
+
+    function renderizarHistorial(historial, alumnoId, cicloActual) {
+        const registros = Array.isArray(historial) ? historial : [];
+        const filtrados = cicloActual ? registros.filter(h => h.ciclo !== cicloActual) : registros;
+
+        if (!filtrados.length) {
             contenedorHistorial.innerHTML = '<p class="muted">Sin historial</p>';
             subtituloHistorial.textContent = 'Historial de matrícula';
+            historialMatriculasCache = [];
+            if (alumnoId) cursosPorCicloCache[alumnoId] = [];
             return;
         }
 
-        contenedorHistorial.innerHTML = historial.map(h => `
-            <article class="historial-card">
-                <header>
-                    <div>
-                        <p class="label">Ciclo</p>
-                        <p><strong>${h.ciclo || '-'}</strong></p>
+        contenedorHistorial.innerHTML = '';
+        filtrados.forEach((h, index) => {
+            const card = document.createElement('article');
+            card.className = 'historial-item';
+            card.innerHTML = `
+                <div class="historial-item__header">
+                    <div class="meta">
+                        <p class="historial-item__ciclo">${h.ciclo || '-'}</p>
+                        <span class="badge">${h.estado || '-'}</span>
                     </div>
-                    <span class="badge">${h.estado || '-'}</span>
-                </header>
-                <div class="historial-content">
-                    ${crearTablaCursosHTML(h.cursos)}
+                    <button type="button" class="historial-item__toggle">${index === 0 ? 'Ocultar' : 'Ver detalle'}</button>
                 </div>
-            </article>
-        `).join('');
-        subtituloHistorial.textContent = `Historial de matrícula (${historial.length})`;
-        historialMatriculasCache = historial;
-        cursosPorCicloCache[alumnoId] = historial;
+                <div class="historial-badges">
+                    <span class="historial-badge">Cursos: ${h.totalCursos ?? 0}</span>
+                    <span class="historial-badge">Créditos: ${h.totalCreditos ?? 0}</span>
+                    <span class="historial-badge">Horas: ${h.totalHoras ?? 0}</span>
+                </div>
+                <div class="historial-item__body">
+                    ${crearTablaCursosHTML(h.cursos)}
+                    <div class="historial-pagos">
+                        ${crearPagoCard('Matrícula', h.matricula)}
+                        ${crearPagoCard('Pensión', h.pension)}
+                        ${crearPagoCard('Mora', h.mora)}
+                        ${crearPagoCard('Descuentos', h.descuentos)}
+                        ${crearPagoCard('Total', h.montoTotal)}
+                    </div>
+                </div>
+            `;
+
+            const toggle = card.querySelector('.historial-item__toggle');
+            const cuerpo = card.querySelector('.historial-item__body');
+            if (index === 0) {
+                card.classList.add('open');
+                cuerpo.style.display = 'block';
+            }
+
+            toggle.addEventListener('click', () => {
+                const abierto = card.classList.toggle('open');
+                cuerpo.style.display = abierto ? 'block' : 'none';
+                toggle.textContent = abierto ? 'Ocultar' : 'Ver detalle';
+            });
+
+            contenedorHistorial.appendChild(card);
+        });
+
+        subtituloHistorial.textContent = `Historial de matrícula (${filtrados.length})`;
+        historialMatriculasCache = filtrados;
+        if (alumnoId) {
+            cursosPorCicloCache[alumnoId] = filtrados;
+        }
     }
 
     function crearTablaCursosHTML(cursos) {
@@ -386,6 +441,15 @@ function createAlumnosModule(tools) {
     `;
     }
 
+    function crearPagoCard(label, valor) {
+        return `
+            <div class="historial-pago__card">
+                <p class="historial-pago__label">${label}</p>
+                <p><strong>${formatoMoneda(valor)}</strong></p>
+            </div>
+        `;
+    }
+
     function mostrarSkeletonCursos(texto) {
         tablaCursos.innerHTML = `<tr class="skeleton-row"><td colspan="7">${texto}</td></tr>`;
     }
@@ -404,9 +468,10 @@ function createAlumnosModule(tools) {
         tablaAlumnos.querySelectorAll('tr').forEach(fila => fila.classList.remove('selected'));
         cargarFicha({});
         selectorCiclo.innerHTML = '';
+        selectorCiclo.disabled = true;
         renderizarCursos([]);
         renderizarResumen({});
-        renderizarHistorial([], null);
+        renderizarHistorial([], null, null);
     }
 
     function validarContacto() {
