@@ -228,7 +228,11 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!response.ok) throw new Error("Error al buscar alumnos");
             const alumnos = await response.json();
             renderizarAlumnos(alumnos);
-            if (!alumnos.length) mostrarEstado(estadoBusqueda, "Alumno no encontrado", true);
+            if (!alumnos.length) {
+                mostrarEstado(estadoBusqueda, "Alumno no encontrado", true);
+            } else {
+                estadoBusqueda.hidden = true;
+            }
         } catch (err) {
             renderizarAlumnos([]);
             mostrarEstado(estadoBusqueda, err.message || "No se pudo cargar la lista", true);

@@ -79,7 +79,6 @@ main {
     overflow-x: auto;
 }
 
-
 /* ========================
    ASIDE IZQUIERDO
 ======================== */
@@ -154,30 +153,15 @@ main {
 ======================== */
 .admin-section {
     margin: 30px;
-    padding: 2rem;
-    background-color: var(--color-blanco);
     border-radius: 12px;
     box-shadow: 0 4px 16px rgba(27,59,111,0.12);
     display: none;
     width: calc(100% - 60px);
+    height: auto;
 }
 
 .admin-section.active {
     display: block;
-}
-
-.admin-section h2 {
-    color: var(--color-primario);
-    margin-bottom: 1rem;
-}
-
-/* Header de sección (ej. Gestión de alumnos) */
-.section-header {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 1.5rem;
 }
 
 /* ========================
@@ -246,17 +230,6 @@ main {
     gap: 0.4rem;
 }
 
-.agregar-curso {
-    display: flex;
-    align-items: flex-end;
-    gap: 0.75rem;
-    flex-wrap: wrap;
-}
-
-.agregar-curso select {
-    min-width: 220px;
-}
-
 .card__body {
     margin-top: 0.5rem;
 }
@@ -286,6 +259,7 @@ main {
     background-color: var(--color-secundario);
     color: var(--color-primario);
     font-weight: bold;
+    text-align: center;
 }
 
 /* Fila esqueleto / carga */
@@ -442,9 +416,12 @@ button.btnEliminar:hover {
 .docente-form {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.8rem;
     align-items: center;
     margin-bottom: 1rem;
+}
+
+.search-form{
+    gap: 1rem;
 }
 
 .admin-form label,
@@ -559,6 +536,7 @@ button.btnEliminar:hover {
     grid-template-areas:
         "tabla ficha"
         "detalle detalle";
+    height: 100%;
 }
 
 .panel--tabla {
@@ -742,6 +720,7 @@ button.btnEliminar:hover {
     display: grid;
     grid-template-columns: minmax(0, 1.05fr) minmax(360px, 0.75fr);
     gap: 1.5rem;
+    height: 100%;
 }
 
 .docentes-col {
@@ -756,30 +735,31 @@ button.btnEliminar:hover {
 }
 
 .docentes-col--right {
-    position: sticky;
-    top: 40px;
-    height: calc(100vh - 80px);
+    position: static;
+    top: 30px;
+    height: auto;
+    max-height: none !important;
     display: flex;
-    align-items: center;
+    align-items: stretch;
     flex-direction: column;
     gap: 1rem;
     overflow: visible;
     min-width: 0;
 }
 
-
 /* Última card derecha (tabla docentes) ocupa el resto */
 .docentes-col--right .card:last-child {
     flex: 1;
     display: flex;
     flex-direction: column;
+    max-height: 50vh;
 }
 
 .docentes-col--right .table-wrapper {
     flex: 1;                /* 👈 la tabla ocupa el espacio restante */
-    overflow-y: auto !important;       /* scroll interno */
+    overflow-y: auto;       /* scroll interno */
     min-height: 0;          /* 👈 evita desbordes por height automática */
-    max-height: 200px;
+    max-height: 230px;
 }
 
 
@@ -845,9 +825,7 @@ button.btnEliminar:hover {
 
 /* Tablas de docentes (seleccionables) */
 #tablaDocentes tbody tr,
-#tablaCursosDictables tbody tr,
-#tablaSeccionesDocente tbody tr,
-#tablaHistorialDocente tbody tr {
+#tablaAlumnos tbody tr {
     cursor: pointer;
 }
 
@@ -917,181 +895,193 @@ button.btnEliminar:hover {
 /* ==== Grid específico para la búsqueda de docentes ==== */
 #formBusquedaDocentes .form-grid {
     display: grid;
-    grid-template-columns: 1fr auto;  /* columna grande + columna para estado/botón */
-    column-gap: 1.5rem;
-    row-gap: 0.8rem;
+    grid-template-columns: 1.4fr 1fr 1fr auto;
+    gap: 1rem;
     align-items: end;
 }
 
-/* 1) FILTRO GENERAL — fila 1, col 1 */
-#formBusquedaDocentes .form-grid label:nth-child(1) {
-    grid-column: 1;
-    grid-row: 1;
+#formBusquedaDocentes .form-grid > label {
+    width: 100% !important;
 }
 
-/* 2) ESTADO — fila 1, col 2 */
-#formBusquedaDocentes .form-grid label:nth-child(3) {
-    grid-column: 2;
-    grid-row: 1;
-}
-
-/* 3) CURSO DICTABLE — fila 2, col 1 */
-#formBusquedaDocentes .form-grid label:nth-child(2) {
-    grid-column: 1;
-    grid-row: 2;
-}
-
-/* 4) BOTÓN BUSCAR — fila 2, col 2 */
+/* Botón buscar alineado al fondo */
 #formBusquedaDocentes .form-grid .form-actions {
-    grid-column: 2;
-    grid-row: 2;
-    display: flex;
-    justify-content: flex-start;   /* cámbialo a center o flex-end si quieres */
-    align-items: center;
+    width: 100% !important;
+    display: flex !important;
+    justify-content: flex-end !important;
+    align-items: center !important;
 }
 
 .docentes-col--right .table-wrapper::-webkit-scrollbar {
     display: none; /* Chrome, Edge, Safari */
 }
+/* Mantener select + botón en una sola fila */
+.agregar-curso {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 0.7rem;
+    min-height: 45px; /* altura cómoda */
+    align-items: center !important;
+}
+
+/* Para que el select use el espacio disponible */
+.agregar-curso select {
+    flex: 1;
+    height: 38px; /* igual al botón */
+    display: flex;
+    align-items: center;
+}
+.agregar-curso button {
+    height: 38px;
+    display: flex;
+    align-items: center;
+}
+/* Padding top a las cards que contienen esas tablas */
+#tablaCursosDictables,
+#tablaSeccionesDocente,
+#tablaHistorialDocente {
+    margin-top: 10px !important;
+}
+
+#tablaCursosDictables .table-wrapper,
+#tablaSeccionesDocente .table-wrapper,
+#tablaHistorialDocente .table-wrapper {
+    padding-top: 10px !important;
+}
+
+/* Fila con título + input + botones */
+#formBusquedaAlumnos {
+    display: flex;
+    align-items: center;
+}
+
+/* Título siempre pegado a la izquierda */
+#formBusquedaAlumnos h3 {
+    margin: 0;
+    white-space: nowrap;
+}
+
+/* Este es el truco: empuja desde aquí hacia la derecha */
+#formBusquedaAlumnos .form-field {
+    margin-left: auto;      /* 👈 empuja input + botones a la derecha */
+    flex: 0 0 260px;        /* 👈 ancho del input (ajusta 260px si quieres) */
+}
+
+/* El input ocupa solo esos 260px */
+#formBusquedaAlumnos .form-field input {
+    width: 100%;
+}
+
+/* Botones a la derecha del input */
+#formBusquedaAlumnos .search-actions {
+    display: flex;
+    gap: 1rem;
+    white-space: nowrap;
+}
+
 
 /* ================================
    RESPONSIVE
 ================================ */
 
-/* <= 1500px: tablas algo más anchas y docentes en 1 columna */
+@media (min-width: 1600px) {
+    #formBusquedaDocentes .form-grid{
+        width: 100%;
+        grid-template-columns: 1fr 0.3fr;
+    }
+
+    #formBusquedaDocentes .form-grid label:nth-child(1) {
+        grid-column: 1;
+        grid-row: 1;
+    }
+
+    /* 2) ESTADO — fila 1, col 2 */
+    #formBusquedaDocentes .form-grid label:nth-child(3) {
+        grid-column: 2;
+        grid-row: 1;
+    }
+
+    /* 3) CURSO DICTABLE — fila 2, col 1 */
+    #formBusquedaDocentes .form-grid label:nth-child(2) {
+        grid-column: 1;
+        grid-row: 2;
+    }
+
+    /* 4) BOTÓN BUSCAR — fila 2, col 2 */
+    #formBusquedaDocentes .form-grid .form-actions {
+        grid-column: 2;
+        grid-row: 2;
+        display: flex;
+        justify-content: flex-start;   /* cámbialo a center o flex-end si quieres */
+        align-items: center;
+    }
+    #formBusquedaDocentes .form-grid .form-actions .btn-primary{
+        width: 100%;
+    }
+}
+
+/* ============================================
+   ORDEN DE TARJETAS < 1600px
+   ============================================ */
 @media (max-width: 1600px) {
+
+    /* 1 columna para todo el bloque de docentes */
     .docentes-grid {
-        grid-template-columns: 1fr;
-        align-items: flex-start;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 1.5rem !important;
     }
 
-    .docentes-col {
-        display: contents;
+    /* Cada columna ocupa el 100% */
+    .docentes-col--right,
+    .docentes-col--left {
+        width: 100% !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 1.5rem !important;
     }
 
-    .docentes-grid > .card {
-        order: initial;
-        min-width: 0;
-    }
-
-    /* Orden priorizando la búsqueda y luego cursos */
-    .docentes-grid > .card:nth-of-type(5) { /* Buscar docentes */
-        order: 1;
-    }
-
-    .docentes-grid > .card:nth-of-type(1) { /* Cursos que puede dictar */
-        order: 2;
-    }
-
-    .docentes-grid > .card:nth-of-type(4) { /* Ficha del docente */
-        order: 3;
-    }
-
-    .docentes-grid > .card:nth-of-type(2) { /* Secciones asignadas */
-        order: 4;
-    }
-
-    .docentes-grid > .card:nth-of-type(3) { /* Historial académico */
-        order: 5;
-    }
-}
-
-/* <= 1400px: columnas de docentes en bloque y formularios apilados */
-@media (max-width: 1400px) {
-    .docentes-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .docentes-col {
-        width: 100%;
-    }
-
+    /* Quitar sticky en mobile/mediano */
     .docentes-col--right {
-        position: static;
-        top: auto;
-        height: auto;
-        align-items: stretch;
+        position: static !important;
+        top: auto !important;
+        height: auto !important;
     }
 
-    .docentes-col--right .card:last-child {
-        flex: 0 0 auto;
-    }
-
-    .docentes-col--right .table-wrapper {
-        max-height: 260px;
-    }
-
-    .ficha-acciones {
-        justify-content: flex-start;
-        flex-wrap: wrap;
-    }
-
-    #formBusquedaDocentes .form-grid {
-        grid-template-columns: 1fr;
-    }
-
-    #formBusquedaDocentes .form-grid label:nth-child(1),
-    #formBusquedaDocentes .form-grid label:nth-child(2),
-    #formBusquedaDocentes .form-grid label:nth-child(3) {
-        grid-column: 1;
-        grid-row: auto;
-    }
-
-    #formBusquedaDocentes .form-grid .form-actions {
-        grid-column: 1;
-        grid-row: auto;
-        justify-content: flex-start;
-    }
-}
-
-/* <= 1400px: columnas de docentes en bloque y formularios apilados */
-@media (max-width: 1400px) {
-    .docentes-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .docentes-col {
-        width: 100%;
-    }
-
+    /* ORDEN ENTRE COLUMNAS:
+       1️⃣ primero la derecha (ficha + buscar)
+       2️⃣ luego la izquierda (secciones, cursos, historial)
+    */
     .docentes-col--right {
-        position: static;
-        top: auto;
-        height: auto;
-        align-items: stretch;
+        order: 1 !important;
     }
 
-    .docentes-col--right .card:last-child {
-        flex: 0 0 auto;
+    .docentes-col--left {
+        order: 2 !important;
     }
 
-    .docentes-col--right .table-wrapper {
-        max-height: 260px;
+
+    /* 3️⃣ Secciones asignadas actualmente */
+    .docentes-col--left article:nth-of-type(2) {
+        order: 1 !important;
     }
 
-    .ficha-acciones {
-        justify-content: flex-start;
-        flex-wrap: wrap;
+    /* 4️⃣ Cursos que puede dictar */
+    .docentes-col--left article:nth-of-type(1) {
+        order: 2 !important;
     }
 
-    #formBusquedaDocentes .form-grid {
-        grid-template-columns: 1fr;
+    /* 5️⃣ Historial académico */
+    .docentes-col--left article:nth-of-type(3) {
+        order: 3 !important;
     }
 
-    #formBusquedaDocentes .form-grid label:nth-child(1),
-    #formBusquedaDocentes .form-grid label:nth-child(2),
-    #formBusquedaDocentes .form-grid label:nth-child(3) {
-        grid-column: 1;
-        grid-row: auto;
-    }
-
-    #formBusquedaDocentes .form-grid .form-actions {
-        grid-column: 1;
-        grid-row: auto;
-        justify-content: flex-start;
+    #fichaDocente .ficha-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 1rem;
     }
 }
-
 
 /* <= 900px: aside arriba, contenido en una sola columna */
 @media (max-width: 900px) {
@@ -1159,18 +1149,31 @@ button.btnEliminar:hover {
     .form-actions {
         justify-content: flex-start;
     }
-}
-
-/* Siempre 2 columnas en laptops/PC */
-@media (min-width: 700px) {
-    .ficha-grid {
-        grid-template-columns: repeat(2, 1fr) !important;
-    }
-}
-
-/* En celulares se pasa a 1 columna */
-@media (max-width: 699px) {
     .ficha-grid {
         grid-template-columns: 1fr !important;
     }
+}
+
+/* ============================================================
+   FORMULARIOS DE EDICIÓN — SOLO CUANDO ESTÁN VISIBLES
+   ============================================================ */
+#fichaDocente .docente-form:not([hidden]) {
+    display: grid;
+    margin-top: 1.2rem;
+    border-top: 1px solid var(--color-borde);
+}
+
+/* Campos alineados y más compactos */
+#fichaDocente .docente-form:not([hidden]) label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+/* Botones en una fila abajo */
+#fichaDocente .docente-form:not([hidden]) .form-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.8rem;
 }
