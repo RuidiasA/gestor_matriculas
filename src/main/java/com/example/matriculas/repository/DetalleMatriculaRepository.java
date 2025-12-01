@@ -31,4 +31,13 @@ public interface DetalleMatriculaRepository extends JpaRepository<DetalleMatricu
             WHERE dm.seccion.id = :seccionId AND m.estado <> com.example.matriculas.model.enums.EstadoMatricula.ANULADA
             """)
     List<DetalleMatricula> findBySeccionIdWithAlumno(@Param("seccionId") Long seccionId);
+
+    @Query("""
+            SELECT dm FROM DetalleMatricula dm
+            JOIN FETCH dm.matricula m
+            JOIN FETCH m.alumno a
+            WHERE dm.seccion.id = :seccionId
+            ORDER BY m.fechaMatricula DESC
+            """)
+    List<DetalleMatricula> findHistorialBySeccion(@Param("seccionId") Long seccionId);
 }
