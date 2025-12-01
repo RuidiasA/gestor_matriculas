@@ -5,6 +5,7 @@ import com.example.matriculas.dto.SeccionActualizarDTO;
 import com.example.matriculas.dto.SeccionCatalogoDTO;
 import com.example.matriculas.dto.SeccionDetalleDTO;
 import com.example.matriculas.dto.SeccionHistorialDTO;
+import com.example.matriculas.dto.SeccionHorariosActualizarDTO;
 import com.example.matriculas.dto.SeccionListadoDTO;
 import com.example.matriculas.service.SeccionService;
 import lombok.RequiredArgsConstructor;
@@ -64,6 +65,12 @@ public class AdminSeccionController {
     @PutMapping("/{id}")
     public ResponseEntity<Void> actualizar(@PathVariable Long id, @Valid @RequestBody SeccionActualizarDTO dto) {
         seccionService.actualizar(id, dto);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}/horarios")
+    public ResponseEntity<Void> actualizarHorarios(@PathVariable Long id, @Valid @RequestBody SeccionHorariosActualizarDTO dto) {
+        seccionService.actualizarHorarios(id, dto);
         return ResponseEntity.noContent().build();
     }
 
