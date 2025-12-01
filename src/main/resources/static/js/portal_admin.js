@@ -254,7 +254,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <td>${alumno.telefono || "-"}</td>
                 <td>${alumno.anioIngreso || "-"}</td>
                 <td>${alumno.cicloActual || "-"}</td>
-                <td>${alumno.turno || alumno.prioridad || "-"}</td>
+                <td>${alumno.ordenMerito ?? "-"}</td>
             `;
             tr.addEventListener("click", () => {
                 document.querySelectorAll("#tablaAlumnos tbody tr").forEach(fila => fila.classList.remove("selected"));
@@ -378,37 +378,46 @@ document.addEventListener("DOMContentLoaded", () => {
             item.className = "historial-item";
             item.dataset.ciclo = h.ciclo;
 
+            /* ==== CABECERA DEL CICLO ==== */
             const header = document.createElement("div");
             header.className = "historial-item__header";
             header.innerHTML = `
-                <div>
-                    <strong>${h.ciclo || "-"}</strong>
-                    <p class="historial-item__summary">
-                        ${h.totalCursos ?? 0} curso(s) ·
-                        ${h.totalCreditos ?? 0} créditos ·
-                        ${h.totalHoras ?? 0} horas
-                        ${h.montoTotal != null ? ` · S/. ${h.montoTotal}` : ""}
-                    </p>
-                </div>
-                <span class="badge badge--estado badge--${(h.estado || "").toLowerCase()}">
-                    ${h.estado || "-"}
-                </span>
-            `;
+            <span class="historial-item__ciclo">${h.ciclo || "-"}</span>
+            <span class="historial-item__estado badge--${(h.estado || "").toLowerCase()}">
+                ${h.estado || "-"}
+            </span>
+        `;
 
+            /* ==== BADGES RESUMEN ==== */
+            const badges = document.createElement("div");
+            badges.className = "historial-badges";
+            badges.innerHTML = `
+            <span class="historial-badge">Cursos: ${h.totalCursos ?? 0}</span>
+            <span class="historial-badge">Créditos: ${h.totalCreditos ?? 0}</span>
+            <span class="historial-badge">Horas: ${h.totalHoras ?? 0}</span>
+            <span class="historial-badge">Pension: S/.${h.montoTotal ?? 0}</span>
+        `;
+
+            /* ==== BOTÓN DE VER CURSOS ==== */
             const toggle = document.createElement("button");
             toggle.type = "button";
             toggle.className = "historial-item__toggle btn-secondary";
             toggle.textContent = "Ver cursos";
+
             header.appendChild(toggle);
 
+            /* ==== CONTENEDOR DE TABLA ==== */
             const coursesContainer = document.createElement("div");
             coursesContainer.className = "historial-item__courses";
             coursesContainer.hidden = true;
 
+            /* ==== AGREGAR TODO AL ITEM ==== */
             item.appendChild(header);
+            item.appendChild(badges);
             item.appendChild(coursesContainer);
             contenedorHistorial.appendChild(item);
 
+            /* ==== EVENTO DE ABRIR / CERRAR ==== */
             toggle.addEventListener("click", async () => {
                 const ciclo = h.ciclo;
                 const abierto = !coursesContainer.hidden;
@@ -421,14 +430,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 if (!cursosPorCicloCache[ciclo]) {
                     try {
-                        coursesContainer.innerHTML = `<p class=\"muted\">Cargando cursos...</p>`;
+                        coursesContainer.innerHTML = `<p class="muted">Cargando cursos...</p>`;
                         const resp = await fetch(`/admin/alumnos/${idAlumno}/matriculas?ciclo=${encodeURIComponent(ciclo)}`);
                         if (!resp.ok) throw new Error();
                         const cursos = await resp.json();
                         cursosPorCicloCache[ciclo] = cursos;
                         coursesContainer.innerHTML = crearTablaCursosHTML(cursos);
                     } catch (e) {
-                        coursesContainer.innerHTML = `<p class=\"muted\">No se pudieron cargar los cursos</p>`;
+                        coursesContainer.innerHTML = `<p class="muted">No se pudieron cargar los cursos</p>`;
                     }
                 } else {
                     coursesContainer.innerHTML = crearTablaCursosHTML(cursosPorCicloCache[ciclo]);
@@ -444,36 +453,37 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!cursos || !cursos.length) {
             return `<p class="muted">Sin cursos para este ciclo</p>`;
         }
+
         const rows = cursos.map(c => `
-            <tr>
-                <td>${c.codigoSeccion || "-"}</td>
-                <td>${c.nombreCurso || "-"}</td>
-                <td>${c.docente || "-"}</td>
-                <td>${c.creditos ?? "-"}</td>
-                <td>${c.horasSemanales ?? "-"}</td>
-                <td>${c.modalidad || "-"}</td>
-                <td>${c.aula || "-"}</td>
-            </tr>
-        `).join("");
+        <tr>
+            <td>${c.codigoSeccion || "-"}</td>
+            <td>${c.nombreCurso || "-"}</td>
+            <td>${c.docente || "-"}</td>
+            <td>${c.creditos ?? "-"}</td>
+            <td>${c.horasSemanales ?? "-"}</td>
+            <td>${c.modalidad || "-"}</td>
+            <td>${c.aula || "-"}</td>
+        </tr>
+    `).join("");
 
         return `
-            <div class="table-wrapper historial-table-wrapper">
-                <table class="admin-table historial-table">
-                    <thead>
-                        <tr>
-                            <th>Código sección</th>
-                            <th>Curso</th>
-                            <th>Docente</th>
-                            <th>Créditos</th>
-                            <th>Horas</th>
-                            <th>Modalidad</th>
-                            <th>Aula</th>
-                        </tr>
-                    </thead>
-                    <tbody>${rows}</tbody>
-                </table>
-            </div>
-        `;
+        <div class="historial-table-wrapper">
+            <table class="historial-table">
+                <thead>
+                    <tr>
+                        <th>Código sección</th>
+                        <th>Curso</th>
+                        <th>Docente</th>
+                        <th>Créditos</th>
+                        <th>Horas</th>
+                        <th>Modalidad</th>
+                        <th>Aula</th>
+                    </tr>
+                </thead>
+                <tbody>${rows}</tbody>
+            </table>
+        </div>
+    `;
     }
 
     function mostrarSkeletonCursos(texto) {
@@ -718,15 +728,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function renderizarSeccionesDocente(detalle) {
         const secciones = detalle.seccionesActuales || [];
-        tablaSeccionesDocente.innerHTML = "";
+        const tbody = tablaSeccionesDocente;
+        tbody.innerHTML = "";
+
+        // 1. Mostrar tabla
         if (!secciones.length) {
-            tablaSeccionesDocente.innerHTML = `<tr><td colspan="9" class="muted">Sin secciones</td></tr>`;
-            resumenSeccionesDocente.textContent = "-";
-            return;
-        }
-        secciones.forEach(s => {
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
+            tbody.innerHTML = `<tr><td colspan="9" class="muted">Sin secciones</td></tr>`;
+        } else {
+            secciones.forEach(s => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
                 <td>${s.curso || "-"}</td>
                 <td>${s.codigoSeccion || "-"}</td>
                 <td>${s.periodo || "-"}</td>
@@ -737,9 +748,27 @@ document.addEventListener("DOMContentLoaded", () => {
                 <td>${s.aula || "-"}</td>
                 <td>${s.estudiantesInscritos ?? 0}</td>
             `;
-            tablaSeccionesDocente.appendChild(tr);
+                tbody.appendChild(tr);
+            });
+        }
+
+        // 3. Generar pastillas sin duplicar
+        const contenedorBadges = document.getElementById("contenedorSeccionesBadges");
+        contenedorBadges.innerHTML = ""; // <-- evita duplicados
+
+        const badges = [
+            `${detalle.totalSeccionesActuales || 0} secciones`,
+            `${detalle.totalCreditosActuales || 0} créditos`,
+            `${detalle.totalHorasSemanalesActuales || 0} h/semana`,
+            `${detalle.totalCursosActuales || 0} cursos`
+        ];
+
+        badges.forEach(texto => {
+            const span = document.createElement("span");
+            span.classList.add("secciones-badge");
+            span.textContent = texto;
+            contenedorBadges.appendChild(span);
         });
-        resumenSeccionesDocente.textContent = `${detalle.totalSeccionesActuales || 0} secciones · ${detalle.totalCreditosActuales || 0} créditos · ${detalle.totalHorasSemanalesActuales || 0} h/semana · ${detalle.totalCursosActuales || 0} cursos`;
     }
 
     function renderizarHistorialDocente(historial) {

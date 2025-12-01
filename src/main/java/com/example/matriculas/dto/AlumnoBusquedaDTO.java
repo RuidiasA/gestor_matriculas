@@ -23,6 +23,7 @@ public class AlumnoBusquedaDTO {
     private String anioIngreso;
     private String cicloActual;
     private String turno;
+    private Integer ordenMerito;
     private String carrera;
     private String direccion;
     private String estado;

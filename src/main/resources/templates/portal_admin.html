@@ -38,16 +38,12 @@
         <section id="alumnos" class="admin-section">
             <div class="section-header">
                 <div>
-                    <p class="subtitle">Portal Administrador / Gestión de Alumnos</p>
-                    <h2>Alumnos</h2>
-                </div>
-                <div class="section-actions">
-                    <button id="btnRefrescarAlumnos" class="btn-outline">Refrescar</button>
+                    <h2>Portal Administrador / Gestión de Alumnos</h2>
                 </div>
             </div>
 
             <div class="panel-grid">
-                <article class="panel shadow">
+                <article class="panel shadow panel--tabla">
                     <h3>Búsqueda de alumnos</h3>
                     <form id="formBusquedaAlumnos" class="search-form">
                         <div class="form-field">
@@ -73,7 +69,7 @@
                                 <th>Teléfono</th>
                                 <th>Año ingreso</th>
                                 <th>Ciclo actual</th>
-                                <th>Turno/Prioridad</th>
+                                <th>Orden mérito</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -85,13 +81,12 @@
                     </div>
                 </article>
 
-                <article class="panel shadow" id="fichaAlumno">
+                <article class="panel shadow panel--ficha" id="fichaAlumno">
                     <div class="panel-header">
                         <h3>Ficha del alumno</h3>
                         <span class="badge" id="estadoAlumno">-</span>
                     </div>
                     <div class="ficha">
-                        <div class="avatar">👤</div>
                         <div class="ficha__data">
                             <p class="ficha__titulo" id="nombreAlumno">Selecciona un alumno</p>
                             <p class="muted" id="codigoAlumno">-</p>
@@ -135,7 +130,7 @@
                             </div>
                             <div class="form-field">
                                 <label for="telefonoInput">Teléfono (9 dígitos)</label>
-                                <input type="tel" id="telefonoInput" name="telefono" pattern="\\d{9}" maxlength="9" disabled>
+                                <input type="tel" id="telefonoInput" name="telefono" pattern="\d{9}" maxlength="9" disabled>
                             </div>
                             <div class="form-field">
                                 <label for="direccionInput">Dirección</label>
@@ -150,7 +145,7 @@
                     </form>
                 </article>
 
-                <article class="panel shadow" id="detalleAcademico">
+                <article class="panel shadow panel--detalle" id="detalleAcademico">
                     <div class="panel-header">
                         <h3>Detalle académico</h3>
                         <div class="form-field compact">
@@ -194,7 +189,7 @@
                             <p id="totalHoras">-</p>
                         </div>
                         <div class="resumen-card">
-                            <p class="label">Monto estimado</p>
+                            <p class="label">Pension estimada</p>
                             <p id="montoEstimado">-</p>
                         </div>
                     </div>
@@ -214,92 +209,9 @@
 
         <!-- DOCENTES -->
         <section id="docentes" class="admin-section">
-            <h2>Gestión de Docentes</h2>
             <div class="docentes-grid">
                 <div class="docentes-col docentes-col--left">
-                    <article class="card" id="fichaDocente">
-                        <header class="card__header">
-                            <div>
-                                <p class="muted">Código</p>
-                                <h3 id="docCodigo">-</h3>
-                            </div>
-                            <div class="badge" id="docEstado">-</div>
-                        </header>
-                        <div class="card__body">
-                            <div class="ficha-grid">
-                                <div>
-                                    <p class="label">Apellidos</p>
-                                    <p id="docApellidos">-</p>
-                                </div>
-                                <div>
-                                    <p class="label">Nombres</p>
-                                    <p id="docNombres">-</p>
-                                </div>
-                                <div>
-                                    <p class="label">DNI</p>
-                                    <p id="docDni">-</p>
-                                </div>
-                                <div>
-                                    <p class="label">Especialidad</p>
-                                    <p id="docEspecialidad">-</p>
-                                </div>
-                                <div>
-                                    <p class="label">Correo institucional</p>
-                                    <p id="docCorreoInst">-</p>
-                                </div>
-                                <div>
-                                    <p class="label">Correo personal</p>
-                                    <p id="docCorreoPer">-</p>
-                                </div>
-                                <div>
-                                    <p class="label">Teléfono</p>
-                                    <p id="docTelefono">-</p>
-                                </div>
-                                <div>
-                                    <p class="label">Dirección</p>
-                                    <p id="docDireccion">-</p>
-                                </div>
-                            </div>
-                            <div class="ficha-acciones">
-                                <button class="btn-secondary" id="btnEditarDocente">Editar datos personales</button>
-                                <button class="btn-primary" id="btnEditarContactoDocente">Editar contacto</button>
-                            </div>
-                            <form id="formDatosDocente" class="docente-form" hidden>
-                                <div class="form-grid">
-                                    <label>Apellidos<input type="text" id="inputDocApellidos" required></label>
-                                    <label>Nombres<input type="text" id="inputDocNombres" required></label>
-                                    <label>DNI<input type="text" id="inputDocDni" pattern="[0-9]{8}" required></label>
-                                    <label>Especialidad<input type="text" id="inputDocEspecialidad"></label>
-                                    <label>Correo institucional<input type="email" id="inputDocCorreoInst" required></label>
-                                    <label>Estado
-                                        <select id="inputDocEstado">
-                                            <option value="ACTIVO">Activo</option>
-                                            <option value="INACTIVO">Inactivo</option>
-                                        </select>
-                                    </label>
-                                </div>
-                                <div class="form-actions">
-                                    <button type="submit" class="btn-primary">Guardar</button>
-                                    <button type="button" class="btn-secondary" id="btnCancelarDatosDocente">Cancelar</button>
-                                </div>
-                                <p id="estadoDatosDocente" class="muted" hidden></p>
-                            </form>
-                            <form id="formContactoDocente" class="docente-form" hidden>
-                                <div class="form-grid">
-                                    <label>Correo institucional<input type="email" id="inputDocCorreoInstContacto" required></label>
-                                    <label>Correo personal<input type="email" id="inputDocCorreoPer"></label>
-                                    <label>Teléfono<input type="tel" id="inputDocTelefono" pattern="[0-9]{9}"></label>
-                                    <label>Dirección<input type="text" id="inputDocDireccion"></label>
-                                </div>
-                                <div class="form-actions">
-                                    <button type="submit" class="btn-primary">Guardar contacto</button>
-                                    <button type="button" class="btn-secondary" id="btnCancelarContactoDocente">Cancelar</button>
-                                </div>
-                                <p id="estadoContactoDocente" class="muted" hidden></p>
-                            </form>
-                        </div>
-                    </article>
-
+                    <h2>Gestión de Docentes</h2>
                     <article class="card">
                         <header class="card__header">
                             <h3>Cursos que puede dictar</h3>
@@ -330,11 +242,13 @@
 
                     <article class="card">
                         <header class="card__header">
+                            <h3>Secciones asignadas actualmente</h3>
                             <div>
-                                <h3>Secciones asignadas actualmente</h3>
-                                <p class="muted" id="resumenSeccionesDocente">-</p>
+                                <div id="contenedorSeccionesBadges" class="secciones-badges"></div>
                             </div>
                         </header>
+
+
                         <div class="table-wrapper">
                             <table class="admin-table" id="tablaSeccionesDocente">
                                 <thead>
@@ -386,6 +300,95 @@
                 </div>
 
                 <div class="docentes-col docentes-col--right">
+
+                    <!-- ⬅️ FICHA DEL DOCENTE (MOVIDA AQUÍ ARRIBA Y SIN CAMBIAR NADA MÁS) -->
+                    <article class="card" id="fichaDocente">
+                        <header class="card__header">
+                            <div>
+                                <p class="muted">Código</p>
+                                <h3 id="docCodigo">-</h3>
+                            </div>
+                            <div class="badge" id="docEstado">-</div>
+                        </header>
+                        <div class="card__body">
+                            <div class="ficha-grid">
+                                <div>
+                                    <p class="label">Apellidos</p>
+                                    <p id="docApellidos">-</p>
+                                </div>
+                                <div>
+                                    <p class="label">Nombres</p>
+                                    <p id="docNombres">-</p>
+                                </div>
+                                <div>
+                                    <p class="label">DNI</p>
+                                    <p id="docDni">-</p>
+                                </div>
+                                <div>
+                                    <p class="label">Especialidad</p>
+                                    <p id="docEspecialidad">-</p>
+                                </div>
+                                <div>
+                                    <p class="label">Correo institucional</p>
+                                    <p id="docCorreoInst">-</p>
+                                </div>
+                                <div>
+                                    <p class="label">Correo personal</p>
+                                    <p id="docCorreoPer">-</p>
+                                </div>
+                                <div>
+                                    <p class="label">Teléfono</p>
+                                    <p id="docTelefono">-</p>
+                                </div>
+                                <div>
+                                    <p class="label">Dirección</p>
+                                    <p id="docDireccion">-</p>
+                                </div>
+                            </div>
+
+                            <div class="ficha-acciones">
+                                <button class="btn-secondary" id="btnEditarDocente">Editar datos personales</button>
+                                <button class="btn-primary" id="btnEditarContactoDocente">Editar contacto</button>
+                            </div>
+
+                            <form id="formDatosDocente" class="docente-form" hidden>
+                                <div class="form-grid">
+                                    <label>Apellidos<input type="text" id="inputDocApellidos" required></label>
+                                    <label>Nombres<input type="text" id="inputDocNombres" required></label>
+                                    <label>DNI<input type="text" id="inputDocDni" pattern="[0-9]{8}" required></label>
+                                    <label>Especialidad<input type="text" id="inputDocEspecialidad"></label>
+                                    <label>Correo institucional<input type="email" id="inputDocCorreoInst" required></label>
+                                    <label>Estado
+                                        <select id="inputDocEstado">
+                                            <option value="ACTIVO">Activo</option>
+                                            <option value="INACTIVO">Inactivo</option>
+                                        </select>
+                                    </label>
+                                </div>
+                                <div class="form-actions">
+                                    <button type="submit" class="btn-primary">Guardar</button>
+                                    <button type="button" class="btn-secondary" id="btnCancelarDatosDocente">Cancelar</button>
+                                </div>
+                                <p id="estadoDatosDocente" class="muted" hidden></p>
+                            </form>
+
+                            <form id="formContactoDocente" class="docente-form" hidden>
+                                <div class="form-grid">
+                                    <label>Correo institucional<input type="email" id="inputDocCorreoInstContacto" required></label>
+                                    <label>Correo personal<input type="email" id="inputDocCorreoPer"></label>
+                                    <label>Teléfono<input type="tel" id="inputDocTelefono" pattern="[0-9]{9}"></label>
+                                    <label>Dirección<input type="text" id="inputDocDireccion"></label>
+                                </div>
+                                <div class="form-actions">
+                                    <button type="submit" class="btn-primary">Guardar contacto</button>
+                                    <button type="button" class="btn-secondary" id="btnCancelarContactoDocente">Cancelar</button>
+                                </div>
+                                <p id="estadoContactoDocente" class="muted" hidden></p>
+                            </form>
+                        </div>
+                    </article>
+
+                    <!-- BUSCAR Y LISTAR DOCENTES -->
                     <article class="card">
                         <header class="card__header">
                             <h3>Buscar docentes</h3>
@@ -408,11 +411,13 @@
                                         <option value="INACTIVO">Inactivo</option>
                                     </select>
                                 </label>
-                            </div>
-                            <div class="form-actions">
-                                <button class="btn-primary" type="submit">Buscar</button>
+                                <div class="form-actions">
+                                    <button class="btn-primary" type="submit">Buscar</button>
+                                </div>
                             </div>
                         </form>
+
+                        <!-- TABLA CON SCROLL -->
                         <div class="table-wrapper">
                             <table class="admin-table" id="tablaDocentes">
                                 <thead>
@@ -430,7 +435,9 @@
                         </div>
                         <p id="estadoBusquedaDocentes" class="muted" hidden></p>
                     </article>
+
                 </div>
+
             </div>
         </section>
     </main>

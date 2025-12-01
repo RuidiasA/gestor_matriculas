@@ -64,8 +64,12 @@ public class Alumno {
     @Enumerated(EnumType.STRING)
     private Turno turno;
 
+    /* Orden de mérito / prioridad del alumno */
+    @Column(name = "orden_merito")
+    private Integer ordenMerito;
+
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "estado")
     private EstadoUsuario estado = EstadoUsuario.ACTIVO;
 
     /* Relación con carrera */

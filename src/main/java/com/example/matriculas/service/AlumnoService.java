@@ -279,6 +279,7 @@ public class AlumnoService {
                 .anioIngreso(alumno.getAnioIngreso() != null ? alumno.getAnioIngreso().toString() : null)
                 .cicloActual(alumno.getCicloActual() != null ? alumno.getCicloActual().toString() : null)
                 .turno(alumno.getTurno() != null ? alumno.getTurno().name() : null)
+                .ordenMerito(alumno.getOrdenMerito())
                 .carrera(alumno.getCarrera() != null ? alumno.getCarrera().getNombre() : null)
                 .direccion(alumno.getDireccion())
                 .estado(alumno.getEstado() != null ?
