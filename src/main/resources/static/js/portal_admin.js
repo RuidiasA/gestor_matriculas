@@ -952,7 +952,7 @@ function createSeccionesModule(tools) {
         buscarSecciones();
     }
 
-    async function buscarSecciones() {
+    async function buscarSecciones(preservarSeleccion = false) {
         if (!tablaSecciones) return;
         tools.renderEmptyRow(tablaSecciones, 9, 'Cargando secciones...');
         const params = new URLSearchParams();
@@ -967,14 +967,14 @@ function createSeccionesModule(tools) {
             const resp = await fetch(url);
             if (!resp.ok) throw new Error('No se pudo buscar secciones');
             const secciones = await resp.json();
-            renderizarSecciones(secciones || []);
+            renderizarSecciones(secciones || [], preservarSeleccion);
         } catch (e) {
             tools.renderEmptyRow(tablaSecciones, 9, e.message || 'No se pudo cargar');
             tools.showToast(e.message || 'Error al buscar secciones', 'error');
         }
     }
 
-    function renderizarSecciones(secciones) {
+    function renderizarSecciones(secciones, preservarSeleccion) {
         tablaSecciones.innerHTML = '';
         if (!secciones.length) {
             tools.renderEmptyRow(tablaSecciones, 9, 'Sin resultados');
@@ -1003,6 +1003,9 @@ function createSeccionesModule(tools) {
                 tools.markSelectedRow(tablaSecciones, tr);
                 cargarFichaSeccion(idSeccion);
             });
+            if (preservarSeleccion && seccionSeleccionada && `${seccionSeleccionada}` === `${idSeccion}`) {
+                tools.markSelectedRow(tablaSecciones, tr);
+            }
             tablaSecciones.appendChild(tr);
         });
     }
@@ -1047,37 +1050,6 @@ function createSeccionesModule(tools) {
             tools.renderEmptyRow(tablaHistorialSeccion, 5, 'No se pudo cargar el historial');
             detalleSeccionActual = null;
         }
-        registros.forEach(reg => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${reg.periodo || '-'}</td>
-                <td>${reg.alumnoNombre || '-'}<br><span class="muted">${reg.alumnoCodigo || ''}</span></td>
-                <td>${reg.estadoMatricula || '-'}</td>
-                <td>${reg.fechaMatricula ? new Date(reg.fechaMatricula).toLocaleString() : '-'}</td>
-                <td>${reg.observacion || '-'}</td>
-            `;
-            tablaHistorialSeccion.appendChild(tr);
-        });
-    }
-
-    function renderizarHistorial(historial) {
-        tablaHistorialSeccion.innerHTML = '';
-        const registros = historial || [];
-        if (!registros.length) {
-            tools.renderEmptyRow(tablaHistorialSeccion, 5, 'Sin registros');
-            return;
-        }
-        registros.forEach(reg => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${reg.periodo || '-'}</td>
-                <td>${reg.alumnoNombre || '-'}<br><span class="muted">${reg.alumnoCodigo || ''}</span></td>
-                <td>${reg.estadoMatricula || '-'}</td>
-                <td>${reg.fechaMatricula ? new Date(reg.fechaMatricula).toLocaleString() : '-'}</td>
-                <td>${reg.observacion || '-'}</td>
-            `;
-            tablaHistorialSeccion.appendChild(tr);
-        });
     }
 
     function renderizarHistorial(historial) {
@@ -1291,13 +1263,21 @@ function createSeccionesModule(tools) {
 
         const renderFila = (horario, idx) => `
             <div class="horario-row" data-idx="${idx}">
-                <label>Día</label>
-                <select class="horario-dia">${optionDia(horario.dia || 'LUNES')}</select>
-                <label>Inicio</label>
-                <input type="time" class="horario-inicio" value="${horario.horaInicio || ''}" />
-                <label>Fin</label>
-                <input type="time" class="horario-fin" value="${horario.horaFin || ''}" />
-                <button type="button" class="btn-link btn-remove-horario">Quitar</button>
+                <div class="horario-field">
+                    <label>Día</label>
+                    <select class="horario-dia">${optionDia(horario.dia || 'LUNES')}</select>
+                </div>
+                <div class="horario-field">
+                    <label>Inicio</label>
+                    <input type="time" class="horario-inicio" value="${horario.horaInicio || ''}" />
+                </div>
+                <div class="horario-field">
+                    <label>Fin</label>
+                    <input type="time" class="horario-fin" value="${horario.horaFin || ''}" />
+                </div>
+                <div class="horario-actions-inline">
+                    <button type="button" class="btn-link btn-remove-horario">Quitar</button>
+                </div>
             </div>`;
 
         const buildHtml = () => `
@@ -1344,8 +1324,10 @@ function createSeccionesModule(tools) {
             showCancelButton: true,
             confirmButtonText: 'Guardar horarios',
             cancelButtonText: 'Cancelar',
+            showLoaderOnConfirm: true,
+            allowOutsideClick: () => !Swal.isLoading(),
             didOpen: enlazarEventos,
-            preConfirm: () => {
+            preConfirm: async () => {
                 const popup = Swal.getPopup();
                 const rows = Array.from(popup.querySelectorAll('.horario-row'));
                 const horarios = rows.map(row => ({
@@ -1380,18 +1362,20 @@ function createSeccionesModule(tools) {
                     repetidos.add(clave);
                 }
 
-                return horarios;
+                try {
+                    await actualizarHorarios(seccionSeleccionada, horarios);
+                    detalleSeccionActual.horarios = horarios;
+                    return horarios;
+                } catch (err) {
+                    Swal.showValidationMessage(err.message || 'No se pudo actualizar los horarios');
+                    return false;
+                }
             }
         }).then(async result => {
             if (!result.isConfirmed || !result.value) return;
-            try {
-                await actualizarHorarios(seccionSeleccionada, result.value);
-                Swal.fire('Guardado', 'Horarios actualizados', 'success');
-                await cargarFichaSeccion(seccionSeleccionada);
-                buscarSecciones();
-            } catch (err) {
-                Swal.fire('Error', err.message || 'No se pudo actualizar los horarios', 'error');
-            }
+            tools.showToast('Horarios actualizados', 'success');
+            await cargarFichaSeccion(seccionSeleccionada);
+            await buscarSecciones(true);
         });
 
         function eliminarHorario(idx) {

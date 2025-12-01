@@ -159,21 +159,33 @@
 
 .horario-row {
     display: grid;
-    grid-template-columns: 1fr 1.1fr 0.9fr 0.9fr auto;
-    gap: 0.45rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+    gap: 0.55rem;
     align-items: end;
 }
 
-.horario-row label {
+.horario-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.horario-field label {
     font-size: 0.85rem;
     color: #555;
 }
 
-.horario-row select,
-.horario-row input[type="time"] {
+.horario-field select,
+.horario-field input[type="time"] {
     padding: 0.45rem;
     border: 1px solid var(--color-borde);
     border-radius: 8px;
+}
+
+.horario-actions-inline {
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-start;
 }
 
 .horarios-actions {
