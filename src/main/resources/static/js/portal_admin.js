@@ -756,6 +756,29 @@ function createDocentesModule(tools) {
         tools.renderEmptyRow(tablaHistorialDocente, 11, 'Cargando...');
     }
 
+    function prepararCargaDocente() {
+        cerrarModalDocente(modalDatosDocente);
+        cerrarModalDocente(modalContactoDocente);
+        docenteSeleccionado = null;
+        [inputsDocente.codigo, inputsDocente.apellidos, inputsDocente.nombres, inputsDocente.dni, inputsDocente.especialidad,
+            inputsDocente.correoInst, inputsDocente.correoPer, inputsDocente.telefono, inputsDocente.direccion].forEach(el => {
+            if (el) el.textContent = 'Cargando...';
+        });
+        Object.values(formInputsDocente).forEach(input => {
+            if (input) input.value = '';
+        });
+        Object.values(formContactoInputs).forEach(input => {
+            if (input) input.value = '';
+        });
+        if (inputsDocente.estado) {
+            inputsDocente.estado.textContent = 'Cargando...';
+            inputsDocente.estado.className = 'badge';
+        }
+        tools.renderEmptyRow(tablaCursosDictables, 5, 'Cargando...');
+        tools.renderEmptyRow(tablaSeccionesDocente, 9, 'Cargando...');
+        tools.renderEmptyRow(tablaHistorialDocente, 10, 'Cargando...');
+    }
+
     function renderizarFichaDocente(detalle) {
         inputsDocente.codigo.textContent = detalle.codigo || '-';
         inputsDocente.estado.textContent = detalle.estado || '-';
@@ -1178,6 +1201,17 @@ function createSeccionesModule(tools) {
             tools.renderEmptyRow(tablaHistorialSeccion, 5, 'No se pudo cargar el historial');
             detalleSeccionActual = null;
         }
+        registrosHistorial.forEach(reg => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${reg.periodo || '-'}</td>
+                <td>${reg.alumnoNombre || '-'}<br><span class="muted">${reg.alumnoCodigo || ''}</span></td>
+                <td>${reg.estadoMatricula || '-'}</td>
+                <td>${reg.fechaMatricula ? new Date(reg.fechaMatricula).toLocaleString() : '-'}</td>
+                <td>${reg.observacion || '-'}</td>
+            `;
+            tablaHistorialSeccion.appendChild(tr);
+        });
     }
 
     function renderizarHistorial(historial) {
