@@ -869,6 +869,7 @@ function createSeccionesModule(tools) {
     const formBusquedaSecciones = document.getElementById('formBusquedaSecciones');
     const tablaSecciones = document.querySelector('#tablaSecciones tbody');
     const tablaEstudiantesSeccion = document.querySelector('#tablaEstudiantesSeccion tbody');
+    const tablaHistorialSeccion = document.querySelector('#tablaHistorialSeccion tbody');
     const filtroCursoSeccion = document.getElementById('filtroCursoSeccion');
     const filtroPeriodoSeccion = document.getElementById('filtroPeriodoSeccion');
     const filtroDocenteSeccion = document.getElementById('filtroDocenteSeccion');
@@ -893,6 +894,8 @@ function createSeccionesModule(tools) {
     const btnAnularSeccion = document.getElementById('btnAnularSeccion');
 
     let seccionSeleccionada = null;
+    let detalleSeccionActual = null;
+    const catalogosSeccion = { docentes: [], modalidades: [] };
 
     function init() {
         cargarCatalogos();
@@ -910,8 +913,8 @@ function createSeccionesModule(tools) {
             btnLimpiarSecciones.addEventListener('click', limpiarFiltrosSecciones);
         }
 
-        if (btnEditarSeccion) btnEditarSeccion.onclick = () => tools.showToast('Edición de sección pendiente', 'info');
-        if (btnGestionarHorarios) btnGestionarHorarios.onclick = () => tools.showToast('Gestión de horarios pendiente', 'info');
+        if (btnEditarSeccion) btnEditarSeccion.onclick = () => abrirModalEdicionSeccion();
+        if (btnGestionarHorarios) btnGestionarHorarios.onclick = () => abrirModalGestionHorarios();
         if (btnAnularSeccion) btnAnularSeccion.onclick = () => anularSeccion(seccionSeleccionada);
     }
 
@@ -924,6 +927,8 @@ function createSeccionesModule(tools) {
             const resp = await fetch('/admin/secciones/catalogos');
             if (!resp.ok) throw new Error('No se pudo cargar los catálogos');
             const data = await resp.json();
+            catalogosSeccion.docentes = data.docentes || [];
+            catalogosSeccion.modalidades = data.modalidades || [];
             tools.fillSelect(filtroCursoSeccion, data.cursos, 'Curso...', item => item.idCurso, item => `${item.codigo} - ${item.nombre}`);
             tools.fillSelect(filtroPeriodoSeccion, data.periodos, 'Seleccione', item => item, item => item);
             tools.fillSelect(filtroDocenteSeccion, data.docentes, 'Seleccione', item => item.idDocente, item => item.nombreCompleto);
@@ -939,9 +944,12 @@ function createSeccionesModule(tools) {
         });
         if (filtroCodigoSeccion) filtroCodigoSeccion.value = '';
         seccionSeleccionada = null;
+        detalleSeccionActual = null;
         tools.renderEmptyRow(tablaSecciones, 9, 'Realiza una búsqueda para ver resultados');
         tools.renderEmptyRow(tablaEstudiantesSeccion, 4, 'Sin estudiantes');
+        tools.renderEmptyRow(tablaHistorialSeccion, 5, 'Selecciona una sección');
         limpiarFichaSeccion();
+        buscarSecciones();
     }
 
     async function buscarSecciones() {
@@ -975,6 +983,7 @@ function createSeccionesModule(tools) {
         secciones.forEach(sec => {
             const tr = document.createElement('tr');
             const idSeccion = sec.idSeccion ?? sec.id ?? sec.seccionId;
+            const estado = (sec.estado || '').toLowerCase();
             tr.innerHTML = `
             <td>${sec.curso || '-'}</td>
             <td>${sec.codigoSeccion || sec.codigo || '-'}</td>
@@ -986,6 +995,9 @@ function createSeccionesModule(tools) {
             <td>${sec.cupos ?? '-'} / ${(sec.matriculados ?? sec.estudiantes ?? 0)}</td>
             <td><span class="badge">${sec.estado || '-'}</span></td>
         `;
+            if (estado === 'anulada') {
+                tr.classList.add('anulada');
+            }
             tr.addEventListener('click', () => {
                 seccionSeleccionada = idSeccion;
                 tools.markSelectedRow(tablaSecciones, tr);
@@ -1010,24 +1022,51 @@ function createSeccionesModule(tools) {
             cupos: '-',
         });
         tools.renderEmptyRow(tablaEstudiantesSeccion, 4, 'Cargando estudiantes...');
+        tools.renderEmptyRow(tablaHistorialSeccion, 5, 'Cargando historial...');
 
         try {
-            const [detalleResp, estudiantesResp] = await Promise.all([
+            const [detalleResp, estudiantesResp, historialResp] = await Promise.all([
                 fetch(`/admin/secciones/${idSeccion}`),
-                fetch(`/admin/secciones/${idSeccion}/estudiantes`)
+                fetch(`/admin/secciones/${idSeccion}/estudiantes`),
+                fetch(`/admin/secciones/${idSeccion}/historial`)
             ]);
 
-            if (!detalleResp.ok || !estudiantesResp.ok) throw new Error('No se pudo cargar la ficha');
+            if (!detalleResp.ok || !estudiantesResp.ok || !historialResp.ok) throw new Error('No se pudo cargar la ficha');
 
             const detalle = await detalleResp.json();
             const estudiantes = await estudiantesResp.json();
+            const historial = await historialResp.json();
 
+            detalleSeccionActual = detalle;
             renderizarFichaSeccion(detalle, estudiantes);
+            renderizarHistorial(historial);
             activarBotonesFicha();
         } catch (e) {
             tools.showToast(e.message || 'No se pudo cargar la ficha de sección', 'error');
             tools.renderEmptyRow(tablaEstudiantesSeccion, 4, 'No fue posible cargar los estudiantes');
+            tools.renderEmptyRow(tablaHistorialSeccion, 5, 'No se pudo cargar el historial');
+            detalleSeccionActual = null;
         }
+    }
+
+    function renderizarHistorial(historial) {
+        tablaHistorialSeccion.innerHTML = '';
+        const registrosHistorial = Array.isArray(historial) ? historial : [];
+        if (!registrosHistorial.length) {
+            tools.renderEmptyRow(tablaHistorialSeccion, 5, 'Sin registros');
+            return;
+        }
+        registrosHistorial.forEach(reg => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${reg.periodo || '-'}</td>
+                <td>${reg.alumnoNombre || '-'}<br><span class="muted">${reg.alumnoCodigo || ''}</span></td>
+                <td>${reg.estadoMatricula || '-'}</td>
+                <td>${reg.fechaMatricula ? new Date(reg.fechaMatricula).toLocaleString() : '-'}</td>
+                <td>${reg.observacion || '-'}</td>
+            `;
+            tablaHistorialSeccion.appendChild(tr);
+        });
     }
 
     function renderizarFichaSeccion(detalle, estudiantes) {
@@ -1077,14 +1116,14 @@ function createSeccionesModule(tools) {
         // ------------ Badge dinámico ------------
         const badge = fichaSeccionCampos.estado;
         badge.className = "badge"; // reset
-        const est = valores.estado?.toUpperCase();
+        const est = valores.estado?.toUpperCase() || '';
 
-        if (est === "ANULADO") badge.classList.add("badge--danger");
-        else if (est === "ACTIVO") badge.classList.add("badge--success");
+        if (est.includes("ANULADA") || est.includes("ANULADO")) badge.classList.add("badge--danger");
+        else if (est.includes("ACTIVA") || est.includes("ACTIVO")) badge.classList.add("badge--success");
         else badge.classList.add("badge--info");
 
         // ------------ Control de botones ------------
-        const anulada = est === "ANULADO";
+        const anulada = est.includes("ANULADA") || est.includes("ANULADO");
 
         btnEditarSeccion.disabled = anulada;
         btnGestionarHorarios.disabled = anulada;
@@ -1111,6 +1150,254 @@ function createSeccionesModule(tools) {
             cupos: '-',
         });
         tools.renderEmptyRow(tablaEstudiantesSeccion, 4, 'Selecciona una sección para ver estudiantes');
+        tools.renderEmptyRow(tablaHistorialSeccion, 5, 'Selecciona una sección');
+    }
+
+    function abrirModalEdicionSeccion() {
+        if (!seccionSeleccionada || !detalleSeccionActual) {
+            tools.showToast('Selecciona una sección primero', 'info');
+            return;
+        }
+
+        const docentesOpciones = (catalogosSeccion.docentes || []).map(doc => {
+            const seleccionado = doc.idDocente === detalleSeccionActual.docenteId ? 'selected' : '';
+            return `<option value="${doc.idDocente}" ${seleccionado}>${doc.nombreCompleto}</option>`;
+        }).join('');
+
+        const modalidadesOpciones = (catalogosSeccion.modalidades || []).map(mod => {
+            const seleccionado = (detalleSeccionActual.modalidad || '').toLowerCase() === (mod || '').toLowerCase() ? 'selected' : '';
+            return `<option value="${mod}" ${seleccionado}>${mod}</option>`;
+        }).join('');
+
+        Swal.fire({
+            title: 'Editar sección',
+            html: `
+                <div class="swal-form-grid">
+                    <div>
+                        <label>Docente</label>
+                        <select id="swalDocente">${docentesOpciones}</select>
+                    </div>
+                    <div>
+                        <label>Modalidad</label>
+                        <select id="swalModalidad">${modalidadesOpciones}</select>
+                    </div>
+                    <div>
+                        <label>Aula</label>
+                        <input id="swalAula" type="text" value="${detalleSeccionActual.aula || ''}" />
+                    </div>
+                    <div>
+                        <label>Cupos</label>
+                        <input id="swalCupos" type="number" min="1" value="${detalleSeccionActual.cupos || ''}" />
+                    </div>
+                </div>
+            `,
+            focusConfirm: false,
+            showCancelButton: true,
+            confirmButtonText: 'Guardar cambios',
+            cancelButtonText: 'Cancelar',
+            preConfirm: () => {
+                const docenteId = document.getElementById('swalDocente')?.value;
+                const modalidad = document.getElementById('swalModalidad')?.value;
+                const aula = document.getElementById('swalAula')?.value?.trim();
+                const cupos = parseInt(document.getElementById('swalCupos')?.value, 10);
+
+                if (!docenteId) {
+                    Swal.showValidationMessage('Selecciona un docente');
+                    return false;
+                }
+                if (!aula) {
+                    Swal.showValidationMessage('Ingresa el aula');
+                    return false;
+                }
+                if (!cupos || cupos < 1) {
+                    Swal.showValidationMessage('Los cupos deben ser mayores a 0');
+                    return false;
+                }
+                if (!modalidad) {
+                    Swal.showValidationMessage('Selecciona una modalidad');
+                    return false;
+                }
+
+                return {
+                    docenteId: Number(docenteId),
+                    modalidad,
+                    aula,
+                    cupos,
+                    horarios: Array.isArray(detalleSeccionActual.horarios)
+                        ? detalleSeccionActual.horarios.map(h => ({ dia: h.dia, horaInicio: h.horaInicio, horaFin: h.horaFin }))
+                        : []
+                };
+            }
+        }).then(async result => {
+            if (!result.isConfirmed || !result.value) return;
+            try {
+                await actualizarSeccion(seccionSeleccionada, result.value);
+                Swal.fire('Guardado', 'La sección se actualizó correctamente', 'success');
+                await cargarFichaSeccion(seccionSeleccionada);
+                buscarSecciones();
+            } catch (err) {
+                Swal.fire('Error', err.message || 'No se pudo actualizar la sección', 'error');
+            }
+        });
+    }
+
+    function abrirModalGestionHorarios() {
+        if (!seccionSeleccionada || !detalleSeccionActual) {
+            tools.showToast('Selecciona una sección primero', 'info');
+            return;
+        }
+
+        const diasSemana = ['LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERNES', 'SABADO', 'DOMINGO'];
+        let horariosTemp = Array.isArray(detalleSeccionActual.horarios) && detalleSeccionActual.horarios.length
+            ? [...detalleSeccionActual.horarios]
+            : [{ dia: 'LUNES', horaInicio: '08:00', horaFin: '10:00' }];
+
+        const optionDia = (diaActual) => diasSemana.map(dia => {
+            const label = dia.charAt(0) + dia.slice(1).toLowerCase();
+            const selected = diaActual === dia ? 'selected' : '';
+            return `<option value="${dia}" ${selected}>${label}</option>`;
+        }).join('');
+
+        const renderFila = (horario, idx) => `
+            <div class="horario-row" data-idx="${idx}">
+                <label>Día</label>
+                <select class="horario-dia">${optionDia(horario.dia || 'LUNES')}</select>
+                <label>Inicio</label>
+                <input type="time" class="horario-inicio" value="${horario.horaInicio || ''}" />
+                <label>Fin</label>
+                <input type="time" class="horario-fin" value="${horario.horaFin || ''}" />
+                <button type="button" class="btn-link btn-remove-horario">Quitar</button>
+            </div>`;
+
+        const buildHtml = () => `
+            <div class="horarios-list">
+                ${horariosTemp.map(renderFila).join('')}
+            </div>
+            <div class="horarios-actions">
+                <button type="button" class="btn-secondary" id="btnAgregarHorario">+ Añadir horario</button>
+            </div>
+        `;
+
+        const sincronizarHorariosDesdePopup = () => {
+            const popup = Swal.getPopup();
+            if (!popup) return;
+            horariosTemp = Array.from(popup.querySelectorAll('.horario-row')).map(row => ({
+                dia: row.querySelector('.horario-dia')?.value || 'LUNES',
+                horaInicio: row.querySelector('.horario-inicio')?.value || '',
+                horaFin: row.querySelector('.horario-fin')?.value || ''
+            }));
+        };
+
+        const enlazarEventos = () => {
+            const popup = Swal.getPopup();
+            popup?.querySelector('#btnAgregarHorario')?.addEventListener('click', () => {
+                sincronizarHorariosDesdePopup();
+                horariosTemp.push({ dia: 'LUNES', horaInicio: '08:00', horaFin: '10:00' });
+                refrescarHtml();
+            });
+            popup?.querySelectorAll('.btn-remove-horario').forEach((btn, index) => {
+                btn.addEventListener('click', () => eliminarHorario(index));
+            });
+        };
+
+        const refrescarHtml = () => {
+            Swal.update({ html: buildHtml() });
+            enlazarEventos();
+        };
+
+        Swal.fire({
+            title: 'Gestionar horarios',
+            html: buildHtml(),
+            width: 700,
+            focusConfirm: false,
+            showCancelButton: true,
+            confirmButtonText: 'Guardar horarios',
+            cancelButtonText: 'Cancelar',
+            didOpen: enlazarEventos,
+            preConfirm: () => {
+                const popup = Swal.getPopup();
+                const rows = Array.from(popup.querySelectorAll('.horario-row'));
+                const horarios = rows.map(row => ({
+                    dia: row.querySelector('.horario-dia')?.value,
+                    horaInicio: row.querySelector('.horario-inicio')?.value,
+                    horaFin: row.querySelector('.horario-fin')?.value
+                })).filter(h => h.dia || h.horaInicio || h.horaFin);
+
+                if (!horarios.length) {
+                    Swal.showValidationMessage('Agrega al menos un horario');
+                    return false;
+                }
+
+                for (const horario of horarios) {
+                    if (!horario.dia || !horario.horaInicio || !horario.horaFin) {
+                        Swal.showValidationMessage('Completa todos los campos de horario');
+                        return false;
+                    }
+                    if (horario.horaFin <= horario.horaInicio) {
+                        Swal.showValidationMessage('La hora fin debe ser mayor a la hora inicio');
+                        return false;
+                    }
+                }
+
+                const repetidos = new Set();
+                for (const h of horarios) {
+                    const clave = `${h.dia}|${h.horaInicio}|${h.horaFin}`;
+                    if (repetidos.has(clave)) {
+                        Swal.showValidationMessage('Hay horarios duplicados, revisa las filas');
+                        return false;
+                    }
+                    repetidos.add(clave);
+                }
+
+                return horarios;
+            }
+        }).then(async result => {
+            if (!result.isConfirmed || !result.value) return;
+            try {
+                await actualizarHorarios(seccionSeleccionada, result.value);
+                Swal.fire('Guardado', 'Horarios actualizados', 'success');
+                await cargarFichaSeccion(seccionSeleccionada);
+                buscarSecciones();
+            } catch (err) {
+                Swal.fire('Error', err.message || 'No se pudo actualizar los horarios', 'error');
+            }
+        });
+
+        function eliminarHorario(idx) {
+            sincronizarHorariosDesdePopup();
+            if (horariosTemp.length <= 1) {
+                tools.showToast('Debe existir al menos un horario', 'info');
+                return;
+            }
+            horariosTemp.splice(idx, 1);
+            refrescarHtml();
+        }
+    }
+
+    async function actualizarHorarios(id, horarios) {
+        const resp = await fetch(`/admin/secciones/${id}/horarios`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ horarios })
+        });
+
+        if (!resp.ok) {
+            const mensaje = await resp.text();
+            throw new Error(mensaje || 'No se pudieron guardar los horarios');
+        }
+    }
+
+    async function actualizarSeccion(id, payload) {
+        const resp = await fetch(`/admin/secciones/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        if (!resp.ok) {
+            const mensaje = await resp.text();
+            throw new Error(mensaje || 'No se pudo guardar la sección');
+        }
     }
 
     async function anularSeccion(id) {
@@ -1164,8 +1451,8 @@ function createSeccionesModule(tools) {
         btnGestionarHorarios.disabled = false;
         btnAnularSeccion.disabled = false;
 
-        btnEditarSeccion.onclick = () => tools.showToast('Edición de sección pendiente', 'info');
-        btnGestionarHorarios.onclick = () => tools.showToast('Gestión de horarios pendiente', 'info');
+        btnEditarSeccion.onclick = () => abrirModalEdicionSeccion();
+        btnGestionarHorarios.onclick = () => abrirModalGestionHorarios();
         btnAnularSeccion.onclick = () => anularSeccion(seccionSeleccionada);
     }
 
