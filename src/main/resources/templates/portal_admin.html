@@ -546,8 +546,17 @@
                                 <button class="btn-secondary" id="btnEditarDocente">Editar datos personales</button>
                                 <button class="btn-primary" id="btnEditarContactoDocente">Editar contacto</button>
                             </div>
+                        </div>
+                    </article>
 
-                            <form id="formDatosDocente" class="docente-form" hidden>
+                    <!-- Modales de edición de docente -->
+                    <div class="modal" id="modalDatosDocente" hidden>
+                        <div class="modal__dialog">
+                            <header class="modal__header">
+                                <h4>Editar datos personales</h4>
+                                <button type="button" class="modal__close" data-close="modalDatosDocente">×</button>
+                            </header>
+                            <form id="formDatosDocente" class="docente-form modal__form">
                                 <div class="form-grid">
                                     <label>Apellidos<input type="text" id="inputDocApellidos" required></label>
                                     <label>Nombres<input type="text" id="inputDocNombres" required></label>
@@ -561,28 +570,36 @@
                                         </select>
                                     </label>
                                 </div>
-                                <div class="form-actions">
+                                <div class="modal__actions">
+                                    <button type="button" class="btn-secondary" data-close="modalDatosDocente">Cancelar</button>
                                     <button type="submit" class="btn-primary">Guardar</button>
-                                    <button type="button" class="btn-secondary" id="btnCancelarDatosDocente">Cancelar</button>
                                 </div>
                                 <p id="estadoDatosDocente" class="muted" hidden></p>
                             </form>
+                        </div>
+                    </div>
 
-                            <form id="formContactoDocente" class="docente-form" hidden>
+                    <div class="modal" id="modalContactoDocente" hidden>
+                        <div class="modal__dialog">
+                            <header class="modal__header">
+                                <h4>Editar contacto</h4>
+                                <button type="button" class="modal__close" data-close="modalContactoDocente">×</button>
+                            </header>
+                            <form id="formContactoDocente" class="docente-form modal__form">
                                 <div class="form-grid">
                                     <label>Correo institucional<input type="email" id="inputDocCorreoInstContacto" required></label>
                                     <label>Correo personal<input type="email" id="inputDocCorreoPer"></label>
                                     <label>Teléfono<input type="tel" id="inputDocTelefono" pattern="[0-9]{9}"></label>
                                     <label>Dirección<input type="text" id="inputDocDireccion"></label>
                                 </div>
-                                <div class="form-actions">
+                                <div class="modal__actions">
+                                    <button type="button" class="btn-secondary" data-close="modalContactoDocente">Cancelar</button>
                                     <button type="submit" class="btn-primary">Guardar contacto</button>
-                                    <button type="button" class="btn-secondary" id="btnCancelarContactoDocente">Cancelar</button>
                                 </div>
                                 <p id="estadoContactoDocente" class="muted" hidden></p>
                             </form>
                         </div>
-                    </article>
+                    </div>
 
                     <!-- BUSCAR Y LISTAR DOCENTES -->
                     <article class="card">

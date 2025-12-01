@@ -551,8 +551,8 @@ function createDocentesModule(tools) {
     const formContactoDocente = document.getElementById('formContactoDocente');
     const estadoDatosDocente = document.getElementById('estadoDatosDocente');
     const estadoContactoDocente = document.getElementById('estadoContactoDocente');
-    const btnCancelarDatosDocente = document.getElementById('btnCancelarDatosDocente');
-    const btnCancelarContactoDocente = document.getElementById('btnCancelarContactoDocente');
+    const modalDatosDocente = document.getElementById('modalDatosDocente');
+    const modalContactoDocente = document.getElementById('modalContactoDocente');
     const btnLimpiarDocentes = document.getElementById('btnLimpiarDocentes');
 
     const inputsDocente = {
@@ -602,25 +602,11 @@ function createDocentesModule(tools) {
         }
 
         if (btnEditarDocente) {
-            btnEditarDocente.addEventListener('click', () => {
-                if (!docenteSeleccionado) return;
-                mostrarFormularioDatos(true);
-            });
+            btnEditarDocente.addEventListener('click', () => abrirModalDocente(modalDatosDocente));
         }
 
         if (btnEditarContactoDocente) {
-            btnEditarContactoDocente.addEventListener('click', () => {
-                if (!docenteSeleccionado) return;
-                mostrarFormularioContacto(true);
-            });
-        }
-
-        if (btnCancelarDatosDocente) {
-            btnCancelarDatosDocente.addEventListener('click', () => mostrarFormularioDatos(false));
-        }
-
-        if (btnCancelarContactoDocente) {
-            btnCancelarContactoDocente.addEventListener('click', () => mostrarFormularioContacto(false));
+            btnEditarContactoDocente.addEventListener('click', () => abrirModalDocente(modalContactoDocente));
         }
 
         if (formDatosDocente) {
@@ -642,6 +628,16 @@ function createDocentesModule(tools) {
         if (btnLimpiarDocentes) {
             btnLimpiarDocentes.addEventListener('click', limpiarBusquedaDocentes);
         }
+
+        [modalDatosDocente, modalContactoDocente].forEach(modal => {
+            if (!modal) return;
+            modal.addEventListener('click', evt => {
+                if (evt.target === modal) cerrarModalDocente(modal);
+            });
+            modal.querySelectorAll('[data-close]').forEach(btn => {
+                btn.addEventListener('click', () => cerrarModalDocente(modal));
+            });
+        });
     }
 
     async function cargarCatalogoCursos() {
@@ -719,7 +715,7 @@ function createDocentesModule(tools) {
     }
 
     async function cargarDetalleDocente(id) {
-        limpiarSeleccionDocente();
+        prepararCargaDocente();
         try {
             const resp = await fetch(`/admin/docentes/${id}`);
             if (!resp.ok) throw new Error('No se pudo obtener el detalle del docente');
@@ -731,7 +727,31 @@ function createDocentesModule(tools) {
             renderizarHistorialDocente(detalle.historial || []);
         } catch (err) {
             tools.showToast(err.message, 'error');
+            limpiarSeleccionDocente();
         }
+    }
+
+    function prepararCargaDocente() {
+        cerrarModalDocente(modalDatosDocente);
+        cerrarModalDocente(modalContactoDocente);
+        docenteSeleccionado = null;
+        [inputsDocente.codigo, inputsDocente.apellidos, inputsDocente.nombres, inputsDocente.dni, inputsDocente.especialidad,
+            inputsDocente.correoInst, inputsDocente.correoPer, inputsDocente.telefono, inputsDocente.direccion].forEach(el => {
+            if (el) el.textContent = 'Cargando...';
+        });
+        Object.values(formInputsDocente).forEach(input => {
+            if (input) input.value = '';
+        });
+        Object.values(formContactoInputs).forEach(input => {
+            if (input) input.value = '';
+        });
+        if (inputsDocente.estado) {
+            inputsDocente.estado.textContent = 'Cargando...';
+            inputsDocente.estado.className = 'badge';
+        }
+        tools.renderEmptyRow(tablaCursosDictables, 5, 'Cargando...');
+        tools.renderEmptyRow(tablaSeccionesDocente, 9, 'Cargando...');
+        tools.renderEmptyRow(tablaHistorialDocente, 10, 'Cargando...');
     }
 
     function renderizarFichaDocente(detalle) {
@@ -759,9 +779,6 @@ function createDocentesModule(tools) {
         formContactoInputs.correoPer.value = detalle.correoPersonal || '';
         formContactoInputs.telefono.value = detalle.telefono || '';
         formContactoInputs.direccion.value = detalle.direccion || '';
-
-        mostrarFormularioDatos(false);
-        mostrarFormularioContacto(false);
     }
 
     function renderizarCursosDictables(cursos) {
@@ -856,14 +873,26 @@ function createDocentesModule(tools) {
         }
     }
 
-    function mostrarFormularioDatos(valor) {
-        if (formDatosDocente) formDatosDocente.hidden = !valor;
-        tools.clearStatus(estadoDatosDocente);
+    function abrirModalDocente(modal) {
+        if (!docenteSeleccionado) {
+            tools.showToast('Selecciona un docente', 'info');
+            return;
+        }
+        if (!modal) return;
+        modal.hidden = false;
+        document.body.classList.add('modal-open');
+        if (modal === modalDatosDocente) tools.clearStatus(estadoDatosDocente);
+        if (modal === modalContactoDocente) tools.clearStatus(estadoContactoDocente);
     }
 
-    function mostrarFormularioContacto(valor) {
-        if (formContactoDocente) formContactoDocente.hidden = !valor;
-        tools.clearStatus(estadoContactoDocente);
+    function cerrarModalDocente(modal) {
+        if (!modal) return;
+        modal.hidden = true;
+        if (![modalDatosDocente, modalContactoDocente].some(m => m && !m.hidden)) {
+            document.body.classList.remove('modal-open');
+        }
+        if (modal === modalDatosDocente) tools.clearStatus(estadoDatosDocente);
+        if (modal === modalContactoDocente) tools.clearStatus(estadoContactoDocente);
     }
 
     function limpiarSeleccionDocente() {
@@ -872,16 +901,24 @@ function createDocentesModule(tools) {
             inputsDocente.correoInst, inputsDocente.correoPer, inputsDocente.telefono, inputsDocente.direccion].forEach(el => {
             if (el) el.textContent = '-';
         });
-        if (inputsDocente.estado) inputsDocente.estado.textContent = '-';
+        if (inputsDocente.estado) {
+            inputsDocente.estado.textContent = '-';
+            inputsDocente.estado.className = 'badge';
+        }
         renderizarCursosDictables([]);
         renderizarSeccionesDocente({ seccionesActuales: [] });
         renderizarHistorialDocente([]);
-        mostrarFormularioContacto(false);
-        mostrarFormularioDatos(false);
+        cerrarModalDocente(modalDatosDocente);
+        cerrarModalDocente(modalContactoDocente);
     }
 
     async function guardarDatosDocente() {
+        if (!docenteSeleccionado) {
+            tools.showToast('Selecciona un docente', 'info');
+            return;
+        }
         try {
+            tools.showStatus(estadoDatosDocente, 'Guardando datos...', false);
             const body = {
                 apellidos: formInputsDocente.apellidos.value.trim(),
                 nombres: formInputsDocente.nombres.value.trim(),
@@ -897,6 +934,7 @@ function createDocentesModule(tools) {
             });
             if (!resp.ok) throw new Error('No se pudo actualizar los datos');
             tools.showToast('Datos guardados', 'success');
+            cerrarModalDocente(modalDatosDocente);
             cargarDetalleDocente(docenteSeleccionado.id);
         } catch (err) {
             tools.showStatus(estadoDatosDocente, err.message, true);
@@ -904,7 +942,12 @@ function createDocentesModule(tools) {
     }
 
     async function guardarContactoDocente() {
+        if (!docenteSeleccionado) {
+            tools.showToast('Selecciona un docente', 'info');
+            return;
+        }
         try {
+            tools.showStatus(estadoContactoDocente, 'Guardando contacto...', false);
             const body = {
                 correoPersonal: formContactoInputs.correoPer.value.trim(),
                 telefono: formContactoInputs.telefono.value.trim(),
@@ -918,6 +961,7 @@ function createDocentesModule(tools) {
             });
             if (!resp.ok) throw new Error('No se pudo actualizar el contacto');
             tools.showToast('Contacto actualizado', 'success');
+            cerrarModalDocente(modalContactoDocente);
             cargarDetalleDocente(docenteSeleccionado.id);
         } catch (err) {
             tools.showStatus(estadoContactoDocente, err.message, true);
