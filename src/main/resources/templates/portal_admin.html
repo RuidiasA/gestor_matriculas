@@ -198,6 +198,33 @@
                     </article>
                 </aside>
 
+                <!-- ==============================
+                     HISTORIAL
+                =============================== -->
+                <div class="secciones-historial">
+                    <article class="card">
+                        <header class="card__header">
+                            <h3>Historial de secciones</h3>
+                        </header>
+                        <div class="table-wrapper">
+                            <table class="admin-table" id="tablaHistorialSeccion">
+                                <thead>
+                                <tr>
+                                    <th>Periodo</th>
+                                    <th>Alumno</th>
+                                    <th>Estado matrícula</th>
+                                    <th>Fecha</th>
+                                    <th>Observación</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr><td colspan="5" class="muted">Selecciona una sección</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </article>
+                </div>
+
             </div>
         </section>
 
@@ -351,8 +378,16 @@
                             <p id="totalHoras">-</p>
                         </div>
                         <div class="resumen-card">
-                            <p class="label">Pension estimada</p>
-                            <p id="montoEstimado">-</p>
+                            <p class="label">Matrícula</p>
+                            <p id="montoMatricula">-</p>
+                        </div>
+                        <div class="resumen-card">
+                            <p class="label">Pensión</p>
+                            <p id="montoPension">-</p>
+                        </div>
+                        <div class="resumen-card">
+                            <p class="label">Monto total</p>
+                            <p id="montoTotal">-</p>
                         </div>
                     </div>
 
@@ -361,7 +396,7 @@
                             <h4>Historial de matrículas</h4>
                             <span class="muted" id="subtituloHistorial">-</span>
                         </div>
-                        <div id="contenedorHistorial" class="historial__items">
+                        <div id="contenedorHistorial" class="historial__items historial__items--accordion">
                             <p class="muted">Sin registros</p>
                         </div>
                     </div>
