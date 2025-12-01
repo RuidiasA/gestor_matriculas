@@ -1080,6 +1080,26 @@ function createSeccionesModule(tools) {
         });
     }
 
+    function renderizarHistorial(historial) {
+        tablaHistorialSeccion.innerHTML = '';
+        const registrosHistorial = Array.isArray(historial) ? historial : [];
+        if (!registrosHistorial.length) {
+            tools.renderEmptyRow(tablaHistorialSeccion, 5, 'Sin registros');
+            return;
+        }
+        registrosHistorial.forEach(reg => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${reg.periodo || '-'}</td>
+                <td>${reg.alumnoNombre || '-'}<br><span class="muted">${reg.alumnoCodigo || ''}</span></td>
+                <td>${reg.estadoMatricula || '-'}</td>
+                <td>${reg.fechaMatricula ? new Date(reg.fechaMatricula).toLocaleString() : '-'}</td>
+                <td>${reg.observacion || '-'}</td>
+            `;
+            tablaHistorialSeccion.appendChild(tr);
+        });
+    }
+
     function renderizarFichaSeccion(detalle, estudiantes) {
         actualizarFichaSeccion({
             curso: detalle.curso || '-',
