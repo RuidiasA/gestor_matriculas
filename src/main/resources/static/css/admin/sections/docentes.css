@@ -87,36 +87,96 @@
     text-align: left;
 }
 
-/* Formulario interno de edición del docente */
-#fichaDocente .docente-form {
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 1px solid var(--color-borde);
+/* Modal genérico reutilizable */
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    z-index: 2000;
 }
 
-/* Ocultar formularios con atributo hidden */
-.docente-form[hidden] {
-    display: none !important;
+.modal[hidden] {
+    display: none;
 }
 
-/* Cuando el form está visible */
-#fichaDocente .docente-form:not([hidden]) {
-    display: grid;
-    margin-top: 1.2rem;
-    border-top: 1px solid var(--color-borde);
+body.modal-open {
+    overflow: hidden;
 }
 
-#fichaDocente .docente-form:not([hidden]) label {
+.modal__dialog {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(7, 23, 54, 0.15);
+    width: min(960px, 100%);
+    max-height: 92vh;
+    overflow: auto;
+    padding: 1.25rem 1.25rem 1rem;
+}
+
+/* Modales específicos de docente */
+.modal--docente .modal__dialog {
+    width: min(760px, 95%);
+    padding: 1.5rem 1.5rem 1.25rem;
+}
+
+.modal--docente .form-grid {
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1rem 1.2rem;
+}
+
+.modal--docente label {
     display: flex;
     flex-direction: column;
-    gap: 0.3rem;
+    gap: 0.35rem;
+    color: var(--color-primario);
 }
 
-#fichaDocente .docente-form:not([hidden]) .form-actions {
-    grid-column: 1 / -1;
+.modal--docente input,
+.modal--docente select {
+    width: 100%;
+    padding: 0.55rem;
+    border-radius: 10px;
+    border: 1px solid var(--color-borde);
+    background: var(--color-gris);
+    color: var(--color-texto);
+    font-size: 1rem;
+}
+
+.modal__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.modal__header h4 {
+    margin: 0;
+    font-size: 1.15rem;
+}
+
+.modal__close {
+    background: none;
+    border: none;
+    font-size: 1.6rem;
+    cursor: pointer;
+    line-height: 1;
+    color: #6b7280;
+}
+
+.modal__form .form-grid {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.modal__actions {
     display: flex;
     justify-content: flex-end;
-    gap: 0.8rem;
+    gap: 0.75rem;
+    margin-top: 1rem;
 }
 
 /* ======================================================
