@@ -3,6 +3,7 @@ package com.example.matriculas.controller;
 import com.example.matriculas.dto.EstudianteSeccionDTO;
 import com.example.matriculas.dto.SeccionCatalogoDTO;
 import com.example.matriculas.dto.SeccionDetalleDTO;
+import com.example.matriculas.dto.SeccionHistorialDTO;
 import com.example.matriculas.dto.SeccionListadoDTO;
 import com.example.matriculas.service.SeccionService;
 import lombok.RequiredArgsConstructor;
@@ -50,6 +51,11 @@ public class AdminSeccionController {
     @GetMapping("/{id}/estudiantes")
     public List<EstudianteSeccionDTO> listarEstudiantes(@PathVariable Long id) {
         return seccionService.listarEstudiantes(id);
+    }
+
+    @GetMapping("/{id}/historial")
+    public List<SeccionHistorialDTO> obtenerHistorial(@PathVariable Long id) {
+        return seccionService.obtenerHistorial(id);
     }
 
     @PutMapping("/{id}/anular")

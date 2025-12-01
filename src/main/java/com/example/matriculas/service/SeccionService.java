@@ -3,6 +3,7 @@ package com.example.matriculas.service;
 import com.example.matriculas.dto.EstudianteSeccionDTO;
 import com.example.matriculas.dto.SeccionCatalogoDTO;
 import com.example.matriculas.dto.SeccionDetalleDTO;
+import com.example.matriculas.dto.SeccionHistorialDTO;
 import com.example.matriculas.dto.SeccionListadoDTO;
 import com.example.matriculas.model.Curso;
 import com.example.matriculas.model.Docente;
@@ -152,6 +153,29 @@ public class SeccionService {
                         .nombre(formatearNombre(detalle.getMatricula().getAlumno().getApellidos(),
                                 detalle.getMatricula().getAlumno().getNombres()))
                         .estado(formatearEstadoMatricula(detalle.getMatricula().getEstado()))
+                        .build())
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<SeccionHistorialDTO> obtenerHistorial(Long seccionId) {
+        if (!seccionRepository.existsById(seccionId)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Sección no encontrada");
+        }
+
+        return detalleMatriculaRepository.findHistorialBySeccion(seccionId)
+                .stream()
+                .map(detalle -> SeccionHistorialDTO.builder()
+                        .matriculaId(detalle.getMatricula().getId())
+                        .alumnoCodigo(detalle.getMatricula().getAlumno().getCodigoAlumno())
+                        .alumnoNombre(formatearNombre(detalle.getMatricula().getAlumno().getApellidos(),
+                                detalle.getMatricula().getAlumno().getNombres()))
+                        .estadoMatricula(formatearEstadoMatricula(detalle.getMatricula().getEstado()))
+                        .periodo(detalle.getMatricula().getCicloAcademico())
+                        .fechaMatricula(detalle.getMatricula().getFechaMatricula())
+                        .observacion(detalle.getMatricula().getEstado() == EstadoMatricula.ANULADA
+                                ? "Matrícula anulada"
+                                : null)
                         .build())
                 .toList();
     }
