@@ -1047,6 +1047,17 @@ function createSeccionesModule(tools) {
             tools.renderEmptyRow(tablaHistorialSeccion, 5, 'No se pudo cargar el historial');
             detalleSeccionActual = null;
         }
+        registros.forEach(reg => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${reg.periodo || '-'}</td>
+                <td>${reg.alumnoNombre || '-'}<br><span class="muted">${reg.alumnoCodigo || ''}</span></td>
+                <td>${reg.estadoMatricula || '-'}</td>
+                <td>${reg.fechaMatricula ? new Date(reg.fechaMatricula).toLocaleString() : '-'}</td>
+                <td>${reg.observacion || '-'}</td>
+            `;
+            tablaHistorialSeccion.appendChild(tr);
+        });
     }
 
     function renderizarHistorial(historial) {
