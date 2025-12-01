@@ -1,6 +1,7 @@
 package com.example.matriculas.model;
 
 import com.example.matriculas.model.enums.Modalidad;
+import com.example.matriculas.model.enums.EstadoSeccion;
 import com.example.matriculas.model.enums.Turno;
 import jakarta.persistence.*;
 import lombok.*;
@@ -46,6 +47,12 @@ public class Seccion {
     /* Periodo académico en el que se dicta la sección (ej: 2024-I) */
     @Column(name = "periodo_academico")
     private String periodoAcademico;
+
+    /* Estado de la sección */
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, columnDefinition = "VARCHAR(20) DEFAULT 'ACTIVA'")
+    @Builder.Default
+    private EstadoSeccion estado = EstadoSeccion.ACTIVA;
 
     /* Relación con el curso */
     @ManyToOne
