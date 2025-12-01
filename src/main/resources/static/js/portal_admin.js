@@ -806,7 +806,7 @@ function createDocentesModule(tools) {
         tablaSeccionesDocente.innerHTML = '';
         if (!secciones.length) {
             tools.renderEmptyRow(tablaSeccionesDocente, 5, 'Sin secciones');
-            resumenSeccionesDocente.textContent = '0 secciones asignadas';
+            if (resumenSeccionesDocente) resumenSeccionesDocente.textContent = '0 secciones asignadas';
             return;
         }
 
@@ -822,7 +822,9 @@ function createDocentesModule(tools) {
             tablaSeccionesDocente.appendChild(tr);
         });
 
-        resumenSeccionesDocente.textContent = `${detalle.totalSeccionesActuales || 0} secciones`;
+        if (resumenSeccionesDocente) {
+            resumenSeccionesDocente.textContent = `${detalle.totalSeccionesActuales || 0} secciones`;
+        }
     }
 
     function renderizarHistorialDocente(historial) {
