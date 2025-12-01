@@ -9,10 +9,12 @@ import com.example.matriculas.dto.ResumenMatriculaDTO;
 import com.example.matriculas.model.Alumno;
 import com.example.matriculas.model.DetalleMatricula;
 import com.example.matriculas.model.Matricula;
+import com.example.matriculas.model.Pension;
 import com.example.matriculas.model.Usuario;
 import com.example.matriculas.model.enums.EstadoUsuario;
 import com.example.matriculas.repository.AlumnoRepository;
 import com.example.matriculas.repository.MatriculaRepository;
+import com.example.matriculas.repository.PensionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -22,7 +24,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.ArrayList;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
@@ -35,6 +39,7 @@ public class AlumnoService {
     private final AlumnoRepository alumnoRepository;
     private final UsuarioService usuarioService;
     private final MatriculaRepository matriculaRepository;
+    private final PensionRepository pensionRepository;
 
     private static final Pattern CORREO_PATTERN = Pattern.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");
     private static final Pattern TELEFONO_PATTERN = Pattern.compile("^\\d{9}$");
@@ -201,21 +206,9 @@ public class AlumnoService {
         if (detalles == null || detalles.isEmpty()) {
             return List.of();
         }
-        List<CursoMatriculadoDTO> cursos = new ArrayList<>();
-        for (DetalleMatricula detalle : detalles) {
-            cursos.add(CursoMatriculadoDTO.builder()
-                    .codigoSeccion(detalle.getSeccion() != null ? detalle.getSeccion().getCodigo() : null)
-                    .nombreCurso(detalle.getSeccion() != null && detalle.getSeccion().getCurso() != null ?
-                            detalle.getSeccion().getCurso().getNombre() : null)
-                    .docente(detalle.getDocente() != null ?
-                            (detalle.getDocente().getNombres() + " " + detalle.getDocente().getApellidos()).trim() : null)
-                    .creditos(detalle.getCreditos())
-                    .horasSemanales(detalle.getHorasSemanales())
-                    .modalidad(detalle.getModalidad() != null ? detalle.getModalidad().name() : null)
-                    .aula(detalle.getAula())
-                    .build());
-        }
-        return cursos;
+        return detalles.stream()
+                .map(this::mapearCurso)
+                .collect(Collectors.toList());
     }
 
     // ===============================================================
@@ -229,19 +222,18 @@ public class AlumnoService {
         asegurarExistenciaAlumno(id);
         Matricula matricula = matriculaRepository.findByAlumnoIdAndCicloAcademico(id, ciclo)
                 .orElse(null);
-        if (matricula == null) {
-            return ResumenMatriculaDTO.builder()
-                    .totalCursos(0)
-                    .totalCreditos(0)
-                    .totalHoras(0)
-                    .montoEstimado(0.0)
-                    .build();
-        }
+
+        ResumenMontos montos = calcularMontos(id, ciclo, matricula);
+
         return ResumenMatriculaDTO.builder()
-                .totalCursos(matricula.getDetalles() != null ? matricula.getDetalles().size() : 0)
-                .totalCreditos(matricula.getTotalCreditos())
-                .totalHoras(matricula.getTotalHoras())
-                .montoEstimado(matricula.getMontoTotal())
+                .totalCursos(matricula != null && matricula.getDetalles() != null ? matricula.getDetalles().size() : 0)
+                .totalCreditos(matricula != null && matricula.getTotalCreditos() != null ? matricula.getTotalCreditos() : 0)
+                .totalHoras(matricula != null && matricula.getTotalHoras() != null ? matricula.getTotalHoras() : 0)
+                .matricula(montos.matricula())
+                .pension(montos.pension())
+                .mora(montos.mora())
+                .descuentos(montos.descuentos())
+                .montoTotal(montos.montoTotal())
                 .build();
     }
 
@@ -252,21 +244,105 @@ public class AlumnoService {
     public List<HistorialMatriculaDTO> obtenerHistorial(Long id) {
         asegurarExistenciaAlumno(id);
         List<Matricula> matriculas = matriculaRepository.findByAlumnoIdOrderByFechaMatriculaDesc(id);
+        if (matriculas.isEmpty()) {
+            return List.of();
+        }
+
+        String cicloActual = matriculas.get(0).getCicloAcademico();
+
         return matriculas.stream()
-                .map(m -> HistorialMatriculaDTO.builder()
-                        .ciclo(m.getCicloAcademico())
-                        .estado(m.getEstado() != null ? m.getEstado().name() : null)
-                        .totalCursos(m.getDetalles() != null ? m.getDetalles().size() : 0)
-                        .totalCreditos(m.getTotalCreditos())
-                        .totalHoras(m.getTotalHoras())
-                        .montoTotal(m.getMontoTotal())
-                        .build())
+                .filter(m -> !m.getCicloAcademico().equalsIgnoreCase(cicloActual))
+                .map(m -> {
+                    ResumenMontos montos = calcularMontos(id, m.getCicloAcademico(), m);
+                    List<CursoMatriculadoDTO> cursos = m.getDetalles() == null ? List.of() : m.getDetalles()
+                            .stream()
+                            .sorted(Comparator.comparing(d -> d.getSeccion() != null ? d.getSeccion().getCodigo() : ""))
+                            .map(this::mapearCurso)
+                            .collect(Collectors.toList());
+                    return HistorialMatriculaDTO.builder()
+                            .ciclo(m.getCicloAcademico())
+                            .estado(m.getEstado() != null ? m.getEstado().name() : null)
+                            .totalCursos(cursos.size())
+                            .totalCreditos(m.getTotalCreditos() != null ? m.getTotalCreditos() : 0)
+                            .totalHoras(m.getTotalHoras() != null ? m.getTotalHoras() : 0)
+                            .matricula(montos.matricula())
+                            .pension(montos.pension())
+                            .mora(montos.mora())
+                            .descuentos(montos.descuentos())
+                            .montoTotal(montos.montoTotal())
+                            .cursos(cursos)
+                            .build();
+                })
                 .collect(Collectors.toList());
     }
 
     // ===============================================================
     // Helpers
     // ===============================================================
+    private ResumenMontos calcularMontos(Long alumnoId, String ciclo, Matricula matricula) {
+        List<Pension> pensiones = pensionRepository.findByAlumnoIdAndPeriodo(alumnoId, ciclo);
+
+        BigDecimal matriculaMonto = BigDecimal.ZERO;
+        BigDecimal pensionEstimanda = BigDecimal.ZERO;
+        BigDecimal moraTotal = BigDecimal.ZERO;
+        BigDecimal descuentos = BigDecimal.ZERO;
+        BigDecimal sumaPensiones = BigDecimal.ZERO;
+        int conteoPensiones = 0;
+
+        if (!pensiones.isEmpty()) {
+            for (Pension p : pensiones) {
+                String concepto = p.getConcepto() != null ? p.getConcepto().toUpperCase() : "";
+                BigDecimal monto = p.getMonto() != null ? p.getMonto() : BigDecimal.ZERO;
+                if (concepto.contains("MATRICULA")) {
+                    matriculaMonto = matriculaMonto.add(monto);
+                } else if (concepto.contains("PENSION")) {
+                    sumaPensiones = sumaPensiones.add(monto);
+                    conteoPensiones++;
+                } else if (concepto.contains("MORA")) {
+                    moraTotal = moraTotal.add(monto);
+                } else if (concepto.contains("DESCUENTO")) {
+                    descuentos = descuentos.add(monto);
+                }
+            }
+            if (conteoPensiones > 0) {
+                pensionEstimanda = sumaPensiones.divide(BigDecimal.valueOf(conteoPensiones), 2, RoundingMode.HALF_UP);
+            }
+        } else if (matricula != null && matricula.getMontoTotal() != null) {
+            BigDecimal total = BigDecimal.valueOf(matricula.getMontoTotal());
+            pensionEstimanda = total.divide(BigDecimal.valueOf(5), 2, RoundingMode.HALF_UP);
+            matriculaMonto = BigDecimal.ZERO;
+        }
+
+        BigDecimal totalCalculado = matricula != null && matricula.getMontoTotal() != null
+                ? BigDecimal.valueOf(matricula.getMontoTotal())
+                : matriculaMonto.add(pensionEstimanda.multiply(BigDecimal.valueOf(5)))
+                .add(moraTotal)
+                .subtract(descuentos);
+
+        return new ResumenMontos(
+                matriculaMonto.doubleValue(),
+                pensionEstimanda.doubleValue(),
+                moraTotal.doubleValue(),
+                descuentos.doubleValue(),
+                totalCalculado.doubleValue()
+        );
+    }
+
+    private CursoMatriculadoDTO mapearCurso(DetalleMatricula detalle) {
+        return CursoMatriculadoDTO.builder()
+                .codigoSeccion(detalle.getSeccion() != null ? detalle.getSeccion().getCodigo() : null)
+                .nombreCurso(detalle.getSeccion() != null && detalle.getSeccion().getCurso() != null ?
+                        detalle.getSeccion().getCurso().getNombre() : null)
+                .docente(detalle.getDocente() != null ?
+                        (detalle.getDocente().getNombres() + " " + detalle.getDocente().getApellidos()).trim() : null)
+                .creditos(detalle.getCreditos())
+                .horasSemanales(detalle.getHorasSemanales())
+                .modalidad(detalle.getModalidad() != null ? detalle.getModalidad().name() : null)
+                .aula(detalle.getAula())
+                .build();
+    }
+
+    private record ResumenMontos(double matricula, double pension, double mora, double descuentos, double montoTotal) {}
     private AlumnoBusquedaDTO mapearBusqueda(Alumno alumno) {
         return AlumnoBusquedaDTO.builder()
                 .id(alumno.getId())
