@@ -102,6 +102,29 @@ document.addEventListener("DOMContentLoaded", () => {
         direccion: document.getElementById("inputDocDireccion"),
     };
 
+    // SECCIONES
+    const formBusquedaSecciones = document.getElementById("formBusquedaSecciones");
+    const tablaSecciones = document.querySelector("#tablaSecciones tbody");
+    const tablaEstudiantesSeccion = document.querySelector("#tablaEstudiantesSeccion tbody");
+    const filtroCursoSeccion = document.getElementById("filtroCursoSeccion");
+    const filtroPeriodoSeccion = document.getElementById("filtroPeriodoSeccion");
+    const filtroDocenteSeccion = document.getElementById("filtroDocenteSeccion");
+    const filtroModalidadSeccion = document.getElementById("filtroModalidadSeccion");
+    const filtroCodigoSeccion = document.getElementById("filtroCodigoSeccion");
+    const btnLimpiarSecciones = document.getElementById("btnLimpiarSecciones");
+    const fichaSeccion = document.getElementById("fichaSeccion");
+    const fichaSeccionCampos = {
+        curso: document.getElementById("seccionCurso"),
+        estado: document.getElementById("seccionEstado"),
+        codigo: document.getElementById("seccionCodigo"),
+        docente: document.getElementById("seccionDocente"),
+        periodo: document.getElementById("seccionPeriodo"),
+        modalidad: document.getElementById("seccionModalidad"),
+        horario: document.getElementById("seccionHorario"),
+        aula: document.getElementById("seccionAula"),
+        cupos: document.getElementById("seccionCupos"),
+    };
+
     const btnLimpiarAlumnos = document.getElementById("btnLimpiar");
     if (btnLimpiarAlumnos) {
         btnLimpiarAlumnos.addEventListener("click", () => {
@@ -118,10 +141,22 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    if (formBusquedaSecciones) {
+        formBusquedaSecciones.addEventListener("submit", (e) => {
+            e.preventDefault();
+            buscarSecciones();
+        });
+    }
+
+    if (btnLimpiarSecciones) {
+        btnLimpiarSecciones.addEventListener("click", limpiarFiltrosSecciones);
+    }
+
     let alumnoSeleccionado = null;
     let historialMatriculasCache = [];
     let cursosPorCicloCache = {};
     let docenteSeleccionado = null;
+    let seccionSeleccionada = null;
 
     if (formBusqueda) {
         formBusqueda.addEventListener("submit", (e) => {
@@ -219,6 +254,8 @@ document.addEventListener("DOMContentLoaded", () => {
     buscarAlumnos();
     cargarCatalogoCursos();
     buscarDocentes();
+    cargarFiltrosSecciones();
+    buscarSecciones();
 
     async function buscarAlumnos() {
         mostrarEstado(estadoBusqueda, "Cargando alumnos...", false);
@@ -841,6 +878,177 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch (err) {
             mostrarEstado(estadoContactoDocente, err.message, true);
         }
+    }
+
+    // =====================
+    // SECCIONES
+    // =====================
+    async function cargarFiltrosSecciones() {
+        if (!filtroCursoSeccion) return;
+        try {
+            const resp = await fetch("/admin/secciones/catalogos");
+            if (!resp.ok) throw new Error();
+            const data = await resp.json();
+            poblarSelectSeccion(filtroCursoSeccion, data.cursos || [], "Todos");
+            poblarSelectSeccion(filtroPeriodoSeccion, data.periodos || [], "Seleccione");
+            poblarSelectSeccion(filtroDocenteSeccion, data.docentes || [], "Seleccione");
+            poblarSelectSeccion(filtroModalidadSeccion, data.modalidades || [], "Estado");
+        } catch (e) {
+            mostrarToast("No se pudieron cargar los filtros de secciones", "error");
+        }
+    }
+
+    function poblarSelectSeccion(select, items, placeholder) {
+        if (!select) return;
+        select.innerHTML = "";
+        const base = document.createElement("option");
+        base.value = "";
+        base.textContent = placeholder;
+        select.appendChild(base);
+
+        (items || []).forEach(item => {
+            const option = document.createElement("option");
+            if (typeof item === "string") {
+                option.value = item;
+                option.textContent = item;
+            } else {
+                const valor = item.id ?? item.idCurso ?? item.idDocente ?? item.codigo ?? item.periodo ?? item.valor ?? "";
+                const nombreDocente = `${item.apellidos || ""} ${item.nombres || ""}`.trim();
+                const texto = item.nombreCompleto || item.nombre || item.descripcion || item.periodo || nombreDocente || item.codigo || valor;
+                option.value = valor;
+                option.textContent = texto || "-";
+            }
+            select.appendChild(option);
+        });
+    }
+
+    function limpiarFiltrosSecciones() {
+        [filtroCursoSeccion, filtroPeriodoSeccion, filtroDocenteSeccion, filtroModalidadSeccion].forEach(sel => {
+            if (sel) sel.value = "";
+        });
+        if (filtroCodigoSeccion) filtroCodigoSeccion.value = "";
+        seccionSeleccionada = null;
+        if (tablaSecciones) {
+            tablaSecciones.innerHTML = `<tr><td colspan="9" class="muted">Realiza una búsqueda para ver resultados</td></tr>`;
+        }
+        if (tablaEstudiantesSeccion) {
+            tablaEstudiantesSeccion.innerHTML = `<tr><td colspan="4" class="muted">Sin estudiantes</td></tr>`;
+        }
+        if (fichaSeccion) {
+            fichaSeccion.hidden = true;
+        }
+    }
+
+    async function buscarSecciones() {
+        if (!tablaSecciones) return;
+        tablaSecciones.innerHTML = `<tr><td colspan="9" class="muted">Cargando secciones...</td></tr>`;
+        const params = new URLSearchParams();
+        if (filtroCursoSeccion?.value) params.append("cursoId", filtroCursoSeccion.value);
+        if (filtroPeriodoSeccion?.value) params.append("periodo", filtroPeriodoSeccion.value);
+        if (filtroDocenteSeccion?.value) params.append("docenteId", filtroDocenteSeccion.value);
+        if (filtroModalidadSeccion?.value) params.append("modalidad", filtroModalidadSeccion.value);
+        if (filtroCodigoSeccion?.value?.trim()) params.append("codigo", filtroCodigoSeccion.value.trim());
+
+        try {
+            const url = params.toString() ? `/admin/secciones/buscar?${params.toString()}` : "/admin/secciones/buscar";
+            const resp = await fetch(url);
+            if (!resp.ok) throw new Error("No se pudo buscar secciones");
+            const secciones = await resp.json();
+            renderizarSecciones(secciones || []);
+        } catch (e) {
+            renderizarSecciones([]);
+            mostrarToast(e.message || "Error al cargar secciones", "error");
+        }
+    }
+
+    function renderizarSecciones(secciones) {
+        tablaSecciones.innerHTML = "";
+        if (!secciones.length) {
+            tablaSecciones.innerHTML = `<tr><td colspan="9" class="muted">Sin resultados</td></tr>`;
+            return;
+        }
+        secciones.forEach(sec => {
+            const tr = document.createElement("tr");
+            const idSeccion = sec.id ?? sec.idSeccion ?? sec.seccionId;
+            tr.innerHTML = `
+                <td>${sec.curso || "-"}</td>
+                <td>${sec.codigoSeccion || sec.codigo || "-"}</td>
+                <td>${sec.docente || "-"}</td>
+                <td>${sec.periodo || "-"}</td>
+                <td>${sec.modalidad || "-"}</td>
+                <td>${sec.horario || "-"}</td>
+                <td>${sec.aula || "-"}</td>
+                <td>${(sec.cupos ?? "-")} / ${(sec.matriculados ?? sec.estudiantes || 0)}</td>
+                <td><span class="badge">${sec.estado || "-"}</span></td>
+            `;
+            tr.addEventListener("click", () => cargarFichaSeccion(idSeccion));
+            tablaSecciones.appendChild(tr);
+        });
+    }
+
+    async function cargarFichaSeccion(idSeccion) {
+        if (!idSeccion || !fichaSeccion) return;
+        seccionSeleccionada = idSeccion;
+        fichaSeccion.hidden = false;
+        actualizarFichaSeccion({ curso: "Cargando...", estado: "", codigo: "-", docente: "-", periodo: "-", modalidad: "-", horario: "-", aula: "-", cupos: "-" });
+        tablaEstudiantesSeccion.innerHTML = `<tr><td colspan="4" class="muted">Cargando estudiantes...</td></tr>`;
+        try {
+            const [detalleResp, estudiantesResp] = await Promise.all([
+                fetch(`/admin/secciones/${idSeccion}`),
+                fetch(`/admin/secciones/${idSeccion}/estudiantes`)
+            ]);
+            if (!detalleResp.ok || !estudiantesResp.ok) throw new Error("No se pudo cargar la ficha");
+            const detalle = await detalleResp.json();
+            const estudiantes = await estudiantesResp.json();
+            renderizarFichaSeccion(detalle || {}, estudiantes || []);
+        } catch (e) {
+            mostrarToast(e.message || "Error al cargar la sección", "error");
+        }
+    }
+
+    function renderizarFichaSeccion(detalle, estudiantes) {
+        if (!fichaSeccion) return;
+        fichaSeccion.hidden = false;
+        actualizarFichaSeccion({
+            curso: detalle.curso || "-",
+            estado: detalle.estado || "-",
+            codigo: detalle.codigoSeccion || detalle.codigo || "-",
+            docente: detalle.docente || "-",
+            periodo: detalle.periodo || "-",
+            modalidad: detalle.modalidad || "-",
+            horario: detalle.horario || "-",
+            aula: detalle.aula || "-",
+            cupos: `${detalle.cupos ?? "-"} / ${detalle.matriculados ?? detalle.estudiantes ?? 0}`,
+        });
+
+        tablaEstudiantesSeccion.innerHTML = "";
+        if (!estudiantes.length) {
+            tablaEstudiantesSeccion.innerHTML = `<tr><td colspan="4" class="muted">Sin estudiantes</td></tr>`;
+            return;
+        }
+        estudiantes.forEach(est => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td>${est.codigo || "-"}</td>
+                <td>${est.nombre || "-"}</td>
+                <td>${est.estado || "-"}</td>
+                <td><button class="btn-outline" type="button">Ver</button></td>
+            `;
+            tablaEstudiantesSeccion.appendChild(tr);
+        });
+    }
+
+    function actualizarFichaSeccion(valores) {
+        if (!fichaSeccionCampos) return;
+        fichaSeccionCampos.curso.textContent = valores.curso;
+        fichaSeccionCampos.estado.textContent = valores.estado;
+        fichaSeccionCampos.codigo.textContent = valores.codigo;
+        fichaSeccionCampos.docente.textContent = valores.docente;
+        fichaSeccionCampos.periodo.textContent = valores.periodo;
+        fichaSeccionCampos.modalidad.textContent = valores.modalidad;
+        fichaSeccionCampos.horario.textContent = valores.horario;
+        fichaSeccionCampos.aula.textContent = valores.aula;
+        fichaSeccionCampos.cupos.textContent = valores.cupos;
     }
 
     async function agregarCursoDictable() {

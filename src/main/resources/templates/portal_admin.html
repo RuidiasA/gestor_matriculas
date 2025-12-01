@@ -31,7 +31,143 @@
 
         <!-- SECCIONES -->
         <section id="secciones" class="admin-section">
-            <h2>Mantenimiento de Secciones</h2>
+            <h2>Gestión de Secciones</h2>
+            <div class="secciones-grid">
+                <div class="secciones-col secciones-col--left">
+                    <article class="card">
+                        <header class="card__header">
+                            <h3>Búsqueda de secciones</h3>
+                        </header>
+                        <form id="formBusquedaSecciones" class="search-form">
+                            <div class="form-grid">
+                                <label>Curso
+                                    <select id="filtroCursoSeccion">
+                                        <option value="">Todos</option>
+                                    </select>
+                                </label>
+                                <label>Periodo
+                                    <select id="filtroPeriodoSeccion">
+                                        <option value="">Seleccione</option>
+                                    </select>
+                                </label>
+                                <label>Docente
+                                    <select id="filtroDocenteSeccion">
+                                        <option value="">Seleccione</option>
+                                    </select>
+                                </label>
+                                <label>Modalidad
+                                    <select id="filtroModalidadSeccion">
+                                        <option value="">Estado</option>
+                                    </select>
+                                </label>
+                                <label>Código de sección
+                                    <input type="text" id="filtroCodigoSeccion" placeholder="Ej. A01">
+                                </label>
+                                <div class="form-actions">
+                                    <button type="submit" class="btn-primary">Buscar</button>
+                                    <button type="button" id="btnLimpiarSecciones" class="btn-secondary">Limpiar</button>
+                                </div>
+                            </div>
+                        </form>
+                    </article>
+
+                    <article class="card">
+                        <header class="card__header">
+                            <h3>Listado de secciones</h3>
+                        </header>
+                        <div class="table-wrapper">
+                            <table class="admin-table" id="tablaSecciones">
+                                <thead>
+                                <tr>
+                                    <th>Curso</th>
+                                    <th>Código sección</th>
+                                    <th>Docente</th>
+                                    <th>Periodo</th>
+                                    <th>Modalidad</th>
+                                    <th>Horario</th>
+                                    <th>Aula</th>
+                                    <th>Cupos / Matriculados</th>
+                                    <th>Estado</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr><td colspan="9" class="muted">Realiza una búsqueda para ver resultados</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </article>
+                </div>
+
+                <aside class="secciones-col secciones-col--right">
+                    <article class="card seccion-ficha" id="fichaSeccion" hidden>
+                        <header class="card__header">
+                            <div>
+                                <p class="muted">Curso</p>
+                                <h3 id="seccionCurso">-</h3>
+                            </div>
+                            <span class="badge" id="seccionEstado">-</span>
+                        </header>
+
+                        <div class="card__body">
+                            <div class="ficha-grid">
+                                <div>
+                                    <p class="label">Código</p>
+                                    <p id="seccionCodigo">-</p>
+                                </div>
+                                <div>
+                                    <p class="label">Docente</p>
+                                    <p id="seccionDocente">-</p>
+                                </div>
+                                <div>
+                                    <p class="label">Periodo</p>
+                                    <p id="seccionPeriodo">-</p>
+                                </div>
+                                <div>
+                                    <p class="label">Modalidad</p>
+                                    <p id="seccionModalidad">-</p>
+                                </div>
+                                <div>
+                                    <p class="label">Horario</p>
+                                    <p id="seccionHorario">-</p>
+                                </div>
+                                <div>
+                                    <p class="label">Aula</p>
+                                    <p id="seccionAula">-</p>
+                                </div>
+                                <div>
+                                    <p class="label">Cupos / Matriculados</p>
+                                    <p id="seccionCupos">-</p>
+                                </div>
+                            </div>
+
+                            <div class="panel-divider"></div>
+
+                            <h4>Estudiantes matriculados</h4>
+                            <div class="table-wrapper">
+                                <table class="admin-table" id="tablaEstudiantesSeccion">
+                                    <thead>
+                                    <tr>
+                                        <th>Código</th>
+                                        <th>Nombre</th>
+                                        <th>Estado</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr><td colspan="4" class="muted">Sin estudiantes</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="ficha-acciones">
+                                <button class="btn-secondary" id="btnEditarSeccion">Editar sección</button>
+                                <button class="btn-primary" id="btnGestionarHorarios">Gestionar horarios</button>
+                                <button class="btn-secondary" id="btnAnularSeccion">Anular sección</button>
+                            </div>
+                        </div>
+                    </article>
+                </aside>
+            </div>
         </section>
 
         <!-- ALUMNOS -->
