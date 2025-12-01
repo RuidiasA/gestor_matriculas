@@ -1,6 +1,7 @@
 package com.example.matriculas.controller;
 
 import com.example.matriculas.dto.EstudianteSeccionDTO;
+import com.example.matriculas.dto.SeccionActualizarDTO;
 import com.example.matriculas.dto.SeccionCatalogoDTO;
 import com.example.matriculas.dto.SeccionDetalleDTO;
 import com.example.matriculas.dto.SeccionHistorialDTO;
@@ -13,9 +14,11 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import jakarta.validation.Valid;
 
 import java.util.List;
 
@@ -56,6 +59,12 @@ public class AdminSeccionController {
     @GetMapping("/{id}/historial")
     public List<SeccionHistorialDTO> obtenerHistorial(@PathVariable Long id) {
         return seccionService.obtenerHistorial(id);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Void> actualizar(@PathVariable Long id, @Valid @RequestBody SeccionActualizarDTO dto) {
+        seccionService.actualizar(id, dto);
+        return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{id}/anular")
