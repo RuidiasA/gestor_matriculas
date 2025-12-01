@@ -120,3 +120,12 @@
     background: #ffe5e5 !important;
 }
 
+#tablaSecciones tr.anulada {
+    background: #ffe5e5 !important;
+    color: #b10000 !important;
+}
+
+.secciones-historial {
+    grid-column: 1 / -1;
+}
+
