@@ -16,12 +16,6 @@
     gap: 1rem;
 }
 
-/* Ficha de la sección (derecha), sticky */
-.seccion-ficha {
-    position: sticky;
-    top: 20px;
-}
-
 /* Ajustes visuales para la ficha de sección */
 #fichaSeccion .ficha-grid {
     display: grid;
@@ -45,10 +39,6 @@
     .secciones-grid {
         grid-template-columns: 1fr;
     }
-
-    .seccion-ficha {
-        position: static;
-    }
 }
 
 /* GRID PRINCIPAL */
@@ -62,12 +52,6 @@
 /* Fila seleccionada */
 #tablaSecciones tbody tr.selected {
     background: #eef4ff;
-}
-
-/* FICHA */
-.secciones-col--right .card {
-    position: sticky;
-    top: 20px;
 }
 
 /* GRID DE FICHA */
@@ -89,3 +73,50 @@
     gap: 0.7rem;
     justify-content: flex-end;
 }
+
+/* Contenedor del form */
+.form-busqueda-secciones {
+    width: 100%;
+}
+
+/* Grid interno (2 columnas) */
+.form-grid-secciones {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(220px, 1fr));
+    gap: 1rem;
+}
+
+/* Asegurar que .form-field tenga estilo */
+.form-busqueda-secciones .form-field input,
+.form-busqueda-secciones .form-field select {
+    padding: 0.55rem;
+    border-radius: 10px;
+    border: 1px solid var(--color-borde);
+    background: var(--color-gris);
+    width: 100%;
+}
+
+/* Responsive */
+@media (max-width: 800px) {
+    .form-grid-secciones {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Bloque de botones ocupa solo 1 celda del grid */
+.form-actions-secciones {
+    grid-column: auto;              /* Ya no ocupa toda la fila */
+    display: flex;
+    justify-content: flex-start;
+    gap: 0.7rem;
+    align-items: end;
+}
+.btn-disabled {
+    opacity: 0.5;
+    cursor: not-allowed !important;
+    pointer-events: none;
+}
+.row-anulada {
+    background: #ffe5e5 !important;
+}
+

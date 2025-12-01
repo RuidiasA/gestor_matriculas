@@ -1023,6 +1023,7 @@ function createSeccionesModule(tools) {
             const estudiantes = await estudiantesResp.json();
 
             renderizarFichaSeccion(detalle, estudiantes);
+            activarBotonesFicha();
         } catch (e) {
             tools.showToast(e.message || 'No se pudo cargar la ficha de sección', 'error');
             tools.renderEmptyRow(tablaEstudiantesSeccion, 4, 'No fue posible cargar los estudiantes');
@@ -1062,6 +1063,7 @@ function createSeccionesModule(tools) {
 
     function actualizarFichaSeccion(valores) {
         if (!fichaSeccionCampos) return;
+
         fichaSeccionCampos.curso.textContent = valores.curso;
         fichaSeccionCampos.estado.textContent = valores.estado;
         fichaSeccionCampos.codigo.textContent = valores.codigo;
@@ -1071,7 +1073,30 @@ function createSeccionesModule(tools) {
         fichaSeccionCampos.horario.textContent = valores.horario;
         fichaSeccionCampos.aula.textContent = valores.aula;
         fichaSeccionCampos.cupos.textContent = valores.cupos;
+
+        // ------------ Badge dinámico ------------
+        const badge = fichaSeccionCampos.estado;
+        badge.className = "badge"; // reset
+        const est = valores.estado?.toUpperCase();
+
+        if (est === "ANULADO") badge.classList.add("badge--danger");
+        else if (est === "ACTIVO") badge.classList.add("badge--success");
+        else badge.classList.add("badge--info");
+
+        // ------------ Control de botones ------------
+        const anulada = est === "ANULADO";
+
+        btnEditarSeccion.disabled = anulada;
+        btnGestionarHorarios.disabled = anulada;
+        btnAnularSeccion.disabled = anulada;
+
+        // estilito visual
+        [btnEditarSeccion, btnGestionarHorarios, btnAnularSeccion].forEach(btn => {
+            if (anulada) btn.classList.add("btn-disabled");
+            else btn.classList.remove("btn-disabled");
+        });
     }
+
 
     function limpiarFichaSeccion() {
         actualizarFichaSeccion({
@@ -1090,22 +1115,58 @@ function createSeccionesModule(tools) {
 
     async function anularSeccion(id) {
         if (!id) return tools.showToast('Selecciona una sección', 'error');
-        const ok = confirm('¿Seguro que deseas ANULAR esta sección?');
-        if (!ok) return;
+
+        const confirm = await Swal.fire({
+            title: '¿Anular sección?',
+            text: 'Esta acción no puede revertirse.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, anular',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#d33',
+        });
+
+        if (!confirm.isConfirmed) return;
 
         try {
             const resp = await fetch(`/admin/secciones/${id}/anular`, { method: 'PUT' });
+
+            if (resp.status === 409) {
+                Swal.fire('Atención', 'La sección ya estaba anulada.', 'info');
+                return;
+            }
             if (!resp.ok) {
-                const mensaje = resp.status === 409 ? 'No se puede anular la sección seleccionada' : 'No se pudo anular la sección';
-                throw new Error(mensaje);
+                Swal.fire('Error', 'No se pudo anular la sección.', 'error');
+                return;
             }
 
-            tools.showToast('Sección anulada', 'success');
-            buscarSecciones();
-            cargarFichaSeccion(id);
+            Swal.fire('Listo', 'La sección fue anulada correctamente.', 'success');
+
+            buscarSecciones();      // refrescar tabla
+            cargarFichaSeccion(id); // refrescar ficha
+
         } catch (err) {
-            tools.showToast(err.message, 'error');
+            Swal.fire('Error', 'Ocurrió un error inesperado.', 'error');
         }
+    }
+
+
+
+    function activarBotonesFicha() {
+        if (!seccionSeleccionada) {
+            btnEditarSeccion.disabled = true;
+            btnGestionarHorarios.disabled = true;
+            btnAnularSeccion.disabled = true;
+            return;
+        }
+
+        btnEditarSeccion.disabled = false;
+        btnGestionarHorarios.disabled = false;
+        btnAnularSeccion.disabled = false;
+
+        btnEditarSeccion.onclick = () => tools.showToast('Edición de sección pendiente', 'info');
+        btnGestionarHorarios.onclick = () => tools.showToast('Gestión de horarios pendiente', 'info');
+        btnAnularSeccion.onclick = () => anularSeccion(seccionSeleccionada);
     }
 
     return { init, resetFicha };

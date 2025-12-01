@@ -26,12 +26,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.text.Normalizer;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -69,7 +64,10 @@ public class SeccionService {
     }
 
     @Transactional(readOnly = true)
-    public List<SeccionListadoDTO> buscar(Long cursoId, String periodo, Long docenteId, String modalidad, String codigo) {
+    public List<SeccionListadoDTO> buscar(Long cursoId, String periodo,
+                                          Long docenteId, String modalidad,
+                                          String codigo) {
+
         Modalidad modalidadEnum = parsearModalidad(modalidad);
 
         Specification<Seccion> spec = Specification.where((root, query, cb) -> {
@@ -78,29 +76,60 @@ public class SeccionService {
         });
 
         if (cursoId != null) {
-            spec = spec.and((root, query, cb) -> cb.equal(root.get("curso").get("id"), cursoId));
+            spec = spec.and((root, query, cb) ->
+                    cb.equal(root.get("curso").get("id"), cursoId)
+            );
         }
         if (StringUtils.hasText(periodo)) {
-            spec = spec.and((root, query, cb) -> cb.equal(cb.lower(root.get("periodoAcademico")), periodo.trim().toLowerCase()));
+            spec = spec.and((root, query, cb) ->
+                    cb.equal(cb.lower(root.get("periodoAcademico")),
+                            periodo.trim().toLowerCase())
+            );
         }
         if (docenteId != null) {
-            spec = spec.and((root, query, cb) -> cb.equal(root.get("docente").get("id"), docenteId));
+            spec = spec.and((root, query, cb) ->
+                    cb.equal(root.get("docente").get("id"), docenteId)
+            );
         }
         if (modalidadEnum != null) {
-            spec = spec.and((root, query, cb) -> cb.equal(root.get("modalidad"), modalidadEnum));
+            spec = spec.and((root, query, cb) ->
+                    cb.equal(root.get("modalidad"), modalidadEnum)
+            );
         }
         if (StringUtils.hasText(codigo)) {
-            String codigoFiltro = "%" + codigo.trim().toLowerCase() + "%";
-            spec = spec.and((root, query, cb) -> cb.like(cb.lower(root.get("codigo")), codigoFiltro));
+            String filtro = "%" + codigo.trim().toLowerCase() + "%";
+            spec = spec.and((root, query, cb) ->
+                    cb.like(cb.lower(root.get("codigo")), filtro)
+            );
         }
 
-        List<Seccion> secciones = seccionRepository.findAll(spec, Sort.by("curso.nombre").ascending().and(Sort.by("codigo")));
+        // 🔥 Sin ORDER BY en SQL
+        List<Seccion> secciones = seccionRepository.findAll(spec);
+
         Map<Long, Integer> matriculadosPorSeccion = obtenerMatriculados(secciones);
 
-        return secciones.stream()
-                .map(seccion -> mapearListado(seccion, matriculadosPorSeccion.getOrDefault(seccion.getId(), 0)))
-                .toList();
+        List<SeccionListadoDTO> lista = new ArrayList<>(
+                secciones.stream()
+                        .map(seccion ->
+                                mapearListado(
+                                        seccion,
+                                        matriculadosPorSeccion.getOrDefault(seccion.getId(), 0)
+                                )
+                        )
+                        .toList()
+        );
+
+        // 🔥 Orden final en memoria
+        lista.sort(Comparator
+                .comparing(SeccionListadoDTO::getCurso,
+                        Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER))
+                .thenComparing(SeccionListadoDTO::getCodigoSeccion,
+                        Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER))
+        );
+
+        return lista;
     }
+
 
     @Transactional(readOnly = true)
     public SeccionDetalleDTO obtenerDetalle(Long id) {

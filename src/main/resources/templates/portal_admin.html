@@ -3,8 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <link rel="stylesheet" href="/css/admin/portal_admin.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="/js/portal_admin.js"></script>
     <title>Portal Admin</title>
 </head>
+
 <body>
 <div class="admin-layout">
     <!-- ASIDE LEFT -->
@@ -31,59 +34,12 @@
 
         <!-- SECCIONES -->
         <section id="secciones" class="admin-section">
-            <h2>Gestión de Secciones</h2>
-
             <div class="secciones-grid">
 
                 <!-- ==============================
                      COLUMNA IZQUIERDA
                 =============================== -->
                 <div class="secciones-col secciones-col--left">
-
-                    <!-- BUSQUEDA -->
-                    <article class="card">
-                        <header class="card__header">
-                            <h3>Búsqueda de secciones</h3>
-                        </header>
-
-                        <form id="formBusquedaSecciones" class="search-form">
-                            <div class="form-grid">
-                                <label>Curso
-                                    <select id="filtroCursoSeccion">
-                                        <option value="">Curso...</option>
-                                    </select>
-                                </label>
-
-                                <label>Periodo
-                                    <select id="filtroPeriodoSeccion">
-                                        <option value="">Seleccione</option>
-                                    </select>
-                                </label>
-
-                                <label>Docente
-                                    <select id="filtroDocenteSeccion">
-                                        <option value="">Seleccione</option>
-                                    </select>
-                                </label>
-
-                                <label>Modalidad
-                                    <select id="filtroModalidadSeccion">
-                                        <option value="">Todas</option>
-                                    </select>
-                                </label>
-
-                                <label>Código de sección
-                                    <input type="text" id="filtroCodigoSeccion" placeholder="A01">
-                                </label>
-
-                                <div class="form-actions">
-                                    <button type="submit" class="btn-primary">Buscar</button>
-                                    <button type="button" id="btnLimpiarSecciones" class="btn-secondary">Limpiar</button>
-                                </div>
-                            </div>
-                        </form>
-                    </article>
-
 
                     <!-- LISTADO -->
                     <article class="card">
@@ -119,6 +75,60 @@
                      COLUMNA DERECHA (FICHA)
                 =============================== -->
                 <aside class="secciones-col secciones-col--right">
+
+                    <!-- BUSQUEDA -->
+                    <article class="card card-busqueda-secciones">
+                        <header class="card__header">
+                            <h3>Búsqueda de secciones</h3>
+                        </header>
+
+                        <form id="formBusquedaSecciones" class="form-busqueda-secciones">
+
+                            <div class="form-grid-secciones">
+
+                                <div class="form-field">
+                                    <p class="label">Curso</p>
+                                    <select id="filtroCursoSeccion">
+                                        <option value="">Curso...</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-field">
+                                    <p class="label">Periodo</p>
+                                    <select id="filtroPeriodoSeccion">
+                                        <option value="">Seleccione</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-field">
+                                    <p class="label">Docente</p>
+                                    <select id="filtroDocenteSeccion">
+                                        <option value="">Seleccione</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-field">
+                                    <p class="label">Modalidad</p>
+                                    <select id="filtroModalidadSeccion">
+                                        <option value="">Todas</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-field">
+                                    <p class="label">Código de sección</p>
+                                    <input type="text" id="filtroCodigoSeccion" placeholder="A01">
+                                </div>
+
+                                <div class="form-actions form-actions-secciones">
+                                    <button type="submit" class="btn-primary">Buscar</button>
+                                    <button type="button" id="btnLimpiarSecciones" class="btn-secondary">Limpiar</button>
+                                </div>
+                            </div>
+                        </form>
+                    </article>
+
+
+
                     <article class="card seccion-ficha" id="fichaSeccion">
                         <header class="card__header">
                             <div>
@@ -593,7 +603,5 @@
         </section>
     </main>
 </div>
-
-<script src="/js/portal_admin.js"></script>
 </body>
 </html>
