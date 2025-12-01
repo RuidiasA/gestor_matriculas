@@ -1,0 +1,91 @@
+/* =========================================
+   SECCIÓN SECCIONES — BÚSQUEDA Y FICHA
+========================================= */
+
+/* Layout general de la sección */
+.secciones-grid {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    gap: 1.2rem;
+    align-items: flex-start;
+}
+
+.secciones-col {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* Ficha de la sección (derecha), sticky */
+.seccion-ficha {
+    position: sticky;
+    top: 20px;
+}
+
+/* Ajustes visuales para la ficha de sección */
+#fichaSeccion .ficha-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 0.9rem;
+    margin: 0.8rem 0 1.1rem;
+}
+
+#fichaSeccion h4 {
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+}
+
+/* Tabla de estudiantes en la sección */
+#tablaEstudiantesSeccion .btn-outline {
+    font-size: 0.85rem;
+}
+
+/* Responsive — secciones */
+@media (max-width: 900px) {
+    .secciones-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .seccion-ficha {
+        position: static;
+    }
+}
+
+/* GRID PRINCIPAL */
+.secciones-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(360px, 0.8fr);
+    gap: 1.5rem;
+    align-items: flex-start;
+}
+
+/* Fila seleccionada */
+#tablaSecciones tbody tr.selected {
+    background: #eef4ff;
+}
+
+/* FICHA */
+.secciones-col--right .card {
+    position: sticky;
+    top: 20px;
+}
+
+/* GRID DE FICHA */
+.ficha-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 0.6rem 1rem;
+}
+
+/* TABLA DE ESTUDIANTES */
+#tablaEstudiantesSeccion tbody tr {
+    cursor: pointer;
+}
+
+/* ACCIONES */
+.ficha-acciones {
+    margin-top: 1rem;
+    display: flex;
+    gap: 0.7rem;
+    justify-content: flex-end;
+}

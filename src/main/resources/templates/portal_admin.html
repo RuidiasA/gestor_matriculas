@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <link rel="stylesheet" href="/css/portal_admin.css">
+    <link rel="stylesheet" href="/css/admin/portal_admin.css">
     <title>Portal Admin</title>
 </head>
 <body>
@@ -32,37 +32,50 @@
         <!-- SECCIONES -->
         <section id="secciones" class="admin-section">
             <h2>Gestión de Secciones</h2>
+
             <div class="secciones-grid">
+
+                <!-- ==============================
+                     COLUMNA IZQUIERDA
+                =============================== -->
                 <div class="secciones-col secciones-col--left">
+
+                    <!-- BUSQUEDA -->
                     <article class="card">
                         <header class="card__header">
                             <h3>Búsqueda de secciones</h3>
                         </header>
+
                         <form id="formBusquedaSecciones" class="search-form">
                             <div class="form-grid">
                                 <label>Curso
                                     <select id="filtroCursoSeccion">
-                                        <option value="">Todos</option>
+                                        <option value="">Curso...</option>
                                     </select>
                                 </label>
+
                                 <label>Periodo
                                     <select id="filtroPeriodoSeccion">
                                         <option value="">Seleccione</option>
                                     </select>
                                 </label>
+
                                 <label>Docente
                                     <select id="filtroDocenteSeccion">
                                         <option value="">Seleccione</option>
                                     </select>
                                 </label>
+
                                 <label>Modalidad
                                     <select id="filtroModalidadSeccion">
-                                        <option value="">Estado</option>
+                                        <option value="">Todas</option>
                                     </select>
                                 </label>
+
                                 <label>Código de sección
-                                    <input type="text" id="filtroCodigoSeccion" placeholder="Ej. A01">
+                                    <input type="text" id="filtroCodigoSeccion" placeholder="A01">
                                 </label>
+
                                 <div class="form-actions">
                                     <button type="submit" class="btn-primary">Buscar</button>
                                     <button type="button" id="btnLimpiarSecciones" class="btn-secondary">Limpiar</button>
@@ -71,35 +84,42 @@
                         </form>
                     </article>
 
+
+                    <!-- LISTADO -->
                     <article class="card">
                         <header class="card__header">
                             <h3>Listado de secciones</h3>
                         </header>
+
                         <div class="table-wrapper">
                             <table class="admin-table" id="tablaSecciones">
                                 <thead>
                                 <tr>
                                     <th>Curso</th>
-                                    <th>Código sección</th>
+                                    <th>Código de sección</th>
                                     <th>Docente</th>
                                     <th>Periodo</th>
                                     <th>Modalidad</th>
                                     <th>Horario</th>
                                     <th>Aula</th>
-                                    <th>Cupos / Matriculados</th>
+                                    <th>Cupos / Mat.</th>
                                     <th>Estado</th>
                                 </tr>
                                 </thead>
                                 <tbody>
-                                <tr><td colspan="9" class="muted">Realiza una búsqueda para ver resultados</td></tr>
+                                <tr><td colspan="9" class="muted">Sin resultados</td></tr>
                                 </tbody>
                             </table>
                         </div>
                     </article>
                 </div>
 
+
+                <!-- ==============================
+                     COLUMNA DERECHA (FICHA)
+                =============================== -->
                 <aside class="secciones-col secciones-col--right">
-                    <article class="card seccion-ficha" id="fichaSeccion" hidden>
+                    <article class="card seccion-ficha" id="fichaSeccion">
                         <header class="card__header">
                             <div>
                                 <p class="muted">Curso</p>
@@ -167,8 +187,11 @@
                         </div>
                     </article>
                 </aside>
+
             </div>
         </section>
+
+
 
         <!-- ALUMNOS -->
         <section id="alumnos" class="admin-section">

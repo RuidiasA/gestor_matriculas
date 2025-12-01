@@ -1,0 +1,26 @@
+/* =========================================
+   PORTAL ADMIN — IMPORT CENTRAL
+   (asegúrate que las rutas sean correctas
+   según tu estructura de carpetas)
+========================================= */
+
+/* CORE */
+@import "core/reset.css";
+@import "core/variables.css";
+@import "core/layout.css";
+@import "core/utilities.css";
+
+/* COMPONENTS */
+@import "components/buttons.css";
+@import "components/tables.css";
+@import "components/cards.css";
+@import "components/forms.css";
+@import "components/badges.css";
+@import "components/toasts.css";
+
+/* SECTIONS */
+@import "sections/alumnos.css";
+@import "sections/docentes.css";
+@import "sections/secciones.css";
+@import "sections/cursos.css";
+

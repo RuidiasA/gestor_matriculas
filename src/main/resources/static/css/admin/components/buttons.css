@@ -1,0 +1,97 @@
+/* =========================================
+   BOTONES — PORTAL ADMIN
+========================================= */
+
+.btn-primary,
+.btn-secondary,
+.clear-button {
+    border-radius: var(--border-radius);
+    padding: 0.5rem 1.2rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid transparent;
+    font-family: inherit;
+    font-size: 0.95rem;
+
+    transition:
+            background-color 0.2s ease,
+            color 0.2s ease,
+            border-color 0.2s ease,
+            transform 0.15s ease;
+}
+
+/* Botón primario azul */
+.btn-primary {
+    background: var(--color-primario);
+    color: var(--color-blanco);
+    border-color: var(--color-primario);
+}
+
+.btn-primary:hover {
+    background-color: #16305a;
+    transform: translateY(-1px);
+}
+
+.btn-primary:disabled {
+    background: #9aa9c6;
+    border-color: #9aa9c6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Botón secundario blanco */
+.btn-secondary,
+.clear-button {
+    background: var(--color-blanco);
+    color: var(--color-primario);
+    border-color: var(--color-primario);
+}
+
+.btn-secondary:hover,
+.clear-button:hover {
+    background: #f0f4ff;
+    transform: translateY(-1px);
+}
+
+/* Botón tipo outline rojo (eliminar / remover) */
+.btn-outline {
+    border: 1px solid var(--color-rojo);
+    color: var(--color-rojo);
+    padding: 0.35rem 0.8rem;
+    border-radius: 8px;
+    background: transparent;
+    cursor: pointer;
+
+    font-size: 0.88rem;
+    font-weight: 600;
+
+    transition: background-color 0.2s ease, color 0.2s ease, transform 0.15s ease;
+}
+
+.btn-outline:hover {
+    background: var(--color-rojo);
+    color: var(--color-blanco);
+    transform: translateY(-1px);
+}
+
+/* Botón eliminar genérico */
+.admin-actions button,
+button.btnEliminar {
+    padding: 0.3rem 0.7rem;
+    border-radius: var(--border-radius);
+    border: none;
+    background-color: var(--color-primario);
+    color: var(--color-blanco);
+    cursor: pointer;
+    font-size: 0.9rem;
+
+    transition: background-color 0.2s ease, transform 0.15s ease;
+}
+
+button.btnEliminar {
+    background-color: var(--color-rojo);
+}
+
+button.btnEliminar:hover {
+    background-color: var(--color-rojo-hover);
+}

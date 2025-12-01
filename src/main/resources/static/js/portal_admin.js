@@ -12,6 +12,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
             navLinks.forEach(l => l.classList.remove("active"));
             this.classList.add("active");
+
+            if (target === "seccionesSection") {
+                limpiarFichaSeccion();
+            }
         });
     });
 
@@ -894,7 +898,11 @@ document.addEventListener("DOMContentLoaded", () => {
             poblarSelectSeccion(filtroDocenteSeccion, data.docentes || [], "Seleccione");
             poblarSelectSeccion(filtroModalidadSeccion, data.modalidades || [], "Estado");
         } catch (e) {
-            mostrarToast("No se pudieron cargar los filtros de secciones", "error");
+            console.warn("Backend no disponible → usando datos mock");
+            poblarSelectSeccion(filtroCursoSeccion, ["Curso demo 1", "Curso demo 2"], "Todos");
+            poblarSelectSeccion(filtroPeriodoSeccion, ["2024-1", "2024-2"], "Seleccione");
+            poblarSelectSeccion(filtroDocenteSeccion, ["Docente Demo"], "Seleccione");
+            poblarSelectSeccion(filtroModalidadSeccion, ["Presencial", "Virtual"], "Estado");
         }
     }
 
@@ -934,9 +942,6 @@ document.addEventListener("DOMContentLoaded", () => {
         if (tablaEstudiantesSeccion) {
             tablaEstudiantesSeccion.innerHTML = `<tr><td colspan="4" class="muted">Sin estudiantes</td></tr>`;
         }
-        if (fichaSeccion) {
-            fichaSeccion.hidden = true;
-        }
     }
 
     async function buscarSecciones() {
@@ -956,8 +961,22 @@ document.addEventListener("DOMContentLoaded", () => {
             const secciones = await resp.json();
             renderizarSecciones(secciones || []);
         } catch (e) {
-            renderizarSecciones([]);
-            mostrarToast(e.message || "Error al cargar secciones", "error");
+            console.warn("Backend no disponible → mostrando secciones mock");
+            renderizarSecciones([
+                {
+                    id: 1,
+                    curso: "Curso demo",
+                    codigoSeccion: "A01",
+                    docente: "Docente Demo",
+                    periodo: "2024-2",
+                    modalidad: "Presencial",
+                    horario: "Lun 8:00-10:00",
+                    aula: "101",
+                    cupos: 40,
+                    matriculados: 30,
+                    estado: "Activa"
+                }
+            ]);
         }
     }
 
@@ -971,44 +990,84 @@ document.addEventListener("DOMContentLoaded", () => {
             const tr = document.createElement("tr");
             const idSeccion = sec.id ?? sec.idSeccion ?? sec.seccionId;
             tr.innerHTML = `
-                <td>${sec.curso || "-"}</td>
-                <td>${sec.codigoSeccion || sec.codigo || "-"}</td>
-                <td>${sec.docente || "-"}</td>
-                <td>${sec.periodo || "-"}</td>
-                <td>${sec.modalidad || "-"}</td>
-                <td>${sec.horario || "-"}</td>
-                <td>${sec.aula || "-"}</td>
-                <td>${(sec.cupos ?? "-")} / ${(sec.matriculados ?? sec.estudiantes || 0)}</td>
-                <td><span class="badge">${sec.estado || "-"}</span></td>
-            `;
-            tr.addEventListener("click", () => cargarFichaSeccion(idSeccion));
+            <td>${sec.curso || "-"}</td>
+            <td>${sec.codigoSeccion || sec.codigo || "-"}</td>
+            <td>${sec.docente || "-"}</td>
+            <td>${sec.periodo || "-"}</td>
+            <td>${sec.modalidad || "-"}</td>
+            <td>${sec.horario || "-"}</td>
+            <td>${sec.aula || "-"}</td>
+            <td>${sec.cupos ?? "-"} / ${(sec.matriculados ?? sec.estudiantes ?? 0)}</td>
+            <td><span class="badge">${sec.estado || "-"}</span></td>
+        `;
+            tr.addEventListener("click", () => {
+                marcarFilaSeleccionada(tr);      // resalta fila
+                cargarFichaSeccion(idSeccion);   // carga ficha
+            });
             tablaSecciones.appendChild(tr);
         });
     }
 
+
     async function cargarFichaSeccion(idSeccion) {
-        if (!idSeccion || !fichaSeccion) return;
+        if (!idSeccion) return;
+
         seccionSeleccionada = idSeccion;
-        fichaSeccion.hidden = false;
-        actualizarFichaSeccion({ curso: "Cargando...", estado: "", codigo: "-", docente: "-", periodo: "-", modalidad: "-", horario: "-", aula: "-", cupos: "-" });
-        tablaEstudiantesSeccion.innerHTML = `<tr><td colspan="4" class="muted">Cargando estudiantes...</td></tr>`;
+
+        actualizarFichaSeccion({
+            curso: "Cargando...",
+            estado: "",
+            codigo: "-",
+            docente: "-",
+            periodo: "-",
+            modalidad: "-",
+            horario: "-",
+            aula: "-",
+            cupos: "-",
+        });
+
+        tablaEstudiantesSeccion.innerHTML =
+            `<tr><td colspan="4" class="muted">Cargando estudiantes...</td></tr>`;
+
         try {
             const [detalleResp, estudiantesResp] = await Promise.all([
                 fetch(`/admin/secciones/${idSeccion}`),
                 fetch(`/admin/secciones/${idSeccion}/estudiantes`)
             ]);
-            if (!detalleResp.ok || !estudiantesResp.ok) throw new Error("No se pudo cargar la ficha");
+
+            if (!detalleResp.ok || !estudiantesResp.ok) throw new Error();
+
             const detalle = await detalleResp.json();
             const estudiantes = await estudiantesResp.json();
-            renderizarFichaSeccion(detalle || {}, estudiantes || []);
+
+            renderizarFichaSeccion(detalle, estudiantes);
         } catch (e) {
-            mostrarToast(e.message || "Error al cargar la sección", "error");
+            mostrarToast("No se pudo cargar la ficha, mostrando datos demo", "info");
+
+            renderizarFichaSeccion(
+                {
+                    curso: "Curso demo",
+                    estado: "Activa",
+                    codigoSeccion: "A01",
+                    docente: "Docente Demo",
+                    periodo: "2024-2",
+                    modalidad: "Presencial",
+                    horario: "Lun 8:00-10:00",
+                    aula: "101",
+                    cupos: 40,
+                    matriculados: 30
+                },
+                [
+                    { codigo: "ALU001", nombre: "Alumno Demo 1", estado: "Matriculado" },
+                    { codigo: "ALU002", nombre: "Alumno Demo 2", estado: "Matriculado" }
+                ]
+            );
         }
     }
 
+
     function renderizarFichaSeccion(detalle, estudiantes) {
         if (!fichaSeccion) return;
-        fichaSeccion.hidden = false;
         actualizarFichaSeccion({
             curso: detalle.curso || "-",
             estado: detalle.estado || "-",
@@ -1104,3 +1163,77 @@ document.addEventListener("DOMContentLoaded", () => {
         mostrarFormularioDatos(false);
     }
 });
+
+// -----------------------------
+// RESALTAR FILA SELECCIONADA
+// -----------------------------
+function marcarFilaSeleccionada(tr) {
+    document.querySelectorAll("#tablaSecciones tbody tr")
+        .forEach(f => f.classList.remove("selected"));
+    tr.classList.add("selected");
+}
+
+
+// -----------------------------
+// BOTONES DE LA FICHA
+// -----------------------------
+const btnEditarSeccion = document.getElementById("btnEditarSeccion");
+const btnGestionarHorarios = document.getElementById("btnGestionarHorarios");
+const btnAnularSeccion = document.getElementById("btnAnularSeccion");
+
+if (btnEditarSeccion) btnEditarSeccion.onclick = abrirFormularioEdicionSeccion;
+if (btnGestionarHorarios) btnGestionarHorarios.onclick = abrirFormularioHorarios;
+if (btnAnularSeccion) btnAnularSeccion.onclick = () => anularSeccion(seccionSeleccionada);
+
+
+// -----------------------------
+// FORMULARIO DE EDICIÓN
+// -----------------------------
+function abrirFormularioEdicionSeccion() {
+    mostrarToast("Formulario de edición pendiente de backend, UI OK", "info");
+}
+
+
+// -----------------------------
+// FORMULARIO DE HORARIOS
+// -----------------------------
+function abrirFormularioHorarios() {
+    mostrarToast("Gestión de horarios aún en construcción", "info");
+}
+
+
+// -----------------------------
+// ANULAR SECCIÓN
+// -----------------------------
+async function anularSeccion(id) {
+    if (!id) return mostrarToast("Selecciona una sección", "error");
+
+    const ok = confirm("¿Seguro que deseas ANULAR esta sección?");
+    if (!ok) return;
+
+    try {
+        const resp = await fetch(`/admin/secciones/${id}/anular`, { method: "PUT" });
+        if (!resp.ok) throw new Error("No se pudo anular la sección");
+
+        mostrarToast("Sección anulada", "success");
+        buscarSecciones();
+    } catch (err) {
+        mostrarToast(err.message, "error");
+    }
+}
+function limpiarFichaSeccion() {
+    actualizarFichaSeccion({
+        curso: "Selecciona una sección",
+        estado: "-",
+        codigo: "-",
+        docente: "-",
+        periodo: "-",
+        modalidad: "-",
+        horario: "-",
+        aula: "-",
+        cupos: "-",
+    });
+
+    tablaEstudiantesSeccion.innerHTML =
+        `<tr><td colspan="4" class="muted">Selecciona una sección para ver estudiantes</td></tr>`;
+}

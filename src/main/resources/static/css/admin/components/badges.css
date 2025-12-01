@@ -1,0 +1,51 @@
+/* =========================================
+   BADGES / PÍLDORAS DE ESTADO
+========================================= */
+
+/* Badge genérico */
+.badge {
+    padding: 0.3rem 0.8rem;
+    border-radius: 999px;
+    background: #e3f2fd;
+    color: var(--color-primario);
+    font-weight: 700;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Badge para estados (texto más pequeño) */
+.badge--estado {
+    padding: 0.35rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+/* Estados comunes */
+.badge--success {
+    background: #e8f5e9;
+    color: #1b5e20;
+}
+
+.badge--info {
+    background: #e3f2fd;
+    color: var(--color-primario);
+}
+
+.badge--pagada {
+    background: #e8f8f0;
+    color: #1e8a4a;
+}
+
+.badge--pendiente {
+    background: #fff4d8;
+    color: #a86c00;
+}
+
+.badge--anulada {
+    background: #ffe9e9;
+    color: #b62828;
+}
