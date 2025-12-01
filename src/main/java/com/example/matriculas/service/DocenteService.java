@@ -318,6 +318,7 @@ public class DocenteService {
                 .seccion(seccion.getCodigo())
                 .modalidad(seccion.getModalidad() != null ? seccion.getModalidad().name() : null)
                 .creditos(seccion.getCurso() != null ? seccion.getCurso().getCreditos() : null)
+                .turno(seccion.getTurno() != null ? seccion.getTurno().name() : null)
                 .horario(formatearHorario(seccion.getHorarios()))
                 .estudiantesFinalizados(seccion.getMatriculas() != null ? seccion.getMatriculas().size() : 0)
                 .notaPromedio(null)

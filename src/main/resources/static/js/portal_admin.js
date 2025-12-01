@@ -544,6 +544,7 @@ function createDocentesModule(tools) {
     const tablaCursosDictables = document.querySelector('#tablaCursosDictables tbody');
     const tablaSeccionesDocente = document.querySelector('#tablaSeccionesDocente tbody');
     const resumenSeccionesDocente = document.getElementById('resumenSeccionesDocente');
+    const badgeSeccionesDocente = document.getElementById('badgeSeccionesDocente');
     const tablaHistorialDocente = document.querySelector('#tablaHistorialDocente tbody');
     const btnEditarDocente = document.getElementById('btnEditarDocente');
     const btnEditarContactoDocente = document.getElementById('btnEditarContactoDocente');
@@ -749,6 +750,30 @@ function createDocentesModule(tools) {
             inputsDocente.estado.textContent = 'Cargando...';
             inputsDocente.estado.className = 'badge';
         }
+        if (badgeSeccionesDocente) badgeSeccionesDocente.textContent = 'Cargando...';
+        tools.renderEmptyRow(tablaCursosDictables, 5, 'Cargando...');
+        tools.renderEmptyRow(tablaSeccionesDocente, 9, 'Cargando...');
+        tools.renderEmptyRow(tablaHistorialDocente, 11, 'Cargando...');
+    }
+
+    function prepararCargaDocente() {
+        cerrarModalDocente(modalDatosDocente);
+        cerrarModalDocente(modalContactoDocente);
+        docenteSeleccionado = null;
+        [inputsDocente.codigo, inputsDocente.apellidos, inputsDocente.nombres, inputsDocente.dni, inputsDocente.especialidad,
+            inputsDocente.correoInst, inputsDocente.correoPer, inputsDocente.telefono, inputsDocente.direccion].forEach(el => {
+            if (el) el.textContent = 'Cargando...';
+        });
+        Object.values(formInputsDocente).forEach(input => {
+            if (input) input.value = '';
+        });
+        Object.values(formContactoInputs).forEach(input => {
+            if (input) input.value = '';
+        });
+        if (inputsDocente.estado) {
+            inputsDocente.estado.textContent = 'Cargando...';
+            inputsDocente.estado.className = 'badge';
+        }
         tools.renderEmptyRow(tablaCursosDictables, 5, 'Cargando...');
         tools.renderEmptyRow(tablaSeccionesDocente, 9, 'Cargando...');
         tools.renderEmptyRow(tablaHistorialDocente, 10, 'Cargando...');
@@ -805,8 +830,9 @@ function createDocentesModule(tools) {
         const secciones = detalle.seccionesActuales || [];
         tablaSeccionesDocente.innerHTML = '';
         if (!secciones.length) {
-            tools.renderEmptyRow(tablaSeccionesDocente, 5, 'Sin secciones');
+            tools.renderEmptyRow(tablaSeccionesDocente, 9, 'Sin secciones');
             if (resumenSeccionesDocente) resumenSeccionesDocente.textContent = '0 secciones asignadas';
+            if (badgeSeccionesDocente) badgeSeccionesDocente.textContent = '0 secciones';
             return;
         }
 
@@ -814,23 +840,31 @@ function createDocentesModule(tools) {
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>${s.curso || '-'}</td>
-                <td>${s.codigo || '-'}</td>
+                <td>${s.codigoSeccion || '-'}</td>
+                <td>${s.periodo || '-'}</td>
                 <td>${s.modalidad || '-'}</td>
+                <td>${s.creditos ?? '-'}</td>
+                <td>${s.turno || '-'}</td>
                 <td>${s.horario || '-'}</td>
                 <td>${s.aula || '-'}</td>
+                <td>${s.estudiantesInscritos ?? '-'}</td>
             `;
             tablaSeccionesDocente.appendChild(tr);
         });
 
+        const total = detalle.totalSeccionesActuales || secciones.length || 0;
         if (resumenSeccionesDocente) {
-            resumenSeccionesDocente.textContent = `${detalle.totalSeccionesActuales || 0} secciones`;
+            resumenSeccionesDocente.textContent = `${total} secciones`;
+        }
+        if (badgeSeccionesDocente) {
+            badgeSeccionesDocente.textContent = `${total} secciones`;
         }
     }
 
     function renderizarHistorialDocente(historial) {
         tablaHistorialDocente.innerHTML = '';
         if (!historial.length) {
-            tools.renderEmptyRow(tablaHistorialDocente, 5, 'Sin historial');
+            tools.renderEmptyRow(tablaHistorialDocente, 11, 'Sin historial');
             return;
         }
         historial.forEach(h => {
@@ -840,7 +874,13 @@ function createDocentesModule(tools) {
                 <td>${h.curso || '-'}</td>
                 <td>${h.seccion || '-'}</td>
                 <td>${h.modalidad || '-'}</td>
+                <td>${h.creditos ?? '-'}</td>
+                <td>${h.turno || '-'}</td>
                 <td>${h.horario || '-'}</td>
+                <td>${h.estudiantesFinalizados ?? '-'}</td>
+                <td>${h.notaPromedio ?? '-'}</td>
+                <td>${h.porcentajeAprobacion != null ? `${h.porcentajeAprobacion}%` : '-'}</td>
+                <td>${h.observaciones || '-'}</td>
             `;
             tablaHistorialDocente.appendChild(tr);
         });
@@ -1161,6 +1201,17 @@ function createSeccionesModule(tools) {
             tools.renderEmptyRow(tablaHistorialSeccion, 5, 'No se pudo cargar el historial');
             detalleSeccionActual = null;
         }
+        registrosHistorial.forEach(reg => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${reg.periodo || '-'}</td>
+                <td>${reg.alumnoNombre || '-'}<br><span class="muted">${reg.alumnoCodigo || ''}</span></td>
+                <td>${reg.estadoMatricula || '-'}</td>
+                <td>${reg.fechaMatricula ? new Date(reg.fechaMatricula).toLocaleString() : '-'}</td>
+                <td>${reg.observacion || '-'}</td>
+            `;
+            tablaHistorialSeccion.appendChild(tr);
+        });
     }
 
     function renderizarHistorial(historial) {

@@ -437,16 +437,14 @@
                     </article>
 
                     <article class="card">
-                        <header class="card__header">
-                            <div>
-                                <h3>Secciones asignadas actualmente</h3>
-                                <p id="resumenSeccionesDocente" class="muted">0 secciones</p>
-                            </div>
-                            <div>
-                                <div id="contenedorSeccionesBadges" class="secciones-badges"></div>
-                            </div>
+                        <header class="card__header card-header-flex">
+                            <h3>Secciones asignadas actualmente</h3>
+                            <span id="badgeSeccionesDocente" class="badge-count">0 secciones</span>
                         </header>
 
+
+                        <div class="secciones-badges" id="contenedorSeccionesBadges"></div>
+                        <p id="resumenSeccionesDocente" class="muted resumen-secciones-docente">0 secciones</p>
 
                         <div class="table-wrapper">
                             <table class="admin-table" id="tablaSeccionesDocente">
@@ -483,6 +481,7 @@
                                     <th>Sección</th>
                                     <th>Modalidad</th>
                                     <th>Créditos</th>
+                                    <th>Turno</th>
                                     <th>Horario</th>
                                     <th>Estudiantes finalizados</th>
                                     <th>Nota promedio</th>
@@ -491,7 +490,7 @@
                                 </tr>
                                 </thead>
                                 <tbody>
-                                <tr><td colspan="10" class="muted">Sin historial</td></tr>
+                                <tr><td colspan="11" class="muted">Sin historial</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -605,7 +604,7 @@
                     </div>
 
                     <!-- BUSCAR Y LISTAR DOCENTES -->
-                    <article class="card">
+                    <article class="card card--buscar-docentes">
                         <header class="card__header">
                             <h3>Buscar docentes</h3>
                             <div class="card__actions">
@@ -634,7 +633,7 @@
                         </form>
 
                         <!-- TABLA CON SCROLL -->
-                        <div class="table-wrapper">
+                        <div class="table-wrapper table-wrapper--docentes">
                             <table class="admin-table" id="tablaDocentes">
                                 <thead>
                                 <tr>
