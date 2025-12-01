@@ -5,9 +5,9 @@
 /* Layout general de la sección */
 .secciones-grid {
     display: grid;
-    grid-template-columns: 1.6fr 1fr;
-    gap: 1.2rem;
-    align-items: flex-start;
+    grid-template-columns: minmax(0, 1.1fr) minmax(360px, 0.8fr);
+    gap: 1.5rem;
+    align-items: stretch;
 }
 
 .secciones-col {
@@ -42,11 +42,14 @@
 }
 
 /* GRID PRINCIPAL */
-.secciones-grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1.1fr) minmax(360px, 0.8fr);
-    gap: 1.5rem;
-    align-items: flex-start;
+.secciones-col--left,
+.secciones-col--right {
+    height: 100%;
+}
+
+.secciones-col--right {
+    display: flex;
+    flex-direction: column;
 }
 
 /* Fila seleccionada */
@@ -64,6 +67,30 @@
 /* TABLA DE ESTUDIANTES */
 #tablaEstudiantesSeccion tbody tr {
     cursor: pointer;
+}
+
+/* Columna izquierda con listado scrollable sin barra visible */
+.secciones-col--left .card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    flex: 1;
+}
+
+.secciones-col--left .card__header {
+    flex-shrink: 0;
+}
+
+.secciones-col--left .table-wrapper {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: auto;
+    padding-bottom: 1rem;
+    scrollbar-width: none;
+}
+
+.secciones-col--left .table-wrapper::-webkit-scrollbar {
+    display: none;
 }
 
 /* ACCIONES */
