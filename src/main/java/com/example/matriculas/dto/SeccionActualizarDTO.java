@@ -1,5 +1,9 @@
 package com.example.matriculas.dto;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,29 +15,36 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class SeccionDetalleDTO {
+public class SeccionActualizarDTO {
 
-    private Long idSeccion;
-    private String curso;
-    private String codigoSeccion;
+    @NotNull
     private Long docenteId;
-    private String docente;
-    private String periodo;
-    private String modalidad;
-    private String horario;
+
+    @NotBlank
     private String aula;
+
+    @NotNull
+    @Min(1)
     private Integer cupos;
-    private Integer matriculados;
-    private String estado;
-    private List<HorarioDTO> horarios;
+
+    @NotBlank
+    private String modalidad;
+
+    @Valid
+    private List<HorarioEdicionDTO> horarios;
 
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
-    public static class HorarioDTO {
+    public static class HorarioEdicionDTO {
+        @NotBlank
         private String dia;
+
+        @NotBlank
         private String horaInicio;
+
+        @NotBlank
         private String horaFin;
     }
 }
