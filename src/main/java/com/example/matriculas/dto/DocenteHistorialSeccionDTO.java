@@ -16,6 +16,7 @@ public class DocenteHistorialSeccionDTO {
     private String seccion;
     private String modalidad;
     private Integer creditos;
+    private String turno;
     private String horario;
     private Integer estudiantesFinalizados;
     private Double notaPromedio;

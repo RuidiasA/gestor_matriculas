@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -15,5 +17,10 @@ public class HistorialMatriculaDTO {
     private Integer totalCursos;
     private Integer totalCreditos;
     private Integer totalHoras;
+    private Double matricula;
+    private Double pension;
+    private Double mora;
+    private Double descuentos;
     private Double montoTotal;
+    private List<CursoMatriculadoDTO> cursos;
 }
