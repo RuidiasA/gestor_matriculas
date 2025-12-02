@@ -34,6 +34,7 @@ public class SecurityConfig {
                         .requestMatchers("/login").permitAll()
                         .requestMatchers("/password/**").permitAll()   // ⬅️ NUEVO
                         .requestMatchers("/portal_admin").hasRole("ADMIN")
+                        .requestMatchers("/admin/alumnos/**").hasRole("ADMIN")
                         .requestMatchers("/matricula").hasRole("ALUMNO")
                         .anyRequest().authenticated()
                 )

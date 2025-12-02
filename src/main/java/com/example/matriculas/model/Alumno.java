@@ -28,7 +28,6 @@ public class Alumno {
     @Column(nullable = false, unique = true, length = 20)
     private String codigoAlumno;
 
-
     /* Nombres y apellidos */
     @Column(nullable = false)
     private String nombres;
@@ -52,6 +51,14 @@ public class Alumno {
 
     @Column(nullable = false, unique = true)
     private String correoInstitucional;
+
+    /* Dirección (nuevo campo) */
+    @Column(nullable = true)
+    private String direccion;
+
+    /* Estado del alumno: ACTIVO / INACTIVO / SUSPENDIDO */
+    @Column(nullable = false)
+    private String estado = "ACTIVO";
 
     /* Año en que inició la carrera */
     @Column(nullable = false)
@@ -77,7 +84,7 @@ public class Alumno {
     @JoinColumn(name = "carrera_id", nullable = false)
     private Carrera carrera;
 
-    /* Relación con usuario (login) */
+    /* Relación con el usuario (login) */
     @OneToOne
     @JoinColumn(name = "usuario_id", unique = true)
     private Usuario usuario;

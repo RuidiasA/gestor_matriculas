@@ -8,7 +8,8 @@ import lombok.*;
 @Table(name = "usuarios", uniqueConstraints = {
         @UniqueConstraint(columnNames = "correo_institucional")
 })
-@Getter @Setter
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -40,4 +41,8 @@ public class Usuario {
     // Si el usuario corresponde a un docente
     @OneToOne(mappedBy = "usuario")
     private Docente docente;
+
+    // Si el usuario corresponde a un administrador
+    @OneToOne(mappedBy = "usuario")
+    private Administrador administrador;
 }

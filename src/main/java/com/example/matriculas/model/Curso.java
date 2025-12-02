@@ -5,6 +5,7 @@ import com.example.matriculas.model.enums.TipoCurso;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -68,9 +69,9 @@ public class Curso {
             joinColumns = @JoinColumn(name = "curso_id"),
             inverseJoinColumns = @JoinColumn(name = "prerrequisito_id")
     )
-    private List<Curso> prerrequisitos;
+    private List<Curso> prerrequisitos = new ArrayList<>();
 
     /* Relación con las secciones del curso */
     @OneToMany(mappedBy = "curso", fetch = FetchType.LAZY)
-    private List<Seccion> secciones;
+    private List<Seccion> secciones = new ArrayList<>();
 }

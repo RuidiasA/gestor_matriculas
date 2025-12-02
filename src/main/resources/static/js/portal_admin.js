@@ -331,6 +331,13 @@ function createAlumnosModule(tools) {
             `;
             tablaCursos.appendChild(tr);
         });
+
+        // Si el ciclo anterior sigue existiendo, mantenerlo
+        if (ciclos.includes(valorAnterior)) {
+            select.value = valorAnterior;
+        } else {
+            select.value = ciclos[0]; // Primer ciclo solo si antes no había nada
+        }
     }
 
     function renderizarResumen(resumen) {

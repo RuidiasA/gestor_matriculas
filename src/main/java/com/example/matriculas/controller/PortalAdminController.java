@@ -4,10 +4,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
-public class AdminController {
+public class PortalAdminController {
 
     @GetMapping("/portal_admin")
     public String portalAdmin() {
-        return "portal_admin"; // archivo portal_admin.html
+        return "portal_admin"; // Vista Thymeleaf
     }
 }

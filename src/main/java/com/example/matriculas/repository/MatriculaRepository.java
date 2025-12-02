@@ -9,6 +9,9 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 import java.util.Optional;
 
+import java.util.List;
+import java.util.Optional;
+
 public interface MatriculaRepository extends JpaRepository<Matricula, Long> {
 
     List<Matricula> findByAlumnoIdOrderByFechaMatriculaDesc(Long alumnoId);
