@@ -10,8 +10,9 @@ import java.util.List;
 
 @Entity
 @Table(name = "alumnos", uniqueConstraints = {
+        @UniqueConstraint(columnNames = "codigo_alumno"),
         @UniqueConstraint(columnNames = "dni"),
-        @UniqueConstraint(columnNames = "correoInstitucional")
+        @UniqueConstraint(columnNames = "correo_institucional")
 })
 @Getter
 @Setter
@@ -25,7 +26,7 @@ public class Alumno {
     private Long id;
 
     /* Código institucional único del alumno */
-    @Column(nullable = false, unique = true, length = 20)
+    @Column(name = "codigo_alumno", nullable = false, unique = true, length = 20)
     private String codigoAlumno;
 
 
@@ -50,15 +51,15 @@ public class Alumno {
     @Column(length = 150)
     private String direccion;
 
-    @Column(nullable = false, unique = true)
+    @Column(name = "correo_institucional", nullable = false, unique = true)
     private String correoInstitucional;
 
     /* Año en que inició la carrera */
-    @Column(nullable = false)
+    @Column(name = "anio_ingreso", nullable = false)
     private Integer anioIngreso;
 
     /* Ciclo actual del alumno (2–10) */
-    @Column(nullable = false)
+    @Column(name = "ciclo_actual", nullable = false)
     private Integer cicloActual;
 
     @Enumerated(EnumType.STRING)
