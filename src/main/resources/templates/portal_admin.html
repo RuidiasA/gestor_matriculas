@@ -139,6 +139,33 @@
                         </header>
 
                         <div class="card__body">
+                            <div class="summary-grid" id="resumenDashboardSeccion">
+                                <div class="summary-item">
+                                    <p class="label">Matriculados actuales</p>
+                                    <h4 id="metricMatriculados">-</h4>
+                                </div>
+                                <div class="summary-item">
+                                    <p class="label">Cupos libres</p>
+                                    <h4 id="metricCuposLibres">-</h4>
+                                </div>
+                                <div class="summary-item">
+                                    <p class="label">Aprobados último periodo</p>
+                                    <h4 id="metricAprobados">-</h4>
+                                </div>
+                                <div class="summary-item">
+                                    <p class="label">% Aprobación</p>
+                                    <h4 id="metricAprobacion">-</h4>
+                                </div>
+                                <div class="summary-item">
+                                    <p class="label">Retiros</p>
+                                    <h4 id="metricRetiros">-</h4>
+                                </div>
+                                <div class="summary-item">
+                                    <p class="label">Horarios programados</p>
+                                    <h4 id="metricHorarios">-</h4>
+                                </div>
+                            </div>
+
                             <div class="ficha-grid">
                                 <div>
                                     <p class="label">Código</p>
@@ -167,6 +194,34 @@
                                 <div>
                                     <p class="label">Cupos / Matriculados</p>
                                     <p id="seccionCupos">-</p>
+                                </div>
+                                <div>
+                                    <p class="label">Créditos</p>
+                                    <p id="seccionCreditos">-</p>
+                                </div>
+                                <div>
+                                    <p class="label">Ciclo</p>
+                                    <p id="seccionCiclo">-</p>
+                                </div>
+                                <div>
+                                    <p class="label">Turno</p>
+                                    <p id="seccionTurno">-</p>
+                                </div>
+                                <div>
+                                    <p class="label">Horas semanales</p>
+                                    <p id="seccionHoras">-</p>
+                                </div>
+                                <div>
+                                    <p class="label">Cupos disponibles</p>
+                                    <p id="seccionCuposDisponibles">-</p>
+                                </div>
+                                <div>
+                                    <p class="label">Cantidad de horarios</p>
+                                    <p id="seccionCantidadHorarios">-</p>
+                                </div>
+                                <div>
+                                    <p class="label">Estado académico</p>
+                                    <p id="seccionEstadoAcademico">-</p>
                                 </div>
                             </div>
 
@@ -205,22 +260,67 @@
                     <article class="card">
                         <header class="card__header">
                             <h3>Historial de secciones</h3>
+                            <div class="tabs">
+                                <button class="tab active" data-tab="tab-movimientos">Movimientos</button>
+                                <button class="tab" data-tab="tab-cambios">Cambios</button>
+                                <button class="tab" data-tab="tab-estadisticas">Estadísticas</button>
+                            </div>
                         </header>
-                        <div class="table-wrapper">
-                            <table class="admin-table" id="tablaHistorialSeccion">
-                                <thead>
-                                <tr>
-                                    <th>Periodo</th>
-                                    <th>Alumno</th>
-                                    <th>Estado matrícula</th>
-                                    <th>Fecha</th>
-                                    <th>Observación</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                <tr><td colspan="5" class="muted">Selecciona una sección</td></tr>
-                                </tbody>
-                            </table>
+                        <div class="tab-content active" id="tab-movimientos">
+                            <div class="table-wrapper">
+                                <table class="admin-table" id="tablaHistorialSeccion">
+                                    <thead>
+                                    <tr>
+                                        <th>Periodo</th>
+                                        <th>Alumno</th>
+                                        <th>Estado matrícula</th>
+                                        <th>Fecha</th>
+                                        <th>Observación</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr><td colspan="5" class="muted">Selecciona una sección</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="tab-content" id="tab-cambios">
+                            <div class="table-wrapper">
+                                <table class="admin-table" id="tablaCambiosSeccion">
+                                    <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Usuario</th>
+                                        <th>Campo</th>
+                                        <th>Anterior</th>
+                                        <th>Nuevo</th>
+                                        <th>Observación</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr><td colspan="6" class="muted">Selecciona una sección</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="tab-content" id="tab-estadisticas">
+                            <div class="table-wrapper">
+                                <table class="admin-table" id="tablaEstadisticasSeccion">
+                                    <thead>
+                                    <tr>
+                                        <th>Periodo</th>
+                                        <th>Matriculados</th>
+                                        <th>Retiros</th>
+                                        <th>Aprobados</th>
+                                        <th>Desaprobados</th>
+                                        <th>% Aprobación</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr><td colspan="6" class="muted">Selecciona una sección</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </article>
                 </div>

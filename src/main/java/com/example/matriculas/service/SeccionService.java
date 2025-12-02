@@ -1,16 +1,11 @@
 package com.example.matriculas.service;
 
-import com.example.matriculas.dto.EstudianteSeccionDTO;
-import com.example.matriculas.dto.SeccionActualizarDTO;
-import com.example.matriculas.dto.SeccionCatalogoDTO;
-import com.example.matriculas.dto.SeccionDetalleDTO;
-import com.example.matriculas.dto.SeccionHistorialDTO;
-import com.example.matriculas.dto.SeccionHorariosActualizarDTO;
-import com.example.matriculas.dto.SeccionListadoDTO;
+import com.example.matriculas.dto.*;
 import com.example.matriculas.model.Curso;
 import com.example.matriculas.model.Docente;
 import com.example.matriculas.model.Seccion;
 import com.example.matriculas.model.SeccionHorario;
+import com.example.matriculas.model.SeccionCambioLog;
 import com.example.matriculas.model.enums.DiaSemana;
 import com.example.matriculas.model.enums.EstadoMatricula;
 import com.example.matriculas.model.enums.EstadoSeccion;
@@ -19,6 +14,7 @@ import com.example.matriculas.repository.CursoRepository;
 import com.example.matriculas.repository.DetalleMatriculaRepository;
 import com.example.matriculas.repository.DocenteRepository;
 import com.example.matriculas.repository.SeccionRepository;
+import com.example.matriculas.repository.SeccionCambioLogRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
@@ -42,6 +38,7 @@ public class SeccionService {
     private final CursoRepository cursoRepository;
     private final DocenteRepository docenteRepository;
     private final DetalleMatriculaRepository detalleMatriculaRepository;
+    private final SeccionCambioLogRepository seccionCambioLogRepository;
 
     @Transactional(readOnly = true)
     public SeccionCatalogoDTO obtenerCatalogos() {
@@ -213,15 +210,21 @@ public class SeccionService {
         if (dto.getDocenteId() != null) {
             Docente docente = docenteRepository.findById(dto.getDocenteId())
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Docente no encontrado"));
+            registrarCambio(seccion, "docente", seccion.getDocente() != null ? seccion.getDocente().getId().toString() : "-",
+                    docente.getId().toString(), "Actualización de docente");
             seccion.setDocente(docente);
         }
 
         if (StringUtils.hasText(dto.getAula())) {
+            registrarCambio(seccion, "aula", seccion.getAula(), dto.getAula().trim(), "Actualización de aula");
             seccion.setAula(dto.getAula().trim());
         }
 
         if (dto.getModalidad() != null) {
-            seccion.setModalidad(parsearModalidad(dto.getModalidad()));
+            Modalidad nuevaModalidad = parsearModalidad(dto.getModalidad());
+            registrarCambio(seccion, "modalidad", formatearModalidad(seccion.getModalidad()), formatearModalidad(nuevaModalidad),
+                    "Actualización de modalidad");
+            seccion.setModalidad(nuevaModalidad);
         }
 
         if (dto.getCupos() != null) {
@@ -230,12 +233,16 @@ public class SeccionService {
                 throw new ResponseStatusException(HttpStatus.CONFLICT,
                         "El cupo no puede ser menor a los estudiantes matriculados (" + matriculadosActivos + ")");
             }
+            registrarCambio(seccion, "capacidad", String.valueOf(seccion.getCapacidad()), String.valueOf(dto.getCupos()),
+                    "Actualización de cupos");
             seccion.setCapacidad(dto.getCupos());
         }
 
         if (dto.getHorarios() != null) {
             List<SeccionHorario> horariosActualizados = construirHorarios(dto.getHorarios(), seccion);
             reemplazarHorarios(seccion, horariosActualizados);
+            registrarCambio(seccion, "horarios", formatearHorario(seccion.getHorarios()), formatearHorario(horariosActualizados),
+                    "Actualización de horarios");
         }
 
         seccionRepository.save(seccion);
@@ -253,7 +260,163 @@ public class SeccionService {
         List<SeccionHorario> horariosActualizados = construirHorarios(dto.getHorarios(), seccion);
         reemplazarHorarios(seccion, horariosActualizados);
 
+        registrarCambio(seccion, "horarios", formatearHorario(seccion.getHorarios()), formatearHorario(horariosActualizados),
+                "Gestión de horarios");
+
         seccionRepository.save(seccion);
+    }
+
+    @Transactional(readOnly = true)
+    public List<SeccionCambioDTO> obtenerCambios(Long seccionId) {
+        if (!seccionRepository.existsById(seccionId)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Sección no encontrada");
+        }
+        return seccionCambioLogRepository.findBySeccionIdOrderByFechaDesc(seccionId)
+                .stream()
+                .map(log -> SeccionCambioDTO.builder()
+                        .fecha(log.getFecha())
+                        .usuario(log.getUsuario())
+                        .campoModificado(log.getCampoModificado())
+                        .valorAnterior(log.getValorAnterior())
+                        .valorNuevo(log.getValorNuevo())
+                        .observacion(log.getObservacion())
+                        .build())
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public SeccionEstadisticaDTO obtenerEstadisticas(Long seccionId) {
+        Seccion seccion = seccionRepository.findDetalleById(seccionId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Sección no encontrada"));
+
+        int matriculados = detalleMatriculaRepository.contarMatriculadosActivosPorSeccion(seccionId).intValue();
+        int cuposLibres = Math.max(0, seccion.getCapacidad() - matriculados);
+        int horariosProgramados = seccion.getHorarios() != null ? seccion.getHorarios().size() : 0;
+
+        SeccionPeriodoResumenDTO periodoActual = SeccionPeriodoResumenDTO.builder()
+                .periodo(seccion.getPeriodoAcademico())
+                .matriculados(matriculados)
+                .retirados(0)
+                .aprobados(0)
+                .desaprobados(0)
+                .porcentajeAprobacion(0.0)
+                .promedioNotas(0.0)
+                .promedioAsistencia(0.0)
+                .build();
+
+        return SeccionEstadisticaDTO.builder()
+                .matriculadosActuales(matriculados)
+                .cuposLibres(cuposLibres)
+                .aprobadosUltimoPeriodo(0)
+                .porcentajeAprobacion(0.0)
+                .retiros(0)
+                .horariosProgramados(horariosProgramados)
+                .creditos(seccion.getCurso() != null ? seccion.getCurso().getCreditos() : 0)
+                .ciclo(seccion.getCurso() != null ? String.valueOf(seccion.getCurso().getCiclo()) : "-")
+                .turno(seccion.getTurno() != null ? seccion.getTurno().name() : "-")
+                .horasSemanales(seccion.getCurso() != null ? seccion.getCurso().getHorasSemanales() : 0)
+                .cuposTotales(seccion.getCapacidad())
+                .cuposDisponibles(cuposLibres)
+                .cantidadHorarios(horariosProgramados)
+                .estadoAcademico(formatearEstadoSeccion(seccion.getEstado()))
+                .resumenPeriodos(List.of(periodoActual))
+                .build();
+    }
+
+    @Transactional(readOnly = true)
+    public SeccionHistorialCompletoDTO obtenerHistorialCompleto(Long seccionId) {
+        if (!seccionRepository.existsById(seccionId)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Sección no encontrada");
+        }
+        List<MovimientoMatriculaDTO> movimientos = detalleMatriculaRepository.findHistorialBySeccion(seccionId)
+                .stream()
+                .map(detalle -> MovimientoMatriculaDTO.builder()
+                        .codigo(detalle.getMatricula().getAlumno().getCodigoAlumno())
+                        .nombre(formatearNombre(detalle.getMatricula().getAlumno().getApellidos(),
+                                detalle.getMatricula().getAlumno().getNombres()))
+                        .accion(formatearEstadoMatricula(detalle.getMatricula().getEstado()))
+                        .fecha(detalle.getMatricula().getFechaMatricula())
+                        .usuario("Sistema")
+                        .notaFinal("-")
+                        .observacion(detalle.getMatricula().getEstado() == EstadoMatricula.ANULADA ? "Matrícula anulada" : "")
+                        .build())
+                .toList();
+
+        return SeccionHistorialCompletoDTO.builder()
+                .cambios(obtenerCambios(seccionId))
+                .movimientos(movimientos)
+                .estadisticas(obtenerEstadisticas(seccionId))
+                .build();
+    }
+
+    @Transactional
+    public void registrarLogManual(Long seccionId, SeccionCambioDTO dto) {
+        Seccion seccion = seccionRepository.findById(seccionId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Sección no encontrada"));
+        SeccionCambioLog log = SeccionCambioLog.builder()
+                .seccion(seccion)
+                .fecha(Optional.ofNullable(dto.getFecha()).orElseGet(java.time.LocalDateTime::now))
+                .usuario(Optional.ofNullable(dto.getUsuario()).orElse("Sistema"))
+                .campoModificado(dto.getCampoModificado())
+                .valorAnterior(Optional.ofNullable(dto.getValorAnterior()).orElse("-"))
+                .valorNuevo(Optional.ofNullable(dto.getValorNuevo()).orElse("-"))
+                .observacion(dto.getObservacion())
+                .build();
+        seccionCambioLogRepository.save(log);
+    }
+
+    @Transactional
+    public void actualizarDocente(Long seccionId, Long docenteId) {
+        Seccion seccion = seccionRepository.findById(seccionId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Sección no encontrada"));
+        Docente docente = docenteRepository.findById(docenteId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Docente no encontrado"));
+        registrarCambio(seccion, "docente", seccion.getDocente() != null ? seccion.getDocente().getId().toString() : "-",
+                docente.getId().toString(), "Actualización directa de docente");
+        seccion.setDocente(docente);
+        seccionRepository.save(seccion);
+    }
+
+    @Transactional
+    public void actualizarAula(Long seccionId, String aula) {
+        Seccion seccion = seccionRepository.findById(seccionId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Sección no encontrada"));
+        registrarCambio(seccion, "aula", seccion.getAula(), aula, "Actualización directa de aula");
+        seccion.setAula(aula);
+        seccionRepository.save(seccion);
+    }
+
+    @Transactional
+    public void actualizarEstado(Long seccionId, EstadoSeccion estado) {
+        Seccion seccion = seccionRepository.findById(seccionId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Sección no encontrada"));
+        registrarCambio(seccion, "estado", formatearEstadoSeccion(seccion.getEstado()), formatearEstadoSeccion(estado),
+                "Actualización de estado");
+        seccion.setEstado(estado);
+        seccionRepository.save(seccion);
+    }
+
+    @Transactional
+    public void actualizarCupos(Long seccionId, int cupos) {
+        Seccion seccion = seccionRepository.findById(seccionId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Sección no encontrada"));
+        registrarCambio(seccion, "capacidad", String.valueOf(seccion.getCapacidad()), String.valueOf(cupos),
+                "Actualización directa de cupos");
+        seccion.setCapacidad(cupos);
+        seccionRepository.save(seccion);
+    }
+
+    private void registrarCambio(Seccion seccion, String campo, String anterior, String nuevo, String observacion) {
+        SeccionCambioLog log = SeccionCambioLog.builder()
+                .seccion(seccion)
+                .fecha(java.time.LocalDateTime.now())
+                .usuario("Sistema")
+                .campoModificado(campo)
+                .valorAnterior(Optional.ofNullable(anterior).orElse("-"))
+                .valorNuevo(Optional.ofNullable(nuevo).orElse("-"))
+                .observacion(observacion)
+                .build();
+        seccionCambioLogRepository.save(log);
     }
 
     private SeccionCatalogoDTO.CursoCatalogoDTO mapearCursoCatalogo(Curso curso) {
