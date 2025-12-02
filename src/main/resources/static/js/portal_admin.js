@@ -998,6 +998,9 @@ function createSeccionesModule(tools) {
     const tablaSecciones = document.querySelector('#tablaSecciones tbody');
     const tablaEstudiantesSeccion = document.querySelector('#tablaEstudiantesSeccion tbody');
     const tablaHistorialSeccion = document.querySelector('#tablaHistorialSeccion tbody');
+    const tablaCambiosSeccion = document.querySelector('#tablaCambiosSeccion tbody');
+    const tablaEstadisticasSeccion = document.querySelector('#tablaEstadisticasSeccion tbody');
+    const tabsHistorial = document.querySelectorAll('.tabs .tab');
     const filtroCursoSeccion = document.getElementById('filtroCursoSeccion');
     const filtroPeriodoSeccion = document.getElementById('filtroPeriodoSeccion');
     const filtroDocenteSeccion = document.getElementById('filtroDocenteSeccion');
@@ -1015,6 +1018,22 @@ function createSeccionesModule(tools) {
         horario: document.getElementById('seccionHorario'),
         aula: document.getElementById('seccionAula'),
         cupos: document.getElementById('seccionCupos'),
+        creditos: document.getElementById('seccionCreditos'),
+        ciclo: document.getElementById('seccionCiclo'),
+        turno: document.getElementById('seccionTurno'),
+        horas: document.getElementById('seccionHoras'),
+        cuposDisponibles: document.getElementById('seccionCuposDisponibles'),
+        cantidadHorarios: document.getElementById('seccionCantidadHorarios'),
+        estadoAcademico: document.getElementById('seccionEstadoAcademico')
+    };
+
+    const resumenMetricas = {
+        matriculados: document.getElementById('metricMatriculados'),
+        cuposLibres: document.getElementById('metricCuposLibres'),
+        aprobados: document.getElementById('metricAprobados'),
+        aprobacion: document.getElementById('metricAprobacion'),
+        retiros: document.getElementById('metricRetiros'),
+        horarios: document.getElementById('metricHorarios'),
     };
 
     const btnEditarSeccion = document.getElementById('btnEditarSeccion');
@@ -1044,6 +1063,16 @@ function createSeccionesModule(tools) {
         if (btnEditarSeccion) btnEditarSeccion.onclick = () => abrirModalEdicionSeccion();
         if (btnGestionarHorarios) btnGestionarHorarios.onclick = () => abrirModalGestionHorarios();
         if (btnAnularSeccion) btnAnularSeccion.onclick = () => anularSeccion(seccionSeleccionada);
+
+        tabsHistorial?.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const objetivo = tab.dataset.tab;
+                document.querySelectorAll('.tab-content').forEach(p => p.classList.remove('active'));
+                tabsHistorial.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById(objetivo)?.classList.add('active');
+            });
+        });
     }
 
     function resetFicha() {
@@ -1076,6 +1105,8 @@ function createSeccionesModule(tools) {
         tools.renderEmptyRow(tablaSecciones, 9, 'Realiza una búsqueda para ver resultados');
         tools.renderEmptyRow(tablaEstudiantesSeccion, 4, 'Sin estudiantes');
         tools.renderEmptyRow(tablaHistorialSeccion, 5, 'Selecciona una sección');
+        tools.renderEmptyRow(tablaCambiosSeccion, 6, 'Selecciona una sección');
+        tools.renderEmptyRow(tablaEstadisticasSeccion, 6, 'Selecciona una sección');
         limpiarFichaSeccion();
         buscarSecciones();
     }
@@ -1154,41 +1185,41 @@ function createSeccionesModule(tools) {
         });
         tools.renderEmptyRow(tablaEstudiantesSeccion, 4, 'Cargando estudiantes...');
         tools.renderEmptyRow(tablaHistorialSeccion, 5, 'Cargando historial...');
+        tools.renderEmptyRow(tablaCambiosSeccion, 6, 'Cargando historial...');
+        tools.renderEmptyRow(tablaEstadisticasSeccion, 6, 'Cargando estadísticas...');
 
         try {
-            const [detalleResp, estudiantesResp, historialResp] = await Promise.all([
+            const [detalleResp, estudiantesResp, historialResp, cambiosResp, estadisticasResp] = await Promise.all([
                 fetch(`/admin/secciones/${idSeccion}`),
                 fetch(`/admin/secciones/${idSeccion}/estudiantes`),
-                fetch(`/admin/secciones/${idSeccion}/historial`)
+                fetch(`/admin/secciones/${idSeccion}/historial`),
+                fetch(`/admin/secciones/${idSeccion}/cambios`),
+                fetch(`/admin/secciones/${idSeccion}/estadisticas`)
             ]);
 
-            if (!detalleResp.ok || !estudiantesResp.ok || !historialResp.ok) throw new Error('No se pudo cargar la ficha');
+            if (![detalleResp, estudiantesResp, historialResp, cambiosResp, estadisticasResp].every(r => r.ok)) throw new Error('No se pudo cargar la ficha');
 
             const detalle = await detalleResp.json();
             const estudiantes = await estudiantesResp.json();
             const historial = await historialResp.json();
+            const cambios = await cambiosResp.json();
+            const estadisticas = await estadisticasResp.json();
 
             detalleSeccionActual = detalle;
             renderizarFichaSeccion(detalle, estudiantes);
             renderizarHistorial(historial);
+            renderizarCambios(cambios);
+            renderizarEstadisticas(estadisticas?.resumenPeriodos || []);
+            renderizarDashboard(estadisticas);
             activarBotonesFicha();
         } catch (e) {
             tools.showToast(e.message || 'No se pudo cargar la ficha de sección', 'error');
             tools.renderEmptyRow(tablaEstudiantesSeccion, 4, 'No fue posible cargar los estudiantes');
             tools.renderEmptyRow(tablaHistorialSeccion, 5, 'No se pudo cargar el historial');
+            tools.renderEmptyRow(tablaCambiosSeccion, 6, 'No se pudo cargar el historial');
+            tools.renderEmptyRow(tablaEstadisticasSeccion, 6, 'No se pudo cargar las estadísticas');
             detalleSeccionActual = null;
         }
-        registrosHistorial.forEach(reg => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${reg.periodo || '-'}</td>
-                <td>${reg.alumnoNombre || '-'}<br><span class="muted">${reg.alumnoCodigo || ''}</span></td>
-                <td>${reg.estadoMatricula || '-'}</td>
-                <td>${reg.fechaMatricula ? new Date(reg.fechaMatricula).toLocaleString() : '-'}</td>
-                <td>${reg.observacion || '-'}</td>
-            `;
-            tablaHistorialSeccion.appendChild(tr);
-        });
     }
 
     function renderizarHistorial(historial) {
@@ -1209,6 +1240,66 @@ function createSeccionesModule(tools) {
             `;
             tablaHistorialSeccion.appendChild(tr);
         });
+    }
+
+    function renderizarCambios(cambios) {
+        tablaCambiosSeccion.innerHTML = '';
+        const registros = Array.isArray(cambios) ? cambios : [];
+        if (!registros.length) {
+            tools.renderEmptyRow(tablaCambiosSeccion, 6, 'Sin cambios registrados');
+            return;
+        }
+        registros.forEach(reg => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${reg.fecha ? new Date(reg.fecha).toLocaleString() : '-'}</td>
+                <td>${reg.usuario || '-'}</td>
+                <td>${reg.campoModificado || '-'}</td>
+                <td>${reg.valorAnterior || '-'}</td>
+                <td>${reg.valorNuevo || '-'}</td>
+                <td>${reg.observacion || '-'}</td>
+            `;
+            tablaCambiosSeccion.appendChild(tr);
+        });
+    }
+
+    function renderizarEstadisticas(resumen) {
+        tablaEstadisticasSeccion.innerHTML = '';
+        const registros = Array.isArray(resumen) ? resumen : [];
+        if (!registros.length) {
+            tools.renderEmptyRow(tablaEstadisticasSeccion, 6, 'Sin datos estadísticos');
+            return;
+        }
+        registros.forEach(reg => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${reg.periodo || '-'}</td>
+                <td>${reg.matriculados ?? '-'}</td>
+                <td>${reg.retirados ?? '-'}</td>
+                <td>${reg.aprobados ?? '-'}</td>
+                <td>${reg.desaprobados ?? '-'}</td>
+                <td>${reg.porcentajeAprobacion != null ? reg.porcentajeAprobacion + '%' : '-'}</td>
+            `;
+            tablaEstadisticasSeccion.appendChild(tr);
+        });
+    }
+
+    function renderizarDashboard(estadisticas) {
+        if (!estadisticas || !resumenMetricas) return;
+        resumenMetricas.matriculados.textContent = estadisticas.matriculadosActuales ?? '-';
+        resumenMetricas.cuposLibres.textContent = estadisticas.cuposLibres ?? '-';
+        resumenMetricas.aprobados.textContent = estadisticas.aprobadosUltimoPeriodo ?? '0';
+        resumenMetricas.aprobacion.textContent = `${estadisticas.porcentajeAprobacion ?? 0}%`;
+        resumenMetricas.retiros.textContent = estadisticas.retiros ?? '0';
+        resumenMetricas.horarios.textContent = estadisticas.horariosProgramados ?? '-';
+
+        fichaSeccionCampos.creditos.textContent = estadisticas.creditos ?? '-';
+        fichaSeccionCampos.ciclo.textContent = estadisticas.ciclo ?? '-';
+        fichaSeccionCampos.turno.textContent = estadisticas.turno ?? '-';
+        fichaSeccionCampos.horas.textContent = estadisticas.horasSemanales ?? '-';
+        fichaSeccionCampos.cuposDisponibles.textContent = estadisticas.cuposDisponibles ?? '-';
+        fichaSeccionCampos.cantidadHorarios.textContent = estadisticas.cantidadHorarios ?? '-';
+        fichaSeccionCampos.estadoAcademico.textContent = estadisticas.estadoAcademico || '-';
     }
 
     function renderizarFichaSeccion(detalle, estudiantes) {
@@ -1254,6 +1345,13 @@ function createSeccionesModule(tools) {
         fichaSeccionCampos.horario.textContent = valores.horario;
         fichaSeccionCampos.aula.textContent = valores.aula;
         fichaSeccionCampos.cupos.textContent = valores.cupos;
+        if (fichaSeccionCampos.creditos) fichaSeccionCampos.creditos.textContent = valores.creditos ?? '-';
+        if (fichaSeccionCampos.ciclo) fichaSeccionCampos.ciclo.textContent = valores.ciclo ?? '-';
+        if (fichaSeccionCampos.turno) fichaSeccionCampos.turno.textContent = valores.turno ?? '-';
+        if (fichaSeccionCampos.horas) fichaSeccionCampos.horas.textContent = valores.horas ?? '-';
+        if (fichaSeccionCampos.cuposDisponibles) fichaSeccionCampos.cuposDisponibles.textContent = valores.cuposDisponibles ?? '-';
+        if (fichaSeccionCampos.cantidadHorarios) fichaSeccionCampos.cantidadHorarios.textContent = valores.cantidadHorarios ?? '-';
+        if (fichaSeccionCampos.estadoAcademico) fichaSeccionCampos.estadoAcademico.textContent = valores.estadoAcademico ?? '-';
 
         // ------------ Badge dinámico ------------
         const badge = fichaSeccionCampos.estado;
@@ -1290,9 +1388,18 @@ function createSeccionesModule(tools) {
             horario: '-',
             aula: '-',
             cupos: '-',
+            creditos: '-',
+            ciclo: '-',
+            turno: '-',
+            horas: '-',
+            cuposDisponibles: '-',
+            cantidadHorarios: '-',
+            estadoAcademico: '-',
         });
         tools.renderEmptyRow(tablaEstudiantesSeccion, 4, 'Selecciona una sección para ver estudiantes');
         tools.renderEmptyRow(tablaHistorialSeccion, 5, 'Selecciona una sección');
+        tools.renderEmptyRow(tablaCambiosSeccion, 6, 'Selecciona una sección');
+        tools.renderEmptyRow(tablaEstadisticasSeccion, 6, 'Selecciona una sección');
     }
 
     function abrirModalEdicionSeccion() {
