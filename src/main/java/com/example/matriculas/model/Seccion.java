@@ -1,14 +1,20 @@
 package com.example.matriculas.model;
 
-import com.example.matriculas.model.enums.EstadoSeccion;
-import com.example.matriculas.model.enums.Modalidad;
-import com.example.matriculas.model.enums.Turno;
+import com.example.matriculas.enums.EstadoSeccion;
+import com.example.matriculas.enums.Modalidad;
+import com.example.matriculas.enums.Turno;
 import jakarta.persistence.*;
+import lombok.*;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
 @Table(name = "secciones")
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Seccion {
 
     @Id
@@ -32,16 +38,24 @@ public class Seccion {
     @Enumerated(EnumType.STRING)
     private Turno turno;
 
+    @Column(nullable = false)
     private String aula;
+
+    @Column(nullable = false)
     private Integer capacidad;
+
+    @Column(name = "matriculados_actuales", nullable = false)
     private Integer matriculadosActuales;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private Modalidad modalidad;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private EstadoSeccion estado;
 
+    @Column(name = "fecha_creacion")
     private LocalDateTime fechaCreacion;
 
     @OneToMany(mappedBy = "seccion")
@@ -50,5 +64,6 @@ public class Seccion {
     @OneToMany(mappedBy = "seccion")
     private List<SeccionCambio> cambios;
 
-    public Seccion() {}
+    @OneToMany(mappedBy = "seccion")
+    private List<DetalleMatricula> detalles;
 }

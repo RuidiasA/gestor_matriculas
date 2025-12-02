@@ -1,18 +1,18 @@
 package com.example.matriculas.model;
 
-import com.example.matriculas.model.enums.Modalidad;
-import com.example.matriculas.model.enums.TipoCurso;
+import com.example.matriculas.enums.Modalidad;
+import com.example.matriculas.enums.TipoCurso;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.NoArgsConstructor;
+import lombok.*;
+
 import java.util.List;
 
 @Entity
 @Table(name = "cursos")
-@Getter
-@Setter
+@Data
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
 public class Curso {
 
     @Id
@@ -29,21 +29,25 @@ public class Curso {
     @Column(nullable = false)
     private String nombre;
 
+    @Column(columnDefinition = "TEXT")
     private String descripcion;
+
+    @Column(nullable = false)
     private Integer ciclo;
+
+    @Column(nullable = false)
     private Integer creditos;
 
-    @Column(name = "horas_semanales")
+    @Column(name = "horas_semanales", nullable = false)
     private Integer horasSemanales;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private TipoCurso tipo;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private Modalidad modalidad;
-
-    @ManyToMany(mappedBy = "cursosDictados")
-    private List<Docente> docentes;
 
     @ManyToMany
     @JoinTable(
@@ -52,4 +56,13 @@ public class Curso {
             inverseJoinColumns = @JoinColumn(name = "prerrequisito_id")
     )
     private List<Curso> prerrequisitos;
+
+    @ManyToMany(mappedBy = "cursosDictables")
+    private List<Docente> docentes;
+
+    @OneToMany(mappedBy = "curso")
+    private List<Seccion> secciones;
+
+    @OneToMany(mappedBy = "curso")
+    private List<SolicitudSeccion> solicitudes;
 }

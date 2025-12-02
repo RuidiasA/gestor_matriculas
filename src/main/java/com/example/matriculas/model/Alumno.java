@@ -1,12 +1,18 @@
 package com.example.matriculas.model;
 
-import com.example.matriculas.model.enums.EstadoAlumno;
-import com.example.matriculas.model.enums.Turno;
+import com.example.matriculas.enums.EstadoAlumno;
+import com.example.matriculas.enums.Turno;
 import jakarta.persistence.*;
+import lombok.*;
+
 import java.util.List;
 
 @Entity
 @Table(name = "alumnos")
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Alumno {
 
     @Id
@@ -16,7 +22,7 @@ public class Alumno {
     @Column(name = "codigo_alumno", nullable = false, unique = true)
     private String codigoAlumno;
 
-    @Column(nullable = false, unique = true, length = 8)
+    @Column(nullable = false, unique = true)
     private String dni;
 
     @Column(nullable = false)
@@ -29,20 +35,25 @@ public class Alumno {
     private String correoInstitucional;
 
     private String correoPersonal;
+
     private String telefonoPersonal;
+
     private String direccion;
 
     @Column(name = "anio_ingreso", nullable = false)
     private Integer anioIngreso;
 
+    @Column(name = "ciclo_actual")
     private Integer cicloActual;
 
     @Enumerated(EnumType.STRING)
     private Turno turno;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private EstadoAlumno estado;
 
+    @Column(name = "orden_merito")
     private Integer ordenMerito;
 
     @ManyToOne
@@ -61,6 +72,4 @@ public class Alumno {
 
     @OneToMany(mappedBy = "alumno")
     private List<SolicitudSeccion> solicitudes;
-
-    public Alumno() {}
 }
