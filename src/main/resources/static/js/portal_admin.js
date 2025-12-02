@@ -131,6 +131,7 @@ function createAlumnosModule(tools) {
     let alumnoSeleccionado = null;
     let historialMatriculasCache = [];
     let cursosPorCicloCache = {};
+    let ultimoListadoAlumnos = [];
 
     function init() {
         if (formBusqueda) {
@@ -187,16 +188,19 @@ function createAlumnosModule(tools) {
             const response = await fetch(`/admin/alumnos/buscar?filtro=${encodeURIComponent(filtro)}`);
             if (!response.ok) throw new Error('Error al buscar alumnos');
             const alumnos = await response.json();
-            renderizarAlumnos(alumnos);
+            ultimoListadoAlumnos = Array.isArray(alumnos) ? alumnos : [];
+            renderizarAlumnos(ultimoListadoAlumnos);
             if (!alumnos.length) {
                 tools.showStatus(estadoBusqueda, 'Alumno no encontrado', true);
             } else {
                 estadoBusqueda.hidden = true;
             }
+            return ultimoListadoAlumnos;
         } catch (err) {
             renderizarAlumnos([]);
             tools.showStatus(estadoBusqueda, err.message || 'No se pudo cargar la lista', true);
             tools.showToast('No se pudo obtener la lista de alumnos', 'error');
+            return [];
         }
     }
 
@@ -236,7 +240,7 @@ function createAlumnosModule(tools) {
 
     function cargarFicha(alumno) {
         fichaIds.nombre.textContent = alumno.nombreCompleto || '-';
-        fichaIds.codigo.textContent = alumno.codigo || '-';
+        fichaIds.codigo.textContent = alumno.codigo || alumno.codigoAlumno || '-';
         fichaIds.carrera.textContent = alumno.carrera || '-';
         fichaIds.ciclo.textContent = alumno.cicloActual || '-';
         fichaIds.ingreso.textContent = alumno.anioIngreso || '-';
@@ -258,21 +262,25 @@ function createAlumnosModule(tools) {
         selectorCiclo.innerHTML = '';
         const periodos = alumno.periodos || [];
         const ordenados = [...periodos].sort((a, b) => b.localeCompare(a));
-        const cicloActual = ordenados[0];
-        selectorCiclo.disabled = true;
+        const cicloActual = alumno.cicloActual || ordenados[0];
+        selectorCiclo.disabled = false;
 
-        if (!cicloActual) {
+        if (!ordenados.length) {
+            selectorCiclo.disabled = true;
             selectorCiclo.innerHTML = '<option value="">Sin ciclos</option>';
             renderizarCursos([]);
             renderizarResumen({});
             return;
         }
 
-        const opt = document.createElement('option');
-        opt.value = cicloActual;
-        opt.textContent = cicloActual;
-        selectorCiclo.appendChild(opt);
-        selectorCiclo.value = cicloActual;
+        ordenados.forEach(ciclo => {
+            const opt = document.createElement('option');
+            opt.value = ciclo;
+            opt.textContent = ciclo;
+            selectorCiclo.appendChild(opt);
+        });
+
+        selectorCiclo.value = cicloActual || ordenados[0];
     }
 
     async function cargarDetalleAcademico(idAlumno, ciclo) {
@@ -342,7 +350,11 @@ function createAlumnosModule(tools) {
 
     function renderizarHistorial(historial, alumnoId, cicloActual) {
         const registros = Array.isArray(historial) ? historial : [];
-        const filtrados = cicloActual ? registros.filter(h => h.ciclo !== cicloActual) : registros;
+        const filtrados = cicloActual
+            ? registros.filter(h => h.ciclo !== cicloActual)
+            : registros;
+
+        filtrados.sort((a, b) => (b.ciclo || '').localeCompare(a.ciclo || ''));
 
         if (!filtrados.length) {
             contenedorHistorial.innerHTML = '<p class="muted">Sin historial</p>';
@@ -480,12 +492,17 @@ function createAlumnosModule(tools) {
         const telefono = telefonoInput.value.trim();
         const direccion = direccionInput.value.trim();
 
+        correoPersonalInput.setCustomValidity('');
+        telefonoInput.setCustomValidity('');
+
         const errores = [];
         if (correo && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) {
             errores.push('Correo personal inválido');
+            correoPersonalInput.setCustomValidity('Correo personal inválido');
         }
         if (telefono && !/^\d{9}$/.test(telefono)) {
             errores.push('El teléfono debe tener 9 dígitos');
+            telefonoInput.setCustomValidity('Debe contener 9 dígitos');
         }
         if (errores.length) {
             tools.showStatus(estadoContacto, errores.join('. '), true);
@@ -526,7 +543,33 @@ function createAlumnosModule(tools) {
         tools.clearStatus(estadoContacto);
     }
 
-    return { init };
+    async function enfocarAlumnoPorCodigo(codigo) {
+        if (!codigo) return;
+        document.querySelector('.admin-nav a[data-section="alumnos"]')?.click();
+        if (filtroAlumno) filtroAlumno.value = codigo;
+
+        const alumnos = await buscarAlumnos();
+        const coincide = alumnos.find(a => `${a.codigo}` === `${codigo}` || `${a.codigoAlumno}` === `${codigo}`);
+        if (!coincide) {
+            tools.showToast('No se encontró al alumno solicitado', 'info');
+            return;
+        }
+
+        seleccionarAlumnoEnTabla(coincide.codigo || coincide.codigoAlumno);
+    }
+
+    function seleccionarAlumnoEnTabla(codigo) {
+        const filas = tablaAlumnos.querySelectorAll('tr');
+        filas.forEach(fila => {
+            const codigoCelda = fila.querySelector('td')?.textContent;
+            if (codigoCelda === codigo) {
+                fila.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                fila.click();
+            }
+        });
+    }
+
+    return { init, enfocarAlumnoPorCodigo };
 }
 
 // =====================
@@ -882,6 +925,17 @@ function createDocentesModule(tools) {
 
     async function eliminarCursoDictable(cursoId) {
         if (!docenteSeleccionado) return;
+        const confirm = await Swal.fire({
+            title: '¿Quitar curso dictable?',
+            text: 'El docente dejará de estar habilitado para este curso.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar',
+        });
+
+        if (!confirm.isConfirmed) return;
+
         try {
             const resp = await fetch(`/admin/docentes/${docenteSeleccionado.id}/cursos/${cursoId}`, { method: 'DELETE' });
             if (!resp.ok) throw new Error('No se pudo eliminar el curso');
@@ -993,7 +1047,7 @@ function createDocentesModule(tools) {
 // =====================
 // MÓDULO SECCIONES
 // =====================
-function createSeccionesModule(tools) {
+function createSeccionesModule(tools, alumnosModule) {
     const formBusquedaSecciones = document.getElementById('formBusquedaSecciones');
     const tablaSecciones = document.querySelector('#tablaSecciones tbody');
     const tablaEstudiantesSeccion = document.querySelector('#tablaEstudiantesSeccion tbody');
@@ -1081,9 +1135,7 @@ function createSeccionesModule(tools) {
 
     async function cargarCatalogos() {
         try {
-            const resp = await fetch('/admin/secciones/catalogos');
-            if (!resp.ok) throw new Error('No se pudo cargar los catálogos');
-            const data = await resp.json();
+            const data = await fetchJson('/admin/secciones/catalogos', 'No se pudo cargar los catálogos');
             catalogosSeccion.docentes = data.docentes || [];
             catalogosSeccion.modalidades = data.modalidades || [];
             tools.fillSelect(filtroCursoSeccion, data.cursos, 'Curso...', item => item.idCurso, item => `${item.codigo} - ${item.nombre}`);
@@ -1123,9 +1175,7 @@ function createSeccionesModule(tools) {
 
         try {
             const url = params.toString() ? `/admin/secciones/buscar?${params.toString()}` : '/admin/secciones/buscar';
-            const resp = await fetch(url);
-            if (!resp.ok) throw new Error('No se pudo buscar secciones');
-            const secciones = await resp.json();
+            const secciones = await fetchJson(url, 'No se pudo buscar secciones');
             renderizarSecciones(secciones || [], preservarSeleccion);
         } catch (e) {
             tools.renderEmptyRow(tablaSecciones, 9, e.message || 'No se pudo cargar');
@@ -1141,29 +1191,31 @@ function createSeccionesModule(tools) {
         }
         secciones.forEach(sec => {
             const tr = document.createElement('tr');
-            const idSeccion = sec.idSeccion ?? sec.id ?? sec.seccionId;
+            const idSeccion = sec.idSeccion;
             const estado = (sec.estado || '').toLowerCase();
             tr.innerHTML = `
             <td>${sec.curso || '-'}</td>
-            <td>${sec.codigoSeccion || sec.codigo || '-'}</td>
+            <td>${sec.codigoSeccion || '-'}</td>
             <td>${sec.docente || '-'}</td>
             <td>${sec.periodo || '-'}</td>
             <td>${sec.modalidad || '-'}</td>
             <td>${sec.horario || '-'}</td>
             <td>${sec.aula || '-'}</td>
-            <td>${sec.cupos ?? '-'} / ${(sec.matriculados ?? sec.estudiantes ?? 0)}</td>
+            <td>${sec.cupos ?? '-'} / ${(sec.matriculados ?? 0)}</td>
             <td><span class="badge">${sec.estado || '-'}</span></td>
         `;
             if (estado === 'anulada') {
                 tr.classList.add('anulada');
             }
-            tr.addEventListener('click', () => {
-                seccionSeleccionada = idSeccion;
-                tools.markSelectedRow(tablaSecciones, tr);
-                cargarFichaSeccion(idSeccion);
-            });
-            if (preservarSeleccion && seccionSeleccionada && `${seccionSeleccionada}` === `${idSeccion}`) {
-                tools.markSelectedRow(tablaSecciones, tr);
+            if (idSeccion) {
+                tr.addEventListener('click', () => {
+                    seccionSeleccionada = idSeccion;
+                    tools.markSelectedRow(tablaSecciones, tr);
+                    cargarFichaSeccion(idSeccion);
+                });
+                if (preservarSeleccion && seccionSeleccionada && `${seccionSeleccionada}` === `${idSeccion}`) {
+                    tools.markSelectedRow(tablaSecciones, tr);
+                }
             }
             tablaSecciones.appendChild(tr);
         });
@@ -1189,21 +1241,13 @@ function createSeccionesModule(tools) {
         tools.renderEmptyRow(tablaEstadisticasSeccion, 6, 'Cargando estadísticas...');
 
         try {
-            const [detalleResp, estudiantesResp, historialResp, cambiosResp, estadisticasResp] = await Promise.all([
-                fetch(`/admin/secciones/${idSeccion}`),
-                fetch(`/admin/secciones/${idSeccion}/estudiantes`),
-                fetch(`/admin/secciones/${idSeccion}/historial`),
-                fetch(`/admin/secciones/${idSeccion}/cambios`),
-                fetch(`/admin/secciones/${idSeccion}/estadisticas`)
+            const [detalle, estudiantes, historial, cambios, estadisticas] = await Promise.all([
+                fetchJson(`/admin/secciones/${idSeccion}`, 'No se pudo obtener la sección'),
+                fetchJson(`/admin/secciones/${idSeccion}/estudiantes`, 'No se pudieron cargar los estudiantes'),
+                fetchJson(`/admin/secciones/${idSeccion}/historial`, 'No se pudo cargar el historial'),
+                fetchJson(`/admin/secciones/${idSeccion}/cambios`, 'No se pudieron cargar los cambios'),
+                fetchJson(`/admin/secciones/${idSeccion}/estadisticas`, 'No se pudieron cargar las estadísticas')
             ]);
-
-            if (![detalleResp, estudiantesResp, historialResp, cambiosResp, estadisticasResp].every(r => r.ok)) throw new Error('No se pudo cargar la ficha');
-
-            const detalle = await detalleResp.json();
-            const estudiantes = await estudiantesResp.json();
-            const historial = await historialResp.json();
-            const cambios = await cambiosResp.json();
-            const estadisticas = await estadisticasResp.json();
 
             detalleSeccionActual = detalle;
             renderizarFichaSeccion(detalle, estudiantes);
@@ -1219,6 +1263,8 @@ function createSeccionesModule(tools) {
             tools.renderEmptyRow(tablaCambiosSeccion, 6, 'No se pudo cargar el historial');
             tools.renderEmptyRow(tablaEstadisticasSeccion, 6, 'No se pudo cargar las estadísticas');
             detalleSeccionActual = null;
+            seccionSeleccionada = null;
+            activarBotonesFicha();
         }
     }
 
@@ -1329,8 +1375,18 @@ function createSeccionesModule(tools) {
                 <td>${est.estado || '-'}</td>
                 <td><button class="btn-outline" type="button">Ver</button></td>
             `;
+            tr.querySelector('button')?.addEventListener('click', () => alumnosModule?.enfocarAlumnoPorCodigo(est.codigo));
             tablaEstudiantesSeccion.appendChild(tr);
         });
+    }
+
+    async function fetchJson(url, errorMessage, options = {}) {
+        const response = await fetch(url, options);
+        if (!response.ok) {
+            const texto = await response.text();
+            throw new Error(texto || errorMessage || 'Error al conectar con el servidor');
+        }
+        return response.json();
     }
 
     function actualizarFichaSeccion(valores) {
@@ -1725,7 +1781,7 @@ function createSeccionesModule(tools) {
 // =====================
 document.addEventListener('DOMContentLoaded', () => {
     const tools = createTools();
-    const seccionesModule = createSeccionesModule(tools);
+    const seccionesModule = createSeccionesModule(tools, alumnosModule);
     const alumnosModule = createAlumnosModule(tools);
     const docentesModule = createDocentesModule(tools);
 
