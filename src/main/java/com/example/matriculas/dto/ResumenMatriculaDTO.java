@@ -1,26 +1,21 @@
 package com.example.matriculas.dto;
 
-import com.example.matriculas.model.Matricula;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class ResumenMatriculaDTO {
-
-    private String cicloAcademico;
-    private String fecha;           // formateada
+    private Integer totalCursos;
     private Integer totalCreditos;
     private Integer totalHoras;
+    private Double matricula;
+    private Double pension;
+    private Double mora;
+    private Double descuentos;
     private Double montoTotal;
-    private Integer totalCursos;
-
-    public static ResumenMatriculaDTO fromEntity(Matricula m) {
-        ResumenMatriculaDTO dto = new ResumenMatriculaDTO();
-        dto.setCicloAcademico(m.getCicloAcademico());
-        dto.setFecha(m.getFechaMatricula().toString()); // si quieres luego usamos DateTimeFormatter
-        dto.setTotalCreditos(m.getTotalCreditos());
-        dto.setTotalHoras(m.getTotalHoras());
-        dto.setMontoTotal(m.getMontoTotal());
-        dto.setTotalCursos(m.getDetalles() != null ? m.getDetalles().size() : 0);
-        return dto;
-    }
 }

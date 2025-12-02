@@ -1,0 +1,17 @@
+/* =========================================
+   SECCIÓN CURSOS — PLACEHOLDER
+   (para cuando implementes el mantenimiento
+   de cursos en el portal admin)
+========================================= */
+
+#cursos.admin-section {
+    padding: 1.5rem;
+}
+
+/* Puedes ir agregando estilos específicos aquí
+   cuando el backend de cursos esté listo. Por ahora
+   solo se verá el título "Mantenimiento de Cursos". */
+
+#cursos h2 {
+    margin-bottom: 1rem;
+}

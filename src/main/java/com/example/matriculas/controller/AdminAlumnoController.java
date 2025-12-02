@@ -1,61 +1,58 @@
 package com.example.matriculas.controller;
 
-import com.example.matriculas.dto.ActualizarAlumnoDTO;
-import com.example.matriculas.dto.AlumnoDTO;
-import com.example.matriculas.service.AdminAlumnoService;
+import com.example.matriculas.dto.ActualizarAlumnoContactoDTO;
+import com.example.matriculas.dto.AlumnoBusquedaDTO;
+import com.example.matriculas.dto.AlumnoFichaDTO;
+import com.example.matriculas.dto.CursoMatriculadoDTO;
+import com.example.matriculas.dto.HistorialMatriculaDTO;
+import com.example.matriculas.dto.ResumenMatriculaDTO;
+import com.example.matriculas.service.AlumnoService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
-
-import jakarta.validation.Valid;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/admin/alumnos")
+@PreAuthorize("hasRole('ADMIN')")
 @RequiredArgsConstructor
 public class AdminAlumnoController {
 
-    private final AdminAlumnoService adminAlumnoService;
+    private final AlumnoService alumnoService;
 
-    // ====================================================================
-    // 1. LISTAR TODOS
-    // ====================================================================
-    @GetMapping("/listar")
-    public List<AlumnoDTO> listar() {
-        return adminAlumnoService.listar();
-    }
-
-    // ====================================================================
-    // 2. BUSCAR (nombre, apellido o código)
-    // ====================================================================
     @GetMapping("/buscar")
-    public List<AlumnoDTO> buscar(@RequestParam String filtro) {
-        return adminAlumnoService.buscar(filtro);
+    public List<AlumnoBusquedaDTO> buscar(@RequestParam(required = false, defaultValue = "") String filtro) {
+        return alumnoService.buscar(filtro);
     }
 
-
-    // ====================================================================
-    // 3. OBTENER POR ID
-    // ====================================================================
     @GetMapping("/{id}")
-    public AlumnoDTO obtener(@PathVariable Long id) {
-        return adminAlumnoService.obtener(id);
+    public AlumnoFichaDTO obtenerFicha(@PathVariable Long id) {
+        return alumnoService.obtenerFicha(id);
     }
 
-// ====================================================================
-// 4. ACTUALIZAR DATOS EDITABLES: nombres, apellidos, correo y teléfono
-// ====================================================================
     @PutMapping("/{id}")
-    public void actualizar(
-            @PathVariable Long id,
-            @Valid @RequestBody ActualizarAlumnoDTO dto
-    ) {
-        if (dto.getNombres() == null && dto.getApellidos() == null
-                && dto.getCorreoPersonal() == null && dto.getTelefonoPersonal() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No se enviaron campos para actualizar");
-        }
-        adminAlumnoService.actualizar(id, dto);
+    public ResponseEntity<Void> actualizarContacto(@PathVariable Long id,
+                                                   @Valid @RequestBody ActualizarAlumnoContactoDTO dto) {
+        alumnoService.actualizarContacto(id, dto);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
+    @GetMapping("/{id}/matriculas")
+    public List<CursoMatriculadoDTO> obtenerCursos(@PathVariable Long id, @RequestParam String ciclo) {
+        return alumnoService.obtenerCursos(id, ciclo);
+    }
+
+    @GetMapping("/{id}/resumen")
+    public ResumenMatriculaDTO obtenerResumen(@PathVariable Long id, @RequestParam String ciclo) {
+        return alumnoService.obtenerResumen(id, ciclo);
+    }
+
+    @GetMapping("/{id}/historial")
+    public List<HistorialMatriculaDTO> obtenerHistorial(@PathVariable Long id) {
+        return alumnoService.obtenerHistorial(id);
     }
 }

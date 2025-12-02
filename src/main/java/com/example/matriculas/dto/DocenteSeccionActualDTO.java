@@ -9,12 +9,15 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CursoMatriculadoDTO {
+public class DocenteSeccionActualDTO {
+
+    private String curso;
     private String codigoSeccion;
-    private String nombreCurso;
-    private String docente;
-    private Integer creditos;
-    private Integer horasSemanales;
+    private String periodo;
     private String modalidad;
+    private Integer creditos;
+    private String turno;
+    private String horario;
     private String aula;
+    private Integer estudiantesInscritos;
 }

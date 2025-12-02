@@ -9,12 +9,17 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CursoMatriculadoDTO {
+public class SeccionListadoDTO {
+
+    private Long idSeccion;
+    private String curso;
     private String codigoSeccion;
-    private String nombreCurso;
     private String docente;
-    private Integer creditos;
-    private Integer horasSemanales;
+    private String periodo;
     private String modalidad;
+    private String horario;
     private String aula;
+    private Integer cupos;
+    private Integer matriculados;
+    private String estado;
 }

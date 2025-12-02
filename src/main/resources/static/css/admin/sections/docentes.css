@@ -1,0 +1,401 @@
+/* =========================================
+   SECCIÓN DOCENTES — LAYOUT Y FICHA
+========================================= */
+
+/* GRID PRINCIPAL DOCENTES */
+.docentes-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(360px, 0.75fr);
+    gap: 1.5rem;
+    height: 100%;
+}
+
+.docentes-col {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.docentes-col--left {
+    min-width: 0;
+    width: 100%;
+}
+
+.docentes-col--right {
+    position: static;
+    top: 30px;
+    height: auto;
+    max-height: none !important;
+    display: flex;
+    align-items: stretch;
+    flex-direction: column;
+    gap: 1rem;
+    overflow: visible;
+    min-width: 0;
+}
+
+/* Última card ocupa el alto restante */
+.docentes-col--right .card:last-child {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    max-height: none;
+    min-height: 0;
+}
+
+.docentes-col--right .table-wrapper {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+}
+
+.card--buscar-docentes {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+}
+
+.card--buscar-docentes .table-wrapper--docentes {
+    flex: 1;
+    max-height: 430px;
+    overflow-y: auto;
+}
+
+/* ======================================================
+   FICHA DEL DOCENTE
+====================================================== */
+
+.ficha-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 1rem;
+    text-align: left;
+}
+
+.ficha-acciones {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.8rem;
+    margin-top: 1.2rem;
+}
+
+/* Labels en ficha docente */
+#fichaDocente .label {
+    font-size: 0.82rem !important;
+    color: #6d7890 !important;
+    font-weight: 600;
+    margin-bottom: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+#fichaDocente p:not(.label) {
+    font-size: 1rem;
+    color: var(--color-primario);
+    font-weight: 600;
+}
+
+#fichaDocente .ficha-grid p {
+    margin-bottom: 4px;
+    text-align: left;
+}
+
+/* Modal genérico reutilizable */
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    z-index: 2000;
+}
+
+.modal[hidden] {
+    display: none;
+}
+
+body.modal-open {
+    overflow: hidden;
+}
+
+.modal__dialog {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(7, 23, 54, 0.15);
+    width: min(960px, 100%);
+    max-height: 92vh;
+    overflow: auto;
+    padding: 1.25rem 1.25rem 1rem;
+}
+
+/* Modales específicos de docente */
+.modal--docente .modal__dialog {
+    width: min(760px, 95%);
+    padding: 1.5rem 1.5rem 1.25rem;
+}
+
+.modal--docente .modal__form.docente-form {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.35rem;
+    margin: 0;
+}
+
+.modal--docente .modal__form .form-grid {
+    grid-template-columns: repeat(2, minmax(240px, 1fr));
+    gap: 0.9rem 1.1rem;
+    width: 100%;
+    margin: 0.2rem 0 0.6rem;
+}
+
+.modal--docente label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    color: var(--color-primario);
+}
+
+.modal--docente input,
+.modal--docente select {
+    width: 100%;
+    padding: 0.55rem;
+    border-radius: 10px;
+    border: 1px solid var(--color-borde);
+    background: var(--color-gris);
+    color: var(--color-texto);
+    font-size: 1rem;
+}
+
+.modal__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.modal__header h4 {
+    margin: 0;
+    font-size: 1.15rem;
+}
+
+.modal__close {
+    background: none;
+    border: none;
+    font-size: 1.6rem;
+    cursor: pointer;
+    line-height: 1;
+    color: #6b7280;
+}
+
+.modal--docente .modal__header {
+    padding-bottom: 0.35rem;
+    border-bottom: 1px solid var(--color-borde);
+}
+
+.modal__form .form-grid {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.modal__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+.card-header-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+.badge-count {
+    background: var(--color-primario);
+    padding: 0.4rem 0.9rem;
+    border-radius: 50px;
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.9rem;
+    white-space: nowrap;
+}
+
+/* ======================================================
+   BUSQUEDA DOCENTES
+====================================================== */
+
+#formBusquedaDocentes .form-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr auto;
+    gap: 1rem;
+    align-items: end;
+}
+
+#formBusquedaDocentes .form-grid > label {
+    width: 100% !important;
+}
+
+#formBusquedaDocentes .form-grid .form-actions {
+    width: 100% !important;
+    display: flex !important;
+    justify-content: flex-end !important;
+    align-items: center !important;
+}
+
+/* Resumen de secciones del docente */
+#resumenSeccionesDocente {
+    font-size: 0.95rem;
+    color: #627198;
+}
+
+/* Pastillas resumen */
+.secciones-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-top: 0.4rem;
+}
+
+.secciones-badge {
+    padding: 0.45rem 0.9rem;
+    background: var(--color-gris);
+    border-radius: 50px;
+    font-size: 0.9rem;
+    color: var(--color-primario);
+    font-weight: 600;
+    border: 1px solid var(--color-borde);
+}
+
+.resumen-secciones-docente {
+    margin: 0.2rem 0 0.4rem;
+}
+
+/* Select + botón “Agregar curso dictable” */
+.agregar-curso {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 0.7rem;
+    min-height: 45px;
+    align-items: center !important;
+}
+
+.agregar-curso select {
+    flex: 1;
+    height: 38px;
+}
+
+.agregar-curso button {
+    height: 38px;
+    display: flex;
+    align-items: center;
+}
+
+/* ======================================================
+   SCROLLBAR ESPECÍFICO DE TABLA DOCENTE
+====================================================== */
+
+.docentes-col--right .table-wrapper::-webkit-scrollbar {
+    display: none;
+}
+
+/* Margen superior virtual */
+#tablaCursosDictables,
+#tablaSeccionesDocente,
+#tablaHistorialDocente {
+    margin-top: 10px !important;
+}
+
+/* Estilo para el select del bloque "Cursos que puede dictar" */
+.agregar-curso select {
+    width: 100%;
+    padding: 0.55rem;
+    border-radius: 10px;
+    border: 1px solid var(--color-borde);
+    background: var(--color-gris);
+    color: var(--color-texto);
+    font-size: 1rem;
+}
+
+/* ======================================================
+   RESPONSIVE
+====================================================== */
+
+/* >=1600px: reorganizar formulario de búsqueda */
+@media (min-width: 1600px) {
+    #formBusquedaDocentes .form-grid {
+        width: 100%;
+        grid-template-columns: 1fr 0.3fr;
+    }
+
+    #formBusquedaDocentes .form-grid label:nth-child(1) {
+        grid-column: 1;
+        grid-row: 1;
+    }
+
+    #formBusquedaDocentes .form-grid label:nth-child(3) {
+        grid-column: 2;
+        grid-row: 1;
+    }
+
+    #formBusquedaDocentes .form-grid label:nth-child(2) {
+        grid-column: 1;
+        grid-row: 2;
+    }
+
+    #formBusquedaDocentes .form-grid .form-actions {
+        grid-column: 2;
+        grid-row: 2;
+        justify-content: flex-start;
+    }
+}
+
+/* <=1600px: 1 columna */
+@media (max-width: 1600px) {
+    .docentes-grid {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 1.5rem !important;
+    }
+
+    .docentes-col--right,
+    .docentes-col--left {
+        width: 100% !important;
+        flex-direction: column !important;
+        gap: 1.5rem !important;
+    }
+
+    .docentes-col--right {
+        order: 1 !important;
+    }
+
+    .docentes-col--left {
+        order: 2 !important;
+    }
+
+    .docentes-col--left article:nth-of-type(2) {
+        order: 1 !important;
+    }
+
+    .docentes-col--left article:nth-of-type(1) {
+        order: 2 !important;
+    }
+
+    .docentes-col--left article:nth-of-type(3) {
+        order: 3 !important;
+    }
+
+    #fichaDocente .ficha-grid {
+        grid-template-columns: repeat(4, 1fr) !important;
+    }
+}
+
+/* <=700px: ficha docente en una sola columna */
+@media (max-width: 700px) {
+    .ficha-grid {
+        grid-template-columns: 1fr !important;
+    }
+}

@@ -9,12 +9,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CursoMatriculadoDTO {
-    private String codigoSeccion;
-    private String nombreCurso;
-    private String docente;
+public class DocenteCursoDictableDTO {
+
+    private Long idCurso;
+    private String nombre;
+    private String codigo;
     private Integer creditos;
-    private Integer horasSemanales;
-    private String modalidad;
-    private String aula;
+    private Integer ciclo;
 }
