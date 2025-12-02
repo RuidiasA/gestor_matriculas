@@ -1,10 +1,16 @@
 package com.example.matriculas.model;
 
 import jakarta.persistence.*;
+import lombok.*;
+
 import java.util.List;
 
 @Entity
 @Table(name = "carreras")
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Carrera {
 
     @Id
@@ -17,13 +23,12 @@ public class Carrera {
     @Column(nullable = false)
     private String nombre;
 
+    @Column(columnDefinition = "TEXT")
     private String descripcion;
-
-    @OneToMany(mappedBy = "carrera")
-    private List<Alumno> alumnos;
 
     @OneToMany(mappedBy = "carrera")
     private List<Curso> cursos;
 
-    public Carrera() {}
+    @OneToMany(mappedBy = "carrera")
+    private List<Alumno> alumnos;
 }

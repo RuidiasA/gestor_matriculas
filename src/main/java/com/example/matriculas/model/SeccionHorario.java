@@ -1,11 +1,17 @@
 package com.example.matriculas.model;
 
-import com.example.matriculas.model.enums.DiaSemana;
+import com.example.matriculas.enums.DiaSemana;
 import jakarta.persistence.*;
+import lombok.*;
+
 import java.time.LocalTime;
 
 @Entity
 @Table(name = "seccion_horarios")
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class SeccionHorario {
 
     @Id
@@ -19,8 +25,9 @@ public class SeccionHorario {
     @Enumerated(EnumType.STRING)
     private DiaSemana dia;
 
+    @Column(name = "hora_inicio", nullable = false)
     private LocalTime horaInicio;
-    private LocalTime horaFin;
 
-    public SeccionHorario() {}
+    @Column(name = "hora_fin", nullable = false)
+    private LocalTime horaFin;
 }

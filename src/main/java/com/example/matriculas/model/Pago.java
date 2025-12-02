@@ -1,12 +1,19 @@
 package com.example.matriculas.model;
 
-import com.example.matriculas.model.enums.EstadoPago;
-import com.example.matriculas.model.enums.TipoPago;
+import com.example.matriculas.enums.EstadoPago;
+import com.example.matriculas.enums.TipoPago;
 import jakarta.persistence.*;
+import lombok.*;
+
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Entity
 @Table(name = "pagos")
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Pago {
 
     @Id
@@ -21,19 +28,26 @@ public class Pago {
     @JoinColumn(name = "alumno_id", nullable = false)
     private Alumno alumno;
 
+    @Column(nullable = false)
     private String periodo;
+
+    @Column(nullable = false)
     private String concepto;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private TipoPago tipo;
 
-    private Double monto;
+    @Column(nullable = false)
+    private BigDecimal monto;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private EstadoPago estado;
 
+    @Column(name = "fecha_pago")
     private LocalDate fechaPago;
-    private LocalDate fechaVencimiento;
 
-    public Pago() {}
+    @Column(name = "fecha_vencimiento")
+    private LocalDate fechaVencimiento;
 }

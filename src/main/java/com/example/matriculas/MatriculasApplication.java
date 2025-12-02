@@ -5,9 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 public class MatriculasApplication {
-
-	public static void main(String[] args) {
-		SpringApplication.run(MatriculasApplication.class, args);
-	}
-
+    public static void main(String[] args) {
+        SpringApplication.run(MatriculasApplication.class, args);
+    }
 }

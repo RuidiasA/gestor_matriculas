@@ -1,10 +1,17 @@
 package com.example.matriculas.model;
-import com.example.matriculas.model.enums.Rol;
 
+import com.example.matriculas.enums.RolUsuario;
 import jakarta.persistence.*;
+import lombok.*;
+
+import java.util.Optional;
 
 @Entity
 @Table(name = "usuarios")
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Usuario {
 
     @Id
@@ -18,10 +25,11 @@ public class Usuario {
     private String password;
 
     @Enumerated(EnumType.STRING)
-    private Rol rol;
+    @Column(nullable = false)
+    private RolUsuario rol;
 
     @Column(nullable = false)
-    private Boolean activo = true;
+    private boolean activo;
 
     @OneToOne(mappedBy = "usuario")
     private Alumno alumno;
@@ -32,5 +40,7 @@ public class Usuario {
     @OneToOne(mappedBy = "usuario")
     private Administrador administrador;
 
-    public Usuario() {}
+    public Optional<Alumno> getAlumnoOptional() {
+        return Optional.ofNullable(alumno);
+    }
 }
