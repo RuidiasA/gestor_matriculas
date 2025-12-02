@@ -9,7 +9,7 @@ import com.example.matriculas.model.enums.EstadoMatricula;
 import com.example.matriculas.model.enums.EstadoPension;
 import com.example.matriculas.repository.AlumnoRepository;
 import com.example.matriculas.repository.MatriculaRepository;
-import com.example.matriculas.repository.PensionRepository;
+import com.example.matriculas.repository.PagoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
@@ -33,7 +33,7 @@ public class AlumnoPortalService {
     private final AlumnoRepository alumnoRepository;
     private final AlumnoService alumnoService;
     private final MatriculaRepository matriculaRepository;
-    private final PensionRepository pensionRepository;
+    private final PagoRepository pensionRepository;
 
     @Transactional(readOnly = true)
     public AlumnoPerfilDTO obtenerPerfil() {

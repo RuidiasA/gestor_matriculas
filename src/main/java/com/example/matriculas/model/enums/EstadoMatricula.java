@@ -1,7 +1,11 @@
 package com.example.matriculas.model.enums;
 
 public enum EstadoMatricula {
-    GENERADA, // El alumno guardó la matrícula
-    PAGADA,   // Matrícula cancelada
-    ANULADA   // Cancelada o retirada
+    PREREGISTRO,
+    GENERADA,
+    OBSERVADA,
+    CONFIRMADA,
+    PAGADA,
+    RETIRADA,
+    ANULADA
 }

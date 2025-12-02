@@ -1,79 +1,56 @@
 package com.example.matriculas.model;
 
-import com.example.matriculas.model.enums.EstadoUsuario;
-import com.example.matriculas.model.Curso;
+import com.example.matriculas.model.enums.EstadoDocente;
 import jakarta.persistence.*;
-import lombok.*;
-
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Entity
 @Table(name = "docentes")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class Docente {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /* Código institucional del docente */
     @Column(name = "codigo_docente", nullable = false, unique = true)
     private String codigoDocente;
 
-    /* Nombres y apellidos del docente */
+    @Column(nullable = false, unique = true, length = 8)
+    private String dni;
+
     @Column(nullable = false)
     private String nombres;
 
     @Column(nullable = false)
     private String apellidos;
 
-    /* DNI (único) */
-    @Column(nullable = false, unique = true, length = 8)
-    private String dni;
-
-    /* Información de contacto */
-    private String telefonoPersonal;
-
-    @Column(nullable = false, unique = true)
-    private String correoPersonal;
-
-    @Column(nullable = false, unique = true)
+    @Column(name = "correo_institucional", nullable = false, unique = true)
     private String correoInstitucional;
 
+    private String correoPersonal;
+    private String telefonoPersonal;
     private String direccion;
-
-    /* Año en que ingresó a la universidad */
-    private Integer anioIngreso;
-
-    /* Especialidad del docente — obligatorio */
-    @Column(nullable = false)
     private String especialidad;
 
-    /* Estado del docente: ACTIVO / INACTIVO */
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private EstadoUsuario estado;
+    private EstadoDocente estado;
 
-    /* Relación con usuario para login */
+    private Integer anioIngreso;
+
     @OneToOne
-    @JoinColumn(name = "usuario_id", unique = true)
+    @JoinColumn(name = "usuario_id")
     private Usuario usuario;
 
-    /* Cursos que el docente puede dictar */
     @ManyToMany
-    @JoinTable(name = "docente_cursos",
+    @JoinTable(
+            name = "docente_cursos",
             joinColumns = @JoinColumn(name = "docente_id"),
-            inverseJoinColumns = @JoinColumn(name = "curso_id"))
-    private Set<Curso> cursosDictables = new HashSet<>();
+            inverseJoinColumns = @JoinColumn(name = "curso_id")
+    )
+    private List<Curso> cursosDictados;
 
-    /* Relación con las secciones que este docente dicta */
-    @OneToMany(mappedBy = "docente", fetch = FetchType.LAZY)
-    private List<Seccion> secciones = new ArrayList<>();
+    @OneToMany(mappedBy = "docente")
+    private List<Seccion> secciones;
+
+    public Docente() {}
 }

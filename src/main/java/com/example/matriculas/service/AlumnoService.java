@@ -14,7 +14,7 @@ import com.example.matriculas.model.Usuario;
 import com.example.matriculas.model.enums.EstadoUsuario;
 import com.example.matriculas.repository.AlumnoRepository;
 import com.example.matriculas.repository.MatriculaRepository;
-import com.example.matriculas.repository.PensionRepository;
+import com.example.matriculas.repository.PagoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -39,7 +39,7 @@ public class AlumnoService {
     private final AlumnoRepository alumnoRepository;
     private final UsuarioService usuarioService;
     private final MatriculaRepository matriculaRepository;
-    private final PensionRepository pensionRepository;
+    private final PagoRepository pensionRepository;
 
     private static final Pattern CORREO_PATTERN = Pattern.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");
     private static final Pattern TELEFONO_PATTERN = Pattern.compile("^\\d{9}$");
@@ -280,53 +280,55 @@ public class AlumnoService {
     // Helpers
     // ===============================================================
     private ResumenMontos calcularMontos(Long alumnoId, String ciclo, Matricula matricula) {
-        List<Pension> pensiones = pensionRepository.findByAlumnoIdAndPeriodo(alumnoId, ciclo);
 
-        BigDecimal matriculaMonto = BigDecimal.ZERO;
-        BigDecimal pensionEstimanda = BigDecimal.ZERO;
+        List<Pago> pagos = pagoRepository.findByAlumnoIdAndPeriodo(alumnoId, ciclo);
+
+        BigDecimal montoMatricula = BigDecimal.ZERO;
+        BigDecimal montoPensionPromedio = BigDecimal.ZERO;
         BigDecimal moraTotal = BigDecimal.ZERO;
         BigDecimal descuentos = BigDecimal.ZERO;
         BigDecimal sumaPensiones = BigDecimal.ZERO;
+
         int conteoPensiones = 0;
 
-        if (!pensiones.isEmpty()) {
-            for (Pension p : pensiones) {
-                String concepto = p.getConcepto() != null ? p.getConcepto().toUpperCase() : "";
-                BigDecimal monto = p.getMonto() != null ? p.getMonto() : BigDecimal.ZERO;
-                if (concepto.contains("MATRICULA")) {
-                    matriculaMonto = matriculaMonto.add(monto);
-                } else if (concepto.contains("PENSION")) {
+        for (Pago p : pagos) {
+
+            String tipo = p.getTipo() != null ? p.getTipo().name() : "";
+            BigDecimal monto = p.getMonto() != null ? p.getMonto() : BigDecimal.ZERO;
+
+            switch (tipo) {
+                case "MATRICULA" -> montoMatricula = montoMatricula.add(monto);
+                case "PENSION" -> {
                     sumaPensiones = sumaPensiones.add(monto);
                     conteoPensiones++;
-                } else if (concepto.contains("MORA")) {
-                    moraTotal = moraTotal.add(monto);
-                } else if (concepto.contains("DESCUENTO")) {
-                    descuentos = descuentos.add(monto);
                 }
+                case "MORA" -> moraTotal = moraTotal.add(monto);
+                case "DESCUENTO" -> descuentos = descuentos.add(monto);
             }
-            if (conteoPensiones > 0) {
-                pensionEstimanda = sumaPensiones.divide(BigDecimal.valueOf(conteoPensiones), 2, RoundingMode.HALF_UP);
-            }
-        } else if (matricula != null && matricula.getMontoTotal() != null) {
-            BigDecimal total = BigDecimal.valueOf(matricula.getMontoTotal());
-            pensionEstimanda = total.divide(BigDecimal.valueOf(5), 2, RoundingMode.HALF_UP);
-            matriculaMonto = BigDecimal.ZERO;
         }
 
-        BigDecimal totalCalculado = matricula != null && matricula.getMontoTotal() != null
-                ? BigDecimal.valueOf(matricula.getMontoTotal())
-                : matriculaMonto.add(pensionEstimanda.multiply(BigDecimal.valueOf(5)))
-                .add(moraTotal)
-                .subtract(descuentos);
+        if (conteoPensiones > 0) {
+            montoPensionPromedio = sumaPensiones.divide(
+                    BigDecimal.valueOf(conteoPensiones),
+                    2,
+                    RoundingMode.HALF_UP
+            );
+        }
+
+        BigDecimal totalCalculado =
+                (matricula != null && matricula.getMontoTotal() != null)
+                        ? BigDecimal.valueOf(matricula.getMontoTotal())
+                        : montoMatricula.add(sumaPensiones).add(moraTotal).subtract(descuentos);
 
         return new ResumenMontos(
-                matriculaMonto.doubleValue(),
-                pensionEstimanda.doubleValue(),
+                montoMatricula.doubleValue(),
+                montoPensionPromedio.doubleValue(),
                 moraTotal.doubleValue(),
                 descuentos.doubleValue(),
                 totalCalculado.doubleValue()
         );
     }
+
 
     private CursoMatriculadoDTO mapearCurso(DetalleMatricula detalle) {
         return CursoMatriculadoDTO.builder()

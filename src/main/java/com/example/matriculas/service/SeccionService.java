@@ -14,7 +14,7 @@ import com.example.matriculas.repository.CursoRepository;
 import com.example.matriculas.repository.DetalleMatriculaRepository;
 import com.example.matriculas.repository.DocenteRepository;
 import com.example.matriculas.repository.SeccionRepository;
-import com.example.matriculas.repository.SeccionCambioLogRepository;
+import com.example.matriculas.repository.SeccionCambioRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
@@ -38,7 +38,7 @@ public class SeccionService {
     private final CursoRepository cursoRepository;
     private final DocenteRepository docenteRepository;
     private final DetalleMatriculaRepository detalleMatriculaRepository;
-    private final SeccionCambioLogRepository seccionCambioLogRepository;
+    private final SeccionCambioRepository seccionCambioLogRepository;
 
     @Transactional(readOnly = true)
     public SeccionCatalogoDTO obtenerCatalogos() {

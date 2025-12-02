@@ -1,6 +1,7 @@
 package com.example.matriculas.model.enums;
 
-public enum EstadoUsuario {
+public enum EstadoAlumno {
     ACTIVO,
-    INACTIVO
+    INACTIVO,
+    EGRESADO
 }
