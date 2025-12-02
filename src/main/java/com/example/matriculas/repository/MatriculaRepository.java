@@ -9,9 +9,6 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 import java.util.Optional;
 
-import java.util.List;
-import java.util.Optional;
-
 public interface MatriculaRepository extends JpaRepository<Matricula, Long> {
 
     List<Matricula> findByAlumnoId(Long alumnoId);
@@ -28,6 +25,16 @@ public interface MatriculaRepository extends JpaRepository<Matricula, Long> {
     })
     @Query("SELECT DISTINCT m FROM Matricula m WHERE m.alumno.id = :alumnoId AND m.cicloAcademico = :ciclo")
     Optional<Matricula> findWithDetallesByAlumnoAndCiclo(@Param("alumnoId") Long alumnoId, @Param("ciclo") String ciclo);
+
+    @EntityGraph(attributePaths = {
+            "detalles",
+            "detalles.seccion",
+            "detalles.seccion.curso",
+            "detalles.seccion.docente",
+            "detalles.seccion.horarios"
+    })
+    @Query("SELECT DISTINCT m FROM Matricula m WHERE m.alumno.id = :alumnoId AND m.cicloAcademico = :ciclo")
+    Optional<Matricula> findWithDetallesAndHorarioByAlumnoAndCiclo(@Param("alumnoId") Long alumnoId, @Param("ciclo") String ciclo);
 
     @Query("SELECT DISTINCT m.cicloAcademico FROM Matricula m WHERE m.alumno.id = :alumnoId ORDER BY m.cicloAcademico DESC")
     List<String> findDistinctCiclosByAlumnoId(@Param("alumnoId") Long alumnoId);
