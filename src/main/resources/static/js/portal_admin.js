@@ -534,10 +534,7 @@ function createAlumnosModule(tools) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(body)
             });
-            if (!response.ok) {
-                const detalle = await response.text();
-                throw new Error(detalle || 'No se pudo actualizar, revise los datos');
-            }
+            if (!response.ok) throw new Error('No se pudo actualizar, revise los datos');
             tools.showToast('Datos de contacto actualizados', 'success');
             habilitarEdicion(false);
             fichaIds.correoPer.textContent = body.correoPersonal || '-';

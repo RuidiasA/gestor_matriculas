@@ -1,59 +1,48 @@
 package com.example.matriculas.model;
 
-import com.example.matriculas.enums.EstadoDetalleMatricula;
-import com.example.matriculas.enums.Modalidad;
+import com.example.matriculas.model.enums.Modalidad;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.math.BigDecimal;
-
 @Entity
 @Table(name = "detalle_matricula")
-@Data
-@Builder
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class DetalleMatricula {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "matricula_id", nullable = false)
+    /* Relación con la matrícula */
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "matricula_id")
     private Matricula matricula;
 
-    @ManyToOne
-    @JoinColumn(name = "seccion_id", nullable = false)
+    /* Sección que eligió el alumno */
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "seccion_id")
     private Seccion seccion;
 
-    @ManyToOne
-    @JoinColumn(name = "docente_id", nullable = false)
-    private Docente docente;
-
+    /* Datos directos para evitar JOINs innecesarios (snapshot) */
     @Column(nullable = false)
     private Integer creditos;
 
-    @Column(name = "horas_semanales", nullable = false)
-    private Integer horasSemanales;
-
     @Column(nullable = false)
-    private String aula;
+    private Integer horasSemanales;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Modalidad modalidad;
 
-    @Column(name = "horario_texto")
+    /* Aula (o "Zoom" si es virtual) */
+    @Column(nullable = false)
+    private String aula;
+
+    /* Horario final (por ejemplo "Lun 08:00-10:00") */
+    @Column(nullable = false)
     private String horarioTexto;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "estado_detalle")
-    private EstadoDetalleMatricula estadoDetalle;
-
-    @Column(name = "nota_final", precision = 4, scale = 2)
-    private BigDecimal notaFinal;
-
-    @Column(columnDefinition = "TEXT")
-    private String observacion;
 }

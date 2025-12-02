@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- CSS (NO MODIFICADO EN RUTA) -->
+    <link rel="stylesheet" href="/css/global.css">
+    <link rel="stylesheet" href="/css/layout.css">
+    <link rel="stylesheet" href="/css/aside.css">
+    <link rel="stylesheet" href="/css/matricula.css">
+    <link rel="stylesheet" href="/css/horario.css">
+    <link rel="stylesheet" href="/css/pensiones.css">
+    <link rel="stylesheet" href="/css/solicitar_seccion.css">
+    <link rel="stylesheet" href="/css/responsive.css">
+
+    <!-- JS -->
+    <script src="/js/matricula.js" defer></script>
+
+    <!-- ICONOS -->
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+
+    <title>Matrícula</title>
+</head>
+
+<body>
+<!-- ============================================================
+     ASIDE IZQUIERDO
+============================================================ -->
+<aside class="aside-left">
+    <div class="aside-left__container">
+
+        <div class="logo"></div>
+
+        <a class="schedule active" href="#" onclick="mostrarVista('matricula', event)">MATRÍCULA</a>
+        <a class="schedule" href="#" onclick="mostrarVista('horario', event)">HORARIO</a>
+        <a class="pension" href="#" onclick="mostrarVista('pensiones', event)">PENSIONES</a>
+        <a class="request" href="#" onclick="mostrarVista('solicitud', event)">SOLICITAR SECCIÓN</a>
+
+        <div class="contact">
+            <div class="contact__container">
+                <h4 class="contact__title">INFORMACIÓN DE CONTACTO</h4>
+                <div class="contact__info">
+                    Número de contacto: +51 987 654 321
+                </div>
+            </div>
+        </div>
+
+        <a class="logout" href="/logout">CERRAR SESIÓN</a>
+    </div>
+</aside>
+
+<!-- ============================================================
+     MAIN
+============================================================ -->
+<main>
+    <div class="main__container">
+
+        <!-- ======================================================
+             VISTA — MATRÍCULA
+        ======================================================= -->
+        <section id="vista-matricula" class="vista-matricula">
+            <div class="main__container-item">
+                <h1>MATRÍCULA EN LÍNEA</h1>
+            </div>
+
+            <div class="fecha__matricula">
+                <div class="main__container-item">
+                    <h3>Inicio de matrícula:</h3>
+                </div>
+                <div class="main__container-item">
+                    <h3>Fin de matrícula:</h3>
+                </div>
+            </div>
+
+            <!-- TABLA PRINCIPAL -->
+            <div class="main__container-item-table">
+                <table>
+                    <thead>
+                    <tr>
+                        <th></th>
+                        <th><h5>Código</h5></th>
+                        <th><h5>Curso</h5></th>
+                        <th><h5>Horas semanales</h5></th>
+                        <th><h5>Créditos</h5></th>
+                        <th><h5>Ciclo</h5></th>
+                        <th><h5>Disponibilidad</h5></th>
+                        <th><h5>Tipo</h5></th>
+                        <th><h5>Modalidad</h5></th>
+                        <th></th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+                    <tr>
+                        <td class="checkbox__container"><input type="checkbox"></td>
+                        <td>IA401</td>
+                        <td>Inteligencia Artificial</td>
+                        <td>4</td>
+                        <td>4</td>
+                        <td>09</td>
+                        <td>Activo</td>
+                        <td>Electivo</td>
+                        <td>Virtual</td>
+                        <td class="menu">⋮</td>
+                    </tr>
+
+                    <tr>
+                        <td><input type="checkbox"></td>
+                        <td>ML402</td>
+                        <td>Machine Learning</td>
+                        <td>4</td>
+                        <td>4</td>
+                        <td>08</td>
+                        <td>Activo</td>
+                        <td>Obligatorio</td>
+                        <td>Presencial</td>
+                        <td class="menu">⋮</td>
+                    </tr>
+                    </tbody>
+                </table>
+
+                <!-- TOOLBAR -->
+                <div class="table__toolbar">
+
+                    <div class="table__info">
+                        <div class="table__info__item nombre">
+                            <h4 class="table__info__item-nombre">Alejandro Ruidias Luyo</h4>
+                        </div>
+                        <div class="table__info__item table__info__item__carrera">
+                            Ingeniería de Software
+                        </div>
+                        <div class="table__info__item ciclo">7mo ciclo</div>
+                        <div class="table__info__item dia">Sept 05, 2025</div>
+                        <div class="table__info__item hora">03:00 PM</div>
+                    </div>
+
+                    <div class="table-actions">
+                        <button class="delete">
+                            <ion-icon name="trash-outline"></ion-icon>Eliminar
+                        </button>
+                        <button>
+                            <ion-icon name="filter-sharp"></ion-icon>Filtros
+                        </button>
+                        <button>
+                            <ion-icon name="cloud-download-outline"></ion-icon>Descarga
+                        </button>
+                        <button>
+                            <ion-icon name="bookmark-outline"></ion-icon>Guardar
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- HORARIO -->
+            <div class="main__container-item">
+                <h2 class="horario__title">HORARIO</h2>
+
+                <table class="horario">
+                    <thead>
+                    <tr>
+                        <th>Hora</th>
+                        <th>Lunes</th>
+                        <th>Martes</th>
+                        <th>Miércoles</th>
+                        <th>Jueves</th>
+                        <th>Viernes</th>
+                        <th>Sábado</th>
+                        <th>Domingo</th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+                    <tr>
+                        <td>08:00 AM - 09:00 AM</td>
+                        <td></td>
+                        <td></td>
+                        <td>
+                            <div class="curso curso--azul">
+                                IA401<br>Inteligencia Artificial
+                            </div>
+                        </td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr><td>09:00 AM - 10:00 AM</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                    <tr><td>10:00 AM - 11:00 AM</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                    <tr><td>11:00 AM - 12:00 PM</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                    <tr><td>12:00 PM - 01:00 PM</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                    <tr><td>01:00 PM - 02:00 PM</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                    <tr><td>02:00 PM - 03:00 PM</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                    <tr><td>03:00 PM - 04:00 PM</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                    <tr><td>04:00 PM - 05:00 PM</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                    <tr>
+                        <td>05:00 PM - 06:00 PM</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="curso curso--rojo">
+                            ML402<br>Machine Learning
+                        </div></td>
+                        <td></td>
+                    </tr>
+                    <tr><td>06:00 PM - 07:00 PM</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                    <tr><td>07:00 PM - 08:00 PM</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                    <tr><td>08:00 PM - 09:00 PM</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                    <tr><td>09:00 PM - 10:00 PM</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                    </tbody>
+                </table>
+
+            </div>
+        </section>
+
+        <!-- ======================================================
+            VISTA — HORARIO
+       ======================================================= -->
+        <section id="vista-horario" class="hidden vista-horario">
+
+            <div class="main__container-item">
+                <h1>HORARIO DEL ESTUDIANTE</h1>
+            </div>
+
+            <div class="horario-layout">
+
+                <!-- TARJETAS DE CURSOS -->
+                <div class="cursos-inscritos scrolleable">
+
+                    <!-- CURSO 1 -->
+                    <div class="curso-card">
+                        <h3>IA401 — Inteligencia Artificial</h3>
+                        <p class="descripcion">
+                            La asignatura introduce los fundamentos de la inteligencia artificial moderna...
+                        </p>
+
+                        <div class="curso-grid">
+                            <span><strong>Sección:</strong> A1</span>
+                            <span><strong>Aula:</strong> 302</span>
+                            <span><strong>Horas semanales:</strong> 4</span>
+                            <span><strong>Créditos:</strong> 4</span>
+                            <span><strong>Ciclo:</strong> 09</span>
+                            <span><strong>Tipo:</strong> Electivo</span>
+                            <span><strong>Modalidad:</strong> Virtual</span>
+                        </div>
+                    </div>
+
+                    <!-- CURSO 2 -->
+                    <div class="curso-card">
+                        <h3>ML402 — Machine Learning</h3>
+                        <p class="descripcion">
+                            El curso desarrolla competencias para diseñar, entrenar y evaluar modelos...
+                        </p>
+
+                        <div class="curso-grid">
+                            <span><strong>Sección:</strong> B2</span>
+                            <span><strong>Aula:</strong> 205</span>
+                            <span><strong>Horas semanales:</strong> 4</span>
+                            <span><strong>Créditos:</strong> 4</span>
+                            <span><strong>Ciclo:</strong> 08</span>
+                            <span><strong>Tipo:</strong> Obligatorio</span>
+                            <span><strong>Modalidad:</strong> Presencial</span>
+                        </div>
+                    </div>
+
+                    <!-- CURSO 3 -->
+                    <div class="curso-card">
+                        <h3>AS301 — Arquitectura de Software</h3>
+                        <p class="descripcion">
+                            La asignatura se centra en los principios, patrones y estilos arquitectónicos...
+                        </p>
+
+                        <div class="curso-grid">
+                            <span><strong>Sección:</strong> C1</span>
+                            <span><strong>Aula:</strong> 501</span>
+                            <span><strong>Horas semanales:</strong> 3</span>
+                            <span><strong>Créditos:</strong> 3</span>
+                            <span><strong>Ciclo:</strong> 07</span>
+                            <span><strong>Tipo:</strong> Obligatorio</span>
+                            <span><strong>Modalidad:</strong> Presencial</span>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- HORARIO SEMANAL -->
+                <div class="tabla-horario-completa fija">
+                    <table class="horario-completo">
+                        <thead>
+                        <tr>
+                            <th>Hora</th>
+                            <th>Lunes</th>
+                            <th>Martes</th>
+                            <th>Miércoles</th>
+                            <th>Jueves</th>
+                            <th>Viernes</th>
+                            <th>Sábado</th>
+                            <th>Domingo</th>  <!-- NUEVO -->
+                        </tr>
+                        </thead>
+
+                        <!-- IMPORTANTE: tbody vacío -->
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+
+            </div>
+
+        </section>
+
+        <!-- ======================================================
+             VISTA — PENSIONES
+        ======================================================= -->
+        <section id="vista-pensiones" class="hidden">
+
+            <div class="main__container-item">
+                <h1>ESTADO DE CUENTA</h1>
+            </div>
+
+            <div class="pensiones-dashboard">
+
+                <div class="pension-card alerta">
+                    <div class="card-icon">
+                        <ion-icon name="alert-circle-outline"></ion-icon>
+                    </div>
+                    <div class="card-info">
+                        <h3>Deuda Pendiente</h3>
+                        <p class="monto">S/ 850.00</p>
+                        <span class="subtexto">Vence pronto</span>
+                    </div>
+                </div>
+
+                <div class="pension-card info">
+                    <div class="card-icon">
+                        <ion-icon name="calendar-outline"></ion-icon>
+                    </div>
+                    <div class="card-info">
+                        <h3>Próximo Vencimiento</h3>
+                        <p class="dato">30 Sept, 2025</p>
+                        <span class="subtexto">Pensión 2</span>
+                    </div>
+                </div>
+
+                <div class="pension-card success">
+                    <div class="card-icon">
+                        <ion-icon name="school-outline"></ion-icon>
+                    </div>
+                    <div class="card-info">
+                        <h3>Ciclo Académico</h3>
+                        <p class="dato">2025 - II</p>
+                        <span class="subtexto">Matriculado</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="pensiones-actions">
+
+                <div class="selector-ciclo">
+                    <label>Periodo:</label>
+                    <select>
+                        <option>2025 - II (Actual)</option>
+                        <option>2025 - I</option>
+                        <option>2024 - II</option>
+                    </select>
+                </div>
+
+                <button class="btn-pagar">
+                    <ion-icon name="card-outline"></ion-icon>
+                    REALIZAR PAGO
+                </button>
+
+            </div>
+
+            <div class="main__container-item">
+                <table class="tabla-pensiones">
+                    <thead>
+                    <tr>
+                        <th>Concepto</th>
+                        <th>Vencimiento</th>
+                        <th>Monto (S/)</th>
+                        <th>Mora/Dscto</th>
+                        <th>Total (S/)</th>
+                        <th>Estado</th>
+                        <th>Recibo</th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+                    <tr>
+                        <td>Matrícula 2025-II</td>
+                        <td>15 Ago, 2025</td>
+                        <td>350.00</td>
+                        <td>0.00</td>
+                        <td>350.00</td>
+                        <td><span class="badge pagado">Pagado</span></td>
+                        <td class="action-cell">
+                            <ion-icon name="document-text-outline" class="icon-btn"></ion-icon>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td>Pensión 1 (Agosto)</td>
+                        <td>30 Ago, 2025</td>
+                        <td>850.00</td>
+                        <td>-50.00 <small>(Pronto pago)</small></td>
+                        <td>800.00</td>
+                        <td><span class="badge pagado">Pagado</span></td>
+                        <td class="action-cell">
+                            <ion-icon name="document-text-outline" class="icon-btn"></ion-icon>
+                        </td>
+                    </tr>
+
+                    <tr class="fila-pendiente">
+                        <td>Pensión 2 (Septiembre)</td>
+                        <td>30 Sept, 2025</td>
+                        <td>850.00</td>
+                        <td>0.00</td>
+                        <td><strong>850.00</strong></td>
+                        <td><span class="badge pendiente">Pendiente</span></td>
+                        <td class="action-cell">
+                            <ion-icon name="ban-outline" class="icon-disabled"></ion-icon>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td>Pensión 3 (Octubre)</td>
+                        <td>30 Oct, 2025</td>
+                        <td>850.00</td>
+                        <td>0.00</td>
+                        <td>850.00</td>
+                        <td><span class="badge futuro">Por vencer</span></td>
+                        <td class="action-cell">
+                            <ion-icon name="ban-outline" class="icon-disabled"></ion-icon>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- ======================================================
+             HISTORIAL DE PAGOS
+            ======================================================= -->
+            <div class="main__container-item historial-container">
+                <h2 class="historial-title">Historial de Pagos</h2>
+
+                <table class="tabla-historial">
+                    <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Concepto</th>
+                        <th>Monto (S/)</th>
+                        <th>Método</th>
+                        <th>Estado</th>
+                        <th>Comprobante</th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+                    <tr>
+                        <td>15 Ago, 2025</td>
+                        <td>Matrícula 2025-II</td>
+                        <td>350.00</td>
+                        <td>Tarjeta</td>
+                        <td><span class="badge pagado">Pagado</span></td>
+                        <td class="action-cell">
+                            <ion-icon name="document-text-outline" class="icon-btn"></ion-icon>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td>30 Ago, 2025</td>
+                        <td>Pensión 1 (Agosto)</td>
+                        <td>800.00</td>
+                        <td>Yape</td>
+                        <td><span class="badge pagado">Pagado</span></td>
+                        <td class="action-cell">
+                            <ion-icon name="document-text-outline" class="icon-btn"></ion-icon>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td>30 Jul, 2025</td>
+                        <td>Pensión 0 (Julio)</td>
+                        <td>850.00</td>
+                        <td>Depósito</td>
+                        <td><span class="badge pagado">Pagado</span></td>
+                        <td class="action-cell">
+                            <ion-icon name="document-text-outline" class="icon-btn"></ion-icon>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- ======================================================
+             VISTA — SOLICITUD
+        ======================================================= -->
+        <section id="vista-solicitud" class="hidden vista-solicitud">
+
+            <!-- FORMULARIO -->
+            <form class="solicitud-container">
+
+                <h2>Solicitar Apertura de Sección</h2>
+
+                <label for="curso">Curso a solicitar</label>
+                <select id="curso" name="curso" required>
+                    <option value="" disabled selected>Seleccione un curso</option>
+                    <option>Inteligencia Artificial</option>
+                    <option>Machine Learning</option>
+                    <option>Cloud Computing</option>
+                    <option>Arquitectura de Software</option>
+                    <option>Pruebas de Software</option>
+                    <option>Gestión de Proyectos</option>
+                    <option>Desarrollo de Aplicaciones Móviles</option>
+                    <option>Requisitos de Software</option>
+                    <option>Calidad de Software</option>
+                </select>
+
+                <label for="turno">Turno</label>
+                <select id="turno" name="turno" required>
+                    <option value="" disabled selected>Seleccione un turno</option>
+                    <option>Diurno</option>
+                    <option>Nocturno</option>
+                </select>
+
+                <label for="modalidad">Modalidad</label>
+                <select id="modalidad" name="modalidad" required>
+                    <option value="" disabled selected>Seleccione una modalidad</option>
+                    <option>Presencial</option>
+                    <option>Virtual</option>
+                </select>
+
+                <label for="correo">Correo electrónico</label>
+                <input type="email" id="correo" name="correo" required placeholder="tucorreo@ejemplo.com">
+
+                <label for="telefono">Número de teléfono</label>
+                <input type="tel" id="telefono" name="telefono" required placeholder="999999999">
+
+                <label for="motivo">Motivo de la solicitud</label>
+                <textarea id="motivo" name="motivo" placeholder="Explique por qué solicita esta sección..."></textarea>
+
+                <label for="evidencia">Adjuntar evidencia (opcional)</label>
+                <input type="file" id="evidencia" name="evidencia" accept=".pdf,.jpg,.png">
+
+                <button type="submit">Solicitar sección</button>
+            </form>
+
+            <!-- HISTORIAL -->
+            <div class="historial-container-seccion">
+                <h3>Historial de solicitudes</h3>
+
+                <div class="historial-vacio">Aún no has realizado solicitudes.</div>
+
+                <div class="historial-lista"></div>
+            </div>
+
+        </section>
+
+    </div>
+</main>
+
+<!-- ============================================================
+     ASIDE DERECHO — SOLO MATRÍCULA (panel resumen)
+============================================================ -->
+<aside id="aside-derecho" class="aside-right">
+    <div class="resumen">
+        <h4>RESUMEN DE MATRÍCULA</h4>
+        <div class="resumen__info">Cursos</div>
+        <div class="resumen__info">Horas semanales</div>
+        <div class="resumen__info">Créditos</div>
+        <div class="resumen__info">Monto</div>
+    </div>
+
+    <div class="adicional">
+        <h4 class="adicional__title">INFORMACIÓN ADICIONAL</h4>
+        <div class="adicional__info"></div>
+    </div>
+</aside>
+
+</body>
+</html>

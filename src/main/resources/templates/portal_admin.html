@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="/css/admin/portal_admin.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="/js/portal_admin.js"></script>
+    <title>Portal Admin</title>
+</head>
+
+<body>
+<div class="admin-layout">
+    <!-- ASIDE LEFT -->
+    <aside class="aside-left">
+        <div class="aside-left__container">
+            <div class="logo"></div>
+            <nav class="admin-nav">
+                <a href="#" class="active" data-section="cursos">Cursos</a>
+                <a href="#" data-section="secciones">Secciones</a>
+                <a href="#" data-section="alumnos">Alumnos</a>
+                <a href="#" data-section="docentes">Docentes</a>
+            </nav>
+            <a class="logout" href="/logout">CERRAR SESIÓN</a>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main>
+        <!-- CURSOS -->
+        <section id="cursos" class="admin-section">
+        <h2>Mantenimiento de Cursos</h2>
+            <!-- Aquí se cargará dinámicamente la lista de cursos desde el backend -->
+        </section>
+
+        <!-- SECCIONES -->
+        <section id="secciones" class="admin-section">
+            <div class="secciones-grid">
+
+                <!-- ==============================
+                     COLUMNA IZQUIERDA
+                =============================== -->
+                <div class="secciones-col secciones-col--left">
+
+                    <!-- LISTADO -->
+                    <article class="card">
+                        <header class="card__header">
+                            <h3>Listado de secciones</h3>
+                        </header>
+
+                        <div class="table-wrapper">
+                            <table class="admin-table" id="tablaSecciones">
+                                <thead>
+                                <tr>
+                                    <th>Curso</th>
+                                    <th>Código de sección</th>
+                                    <th>Docente</th>
+                                    <th>Periodo</th>
+                                    <th>Modalidad</th>
+                                    <th>Horario</th>
+                                    <th>Aula</th>
+                                    <th>Cupos / Mat.</th>
+                                    <th>Estado</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr><td colspan="9" class="muted">Sin resultados</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </article>
+                </div>
+
+
+                <!-- ==============================
+                     COLUMNA DERECHA (FICHA)
+                =============================== -->
+                <aside class="secciones-col secciones-col--right">
+
+                    <!-- BUSQUEDA -->
+                    <article class="card card-busqueda-secciones">
+                        <header class="card__header">
+                            <h3>Búsqueda de secciones</h3>
+                        </header>
+
+                        <form id="formBusquedaSecciones" class="form-busqueda-secciones">
+
+                            <div class="form-grid-secciones">
+
+                                <div class="form-field">
+                                    <p class="label">Curso</p>
+                                    <select id="filtroCursoSeccion">
+                                        <option value="">Curso...</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-field">
+                                    <p class="label">Periodo</p>
+                                    <select id="filtroPeriodoSeccion">
+                                        <option value="">Seleccione</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-field">
+                                    <p class="label">Docente</p>
+                                    <select id="filtroDocenteSeccion">
+                                        <option value="">Seleccione</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-field">
+                                    <p class="label">Modalidad</p>
+                                    <select id="filtroModalidadSeccion">
+                                        <option value="">Todas</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-field">
+                                    <p class="label">Código de sección</p>
+                                    <input type="text" id="filtroCodigoSeccion" placeholder="A01">
+                                </div>
+
+                                <div class="form-actions form-actions-secciones">
+                                    <button type="submit" class="btn-primary">Buscar</button>
+                                    <button type="button" id="btnLimpiarSecciones" class="btn-secondary">Limpiar</button>
+                                </div>
+                            </div>
+                        </form>
+                    </article>
+
+
+
+                    <article class="card seccion-ficha" id="fichaSeccion">
+                        <header class="card__header">
+                            <div>
+                                <p class="muted">Curso</p>
+                                <h3 id="seccionCurso">-</h3>
+                            </div>
+                            <span class="badge" id="seccionEstado">-</span>
+                        </header>
+
+                        <div class="card__body">
+                            <div class="summary-grid" id="resumenDashboardSeccion">
+                                <div class="summary-item">
+                                    <p class="label">Matriculados actuales</p>
+                                    <h4 id="metricMatriculados">-</h4>
+                                </div>
+                                <div class="summary-item">
+                                    <p class="label">Cupos libres</p>
+                                    <h4 id="metricCuposLibres">-</h4>
+                                </div>
+                                <div class="summary-item">
+                                    <p class="label">Aprobados último periodo</p>
+                                    <h4 id="metricAprobados">-</h4>
+                                </div>
+                                <div class="summary-item">
+                                    <p class="label">% Aprobación</p>
+                                    <h4 id="metricAprobacion">-</h4>
+                                </div>
+                                <div class="summary-item">
+                                    <p class="label">Retiros</p>
+                                    <h4 id="metricRetiros">-</h4>
+                                </div>
+                                <div class="summary-item">
+                                    <p class="label">Horarios programados</p>
+                                    <h4 id="metricHorarios">-</h4>
+                                </div>
+                            </div>
+
+                            <div class="ficha-grid">
+                                <div>
+                                    <p class="label">Código</p>
+                                    <p id="seccionCodigo">-</p>
+                                </div>
+                                <div>
+                                    <p class="label">Docente</p>
+                                    <p id="seccionDocente">-</p>
+                                </div>
+                                <div>
+                                    <p class="label">Periodo</p>
+                                    <p id="seccionPeriodo">-</p>
+                                </div>
+                                <div>
+                                    <p class="label">Modalidad</p>
+                                    <p id="seccionModalidad">-</p>
+                                </div>
+                                <div>
+                                    <p class="label">Horario</p>
+                                    <p id="seccionHorario">-</p>
+                                </div>
+                                <div>
+                                    <p class="label">Aula</p>
+                                    <p id="seccionAula">-</p>
+                                </div>
+                                <div>
+                                    <p class="label">Cupos / Matriculados</p>
+                                    <p id="seccionCupos">-</p>
+                                </div>
+                                <div>
+                                    <p class="label">Créditos</p>
+                                    <p id="seccionCreditos">-</p>
+                                </div>
+                                <div>
+                                    <p class="label">Ciclo</p>
+                                    <p id="seccionCiclo">-</p>
+                                </div>
+                                <div>
+                                    <p class="label">Turno</p>
+                                    <p id="seccionTurno">-</p>
+                                </div>
+                                <div>
+                                    <p class="label">Horas semanales</p>
+                                    <p id="seccionHoras">-</p>
+                                </div>
+                                <div>
+                                    <p class="label">Cupos disponibles</p>
+                                    <p id="seccionCuposDisponibles">-</p>
+                                </div>
+                                <div>
+                                    <p class="label">Cantidad de horarios</p>
+                                    <p id="seccionCantidadHorarios">-</p>
+                                </div>
+                                <div>
+                                    <p class="label">Estado académico</p>
+                                    <p id="seccionEstadoAcademico">-</p>
+                                </div>
+                            </div>
+
+                            <div class="panel-divider"></div>
+
+                            <h4>Estudiantes matriculados</h4>
+                            <div class="table-wrapper">
+                                <table class="admin-table" id="tablaEstudiantesSeccion">
+                                    <thead>
+                                    <tr>
+                                        <th>Código</th>
+                                        <th>Nombre</th>
+                                        <th>Estado</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr><td colspan="4" class="muted">Sin estudiantes</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="ficha-acciones">
+                                <button class="btn-secondary" id="btnEditarSeccion">Editar sección</button>
+                                <button class="btn-primary" id="btnGestionarHorarios">Gestionar horarios</button>
+                                <button class="btn-secondary" id="btnAnularSeccion">Anular sección</button>
+                            </div>
+                        </div>
+                    </article>
+                </aside>
+
+                <!-- ==============================
+                     HISTORIAL
+                =============================== -->
+                <div class="secciones-historial">
+                    <article class="card">
+                        <header class="card__header">
+                            <h3>Historial de secciones</h3>
+                            <div class="tabs">
+                                <button class="tab active" data-tab="tab-movimientos">Movimientos</button>
+                                <button class="tab" data-tab="tab-cambios">Cambios</button>
+                                <button class="tab" data-tab="tab-estadisticas">Estadísticas</button>
+                            </div>
+                        </header>
+                        <div class="tab-content active" id="tab-movimientos">
+                            <div class="table-wrapper">
+                                <table class="admin-table" id="tablaHistorialSeccion">
+                                    <thead>
+                                    <tr>
+                                        <th>Periodo</th>
+                                        <th>Alumno</th>
+                                        <th>Estado matrícula</th>
+                                        <th>Fecha</th>
+                                        <th>Observación</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr><td colspan="5" class="muted">Selecciona una sección</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="tab-content" id="tab-cambios">
+                            <div class="table-wrapper">
+                                <table class="admin-table" id="tablaCambiosSeccion">
+                                    <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Usuario</th>
+                                        <th>Campo</th>
+                                        <th>Anterior</th>
+                                        <th>Nuevo</th>
+                                        <th>Observación</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr><td colspan="6" class="muted">Selecciona una sección</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="tab-content" id="tab-estadisticas">
+                            <div class="table-wrapper">
+                                <table class="admin-table" id="tablaEstadisticasSeccion">
+                                    <thead>
+                                    <tr>
+                                        <th>Periodo</th>
+                                        <th>Matriculados</th>
+                                        <th>Retiros</th>
+                                        <th>Aprobados</th>
+                                        <th>Desaprobados</th>
+                                        <th>% Aprobación</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr><td colspan="6" class="muted">Selecciona una sección</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+
+            </div>
+        </section>
+
+
+
+        <!-- ALUMNOS -->
+        <section id="alumnos" class="admin-section">
+            <div class="panel-grid">
+                <article class="panel shadow panel--tabla">
+                    <form id="formBusquedaAlumnos" class="search-form">
+                        <h3>Búsqueda de alumnos</h3>
+                        <div class="form-field">
+                            <input id="filtroAlumno" name="filtro" type="text" placeholder="DNI, código, nombre o correo">
+                        </div>
+                        <div class="search-actions">
+                            <button type="submit" class="btn-primary">Buscar</button>
+                            <button type="button" id="btnLimpiarBusqueda" class="btn-secondary">Limpiar</button>
+                        </div>
+                    </form>
+                    <div id="estadoBusqueda" class="status-message" hidden></div>
+
+                    <div class="table-wrapper">
+                        <table class="admin-table" id="tablaAlumnos">
+                            <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Nombre completo</th>
+                                <th>DNI</th>
+                                <th>Correo institucional</th>
+                                <th>Correo personal</th>
+                                <th>Teléfono</th>
+                                <th>Año ingreso</th>
+                                <th>Ciclo actual</th>
+                                <th>Orden mérito</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr class="skeleton-row" aria-hidden="true">
+                                <td colspan="9">Cargando alumnos...</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </article>
+
+                <article class="panel shadow panel--ficha" id="fichaAlumno">
+                    <div class="panel-header">
+                        <h3>Ficha del alumno</h3>
+                        <span class="badge" id="estadoAlumno">-</span>
+                    </div>
+                    <div class="ficha">
+                        <div class="ficha__data">
+                            <p class="ficha__titulo" id="nombreAlumno">Selecciona un alumno</p>
+                            <p class="muted" id="codigoAlumno">-</p>
+                            <div class="ficha__grid">
+                                <div>
+                                    <p class="label">Carrera</p>
+                                    <p id="carreraAlumno">-</p>
+                                </div>
+                                <div>
+                                    <p class="label">Ciclo actual</p>
+                                    <p id="cicloAlumno">-</p>
+                                </div>
+                                <div>
+                                    <p class="label">Año de ingreso</p>
+                                    <p id="ingresoAlumno">-</p>
+                                </div>
+                                <div>
+                                    <p class="label">Correo institucional</p>
+                                    <p id="correoInstitucionalAlumno">-</p>
+                                </div>
+                                <div>
+                                    <p class="label">Correo personal</p>
+                                    <p id="correoPersonalAlumno">-</p>
+                                </div>
+                                <div>
+                                    <p class="label">Teléfono</p>
+                                    <p id="telefonoAlumno">-</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel-divider"></div>
+
+                    <form id="formContactoAlumno" class="contact-form">
+                        <h4>Datos de contacto</h4>
+                        <div class="form-row">
+                            <div class="form-field">
+                                <label for="correoPersonalInput">Correo personal</label>
+                                <input type="email" id="correoPersonalInput" name="correoPersonal" disabled>
+                            </div>
+                            <div class="form-field">
+                                <label for="telefonoInput">Teléfono (9 dígitos)</label>
+                                <input type="tel" id="telefonoInput" name="telefono" pattern="\d{9}" maxlength="9" disabled>
+                            </div>
+                            <div class="form-field">
+                                <label for="direccionInput">Dirección</label>
+                                <input type="text" id="direccionInput" name="direccion" disabled>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" id="btnEditarContacto" class="btn-secondary">Editar datos de contacto</button>
+                            <button type="submit" id="btnGuardarContacto" class="btn-primary" disabled>Guardar</button>
+                        </div>
+                        <p id="estadoContacto" class="status-message" hidden></p>
+                    </form>
+                </article>
+
+                <article class="panel shadow panel--detalle" id="detalleAcademico">
+                    <div class="panel-header">
+                        <h3>Detalle académico</h3>
+                        <div class="form-field compact">
+                            <label for="selectorCiclo">Ciclo</label>
+                            <select id="selectorCiclo"></select>
+                        </div>
+                    </div>
+
+                    <div class="table-wrapper">
+                        <table class="admin-table" id="tablaCursosMatriculados">
+                            <thead>
+                            <tr>
+                                <th>Código sección</th>
+                                <th>Curso</th>
+                                <th>Docente</th>
+                                <th>Créditos</th>
+                                <th>Horas</th>
+                                <th>Modalidad</th>
+                                <th>Aula</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr class="skeleton-row" aria-hidden="true">
+                                <td colspan="7">Selecciona un alumno para ver sus cursos</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="resumen-grid">
+                        <div class="resumen-card">
+                            <p class="label">Total cursos</p>
+                            <p id="totalCursos">-</p>
+                        </div>
+                        <div class="resumen-card">
+                            <p class="label">Créditos</p>
+                            <p id="totalCreditos">-</p>
+                        </div>
+                        <div class="resumen-card">
+                            <p class="label">Horas semanales</p>
+                            <p id="totalHoras">-</p>
+                        </div>
+                        <div class="resumen-card">
+                            <p class="label">Matrícula</p>
+                            <p id="montoMatricula">-</p>
+                        </div>
+                        <div class="resumen-card">
+                            <p class="label">Pensión</p>
+                            <p id="montoPension">-</p>
+                        </div>
+                        <div class="resumen-card">
+                            <p class="label">Monto total</p>
+                            <p id="montoTotal">-</p>
+                        </div>
+                    </div>
+
+                    <div class="historial">
+                        <div class="historial__header">
+                            <h4>Historial de matrículas</h4>
+                            <span class="muted" id="subtituloHistorial">-</span>
+                        </div>
+                        <div id="contenedorHistorial" class="historial__items historial__items--accordion">
+                            <p class="muted">Sin registros</p>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </section>
+
+
+        <!-- DOCENTES -->
+        <section id="docentes" class="admin-section">
+            <div class="docentes-grid">
+                <div class="docentes-col docentes-col--left">
+                    <article class="card">
+                        <header class="card__header">
+                            <h3>Cursos que puede dictar</h3>
+                            <div class="agregar-curso">
+                                <select id="selectCursoDictable">
+                                    <option value="">Selecciona curso</option>
+                                </select>
+                                <button class="btn-primary" id="btnAgregarCursoDictable" type="button">Agregar</button>
+                            </div>
+                        </header>
+                        <div class="table-wrapper">
+                            <table class="admin-table" id="tablaCursosDictables">
+                                <thead>
+                                <tr>
+                                    <th>Curso</th>
+                                    <th>Código</th>
+                                    <th>Créditos</th>
+                                    <th>Ciclo</th>
+                                    <th>Acción</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr><td colspan="5" class="muted">Sin cursos asignados</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </article>
+
+                    <article class="card">
+                        <header class="card__header card-header-flex">
+                            <h3>Secciones asignadas actualmente</h3>
+                            <span id="badgeSeccionesDocente" class="badge-count">0 secciones</span>
+                        </header>
+
+
+                        <div class="secciones-badges" id="contenedorSeccionesBadges"></div>
+                        <p id="resumenSeccionesDocente" class="muted resumen-secciones-docente">0 secciones</p>
+
+                        <div class="table-wrapper">
+                            <table class="admin-table" id="tablaSeccionesDocente">
+                                <thead>
+                                <tr>
+                                    <th>Curso</th>
+                                    <th>Código Sección</th>
+                                    <th>Periodo</th>
+                                    <th>Modalidad</th>
+                                    <th>Créditos</th>
+                                    <th>Turno</th>
+                                    <th>Horario</th>
+                                    <th>Aula</th>
+                                    <th>Estudiantes</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr><td colspan="9" class="muted">Sin secciones</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </article>
+
+                    <article class="card">
+                        <header class="card__header">
+                            <h3>Historial académico</h3>
+                        </header>
+                        <div class="table-wrapper">
+                            <table class="admin-table" id="tablaHistorialDocente">
+                                <thead>
+                                <tr>
+                                    <th>Año/Ciclo</th>
+                                    <th>Curso</th>
+                                    <th>Sección</th>
+                                    <th>Modalidad</th>
+                                    <th>Créditos</th>
+                                    <th>Turno</th>
+                                    <th>Horario</th>
+                                    <th>Estudiantes finalizados</th>
+                                    <th>Nota promedio</th>
+                                    <th>% Aprobación</th>
+                                    <th>Observaciones</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr><td colspan="11" class="muted">Sin historial</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </article>
+                </div>
+
+                <div class="docentes-col docentes-col--right">
+
+                    <!-- ⬅️ FICHA DEL DOCENTE (MOVIDA AQUÍ ARRIBA Y SIN CAMBIAR NADA MÁS) -->
+                    <article class="card" id="fichaDocente">
+                        <header class="card__header">
+                            <div>
+                                <p class="muted">Código</p>
+                                <h3 id="docCodigo">-</h3>
+                            </div>
+                            <div class="badge" id="docEstado">-</div>
+                        </header>
+                        <div class="card__body">
+                            <div class="ficha-grid">
+                                <div>
+                                    <p class="label">Apellidos</p>
+                                    <p id="docApellidos">-</p>
+                                </div>
+                                <div>
+                                    <p class="label">Nombres</p>
+                                    <p id="docNombres">-</p>
+                                </div>
+                                <div>
+                                    <p class="label">DNI</p>
+                                    <p id="docDni">-</p>
+                                </div>
+                                <div>
+                                    <p class="label">Especialidad</p>
+                                    <p id="docEspecialidad">-</p>
+                                </div>
+                                <div>
+                                    <p class="label">Correo institucional</p>
+                                    <p id="docCorreoInst">-</p>
+                                </div>
+                                <div>
+                                    <p class="label">Correo personal</p>
+                                    <p id="docCorreoPer">-</p>
+                                </div>
+                                <div>
+                                    <p class="label">Teléfono</p>
+                                    <p id="docTelefono">-</p>
+                                </div>
+                                <div>
+                                    <p class="label">Dirección</p>
+                                    <p id="docDireccion">-</p>
+                                </div>
+                            </div>
+
+                            <div class="ficha-acciones">
+                                <button class="btn-secondary" id="btnEditarDocente">Editar datos personales</button>
+                                <button class="btn-primary" id="btnEditarContactoDocente">Editar contacto</button>
+                            </div>
+                        </div>
+                    </article>
+
+                    <!-- Modales de edición de docente -->
+                    <div class="modal modal--docente" id="modalDatosDocente" hidden>
+                        <div class="modal__dialog">
+                            <header class="modal__header">
+                                <h4>Editar datos personales</h4>
+                                <button type="button" class="modal__close" data-close="modalDatosDocente">×</button>
+                            </header>
+                            <form id="formDatosDocente" class="docente-form modal__form">
+                                <div class="form-grid">
+                                    <label>Apellidos<input type="text" id="inputDocApellidos" required></label>
+                                    <label>Nombres<input type="text" id="inputDocNombres" required></label>
+                                    <label>DNI<input type="text" id="inputDocDni" pattern="[0-9]{8}" required></label>
+                                    <label>Especialidad<input type="text" id="inputDocEspecialidad"></label>
+                                    <label>Correo institucional<input type="email" id="inputDocCorreoInst" required></label>
+                                    <label>Estado
+                                        <select id="inputDocEstado">
+                                            <option value="ACTIVO">Activo</option>
+                                            <option value="INACTIVO">Inactivo</option>
+                                        </select>
+                                    </label>
+                                </div>
+                                <div class="modal__actions">
+                                    <button type="button" class="btn-secondary" data-close="modalDatosDocente">Cancelar</button>
+                                    <button type="submit" class="btn-primary">Guardar</button>
+                                </div>
+                                <p id="estadoDatosDocente" class="muted" hidden></p>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="modal modal--docente" id="modalContactoDocente" hidden>
+                        <div class="modal__dialog">
+                            <header class="modal__header">
+                                <h4>Editar contacto</h4>
+                                <button type="button" class="modal__close" data-close="modalContactoDocente">×</button>
+                            </header>
+                            <form id="formContactoDocente" class="docente-form modal__form">
+                                <div class="form-grid">
+                                    <label>Correo institucional<input type="email" id="inputDocCorreoInstContacto" required></label>
+                                    <label>Correo personal<input type="email" id="inputDocCorreoPer"></label>
+                                    <label>Teléfono<input type="tel" id="inputDocTelefono" pattern="[0-9]{9}"></label>
+                                    <label>Dirección<input type="text" id="inputDocDireccion"></label>
+                                </div>
+                                <div class="modal__actions">
+                                    <button type="button" class="btn-secondary" data-close="modalContactoDocente">Cancelar</button>
+                                    <button type="submit" class="btn-primary">Guardar contacto</button>
+                                </div>
+                                <p id="estadoContactoDocente" class="muted" hidden></p>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- BUSCAR Y LISTAR DOCENTES -->
+                    <article class="card card--buscar-docentes">
+                        <header class="card__header">
+                            <h3>Buscar docentes</h3>
+                            <div class="card__actions">
+                                <button type="button" id="btnLimpiarDocentes" class="clear-button">Limpiar</button>
+                            </div>
+                        </header>
+                        <form id="formBusquedaDocentes" class="docente-form">
+                            <div class="form-grid">
+                                <label>Filtro general<input type="text" id="filtroDocente" placeholder="Código, DNI, nombre, correo"></label>
+                                <label>Curso dictable
+                                    <select id="filtroCursoDictable">
+                                        <option value="">Todos</option>
+                                    </select>
+                                </label>
+                                <label>Estado
+                                    <select id="filtroEstadoDocente">
+                                        <option value="">Todos</option>
+                                        <option value="ACTIVO">Activo</option>
+                                        <option value="INACTIVO">Inactivo</option>
+                                    </select>
+                                </label>
+                                <div class="form-actions">
+                                    <button class="btn-primary" type="submit">Buscar</button>
+                                </div>
+                            </div>
+                        </form>
+
+                        <!-- TABLA CON SCROLL -->
+                        <div class="table-wrapper table-wrapper--docentes">
+                            <table class="admin-table" id="tablaDocentes">
+                                <thead>
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Apellidos y Nombres</th>
+                                    <th>DNI</th>
+                                    <th>Estado</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr><td colspan="4" class="muted">Sin resultados</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <p id="estadoBusquedaDocentes" class="muted" hidden></p>
+                    </article>
+
+                </div>
+
+            </div>
+        </section>
+    </main>
+</div>
+</body>
+</html>

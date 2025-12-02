@@ -1,10 +1,6 @@
-const state = {
-    perfil: null,
-    resumen: null,
-    cursos: [],
-    horario: [],
-    pagos: []
-};
+/* ============================================================
+   CAMBIO DE VISTAS (MATRÍCULA / SOLICITUD / PENSIONES)
+============================================================ */
 
 function mostrarVista(vista, event) {
     if (event) event.preventDefault();
@@ -43,7 +39,7 @@ function mostrarVista(vista, event) {
         vistas.horario.classList.remove('hidden');
         asideDerecho.classList.add('hidden');
         body.classList.add('layout-2-cols');
-        inicializarHorario();
+        inicializarHorario(); // opcional si luego rellenamos horario dinámico
     }
 
     const linksMenu = document.querySelectorAll('.aside-left__container a');
@@ -54,52 +50,91 @@ function mostrarVista(vista, event) {
     }
 }
 
-/* ============================================================
-   UTILIDADES
-============================================================ */
-async function fetchJson(url, errorMessage) {
-    try {
-        const resp = await fetch(url);
-        if (!resp.ok) throw new Error(errorMessage || 'Error de servidor');
-        return await resp.json();
-    } catch (err) {
-        console.error(err);
-        mostrarMensajeError(err.message || errorMessage);
-        throw err;
-    }
-}
 
-function mostrarMensajeError(msg) {
-    const banner = document.querySelector('.toast-error') || document.createElement('div');
-    banner.className = 'toast-error';
-    banner.textContent = msg || 'Ocurrió un error inesperado';
-    document.body.appendChild(banner);
-    setTimeout(() => banner.remove(), 4000);
-}
 
 /* ============================================================
    DATA DE CURSOS MATRICULADOS
 ============================================================ */
+
+const cursosMatriculados = [
+    {
+        codigo: "IA401",
+        nombre: "Inteligencia Artificial",
+        seccion: "A1",
+        aula: "302",
+        horas: 4,
+        creditos: 4,
+        ciclo: 9,
+        tipo: "Electivo",
+        modalidad: "Virtual",
+        descripcion:
+            "La asignatura introduce los fundamentos de la IA moderna, agentes inteligentes y búsqueda.",
+        horario: [
+            { dia: "Martes", inicio: "08:00", fin: "10:00" }
+        ]
+    },
+    {
+        codigo: "ML402",
+        nombre: "Machine Learning",
+        seccion: "B2",
+        aula: "205",
+        horas: 4,
+        creditos: 4,
+        ciclo: 8,
+        tipo: "Obligatorio",
+        modalidad: "Presencial",
+        descripcion:
+            "Diseño, entrenamiento y evaluación de modelos supervisados y no supervisados.",
+        horario: [
+            { dia: "Jueves", inicio: "08:00", fin: "10:00" }
+        ]
+    },
+    {
+        codigo: "AS301",
+        nombre: "Arquitectura de Software",
+        seccion: "C1",
+        aula: "501",
+        horas: 3,
+        creditos: 3,
+        ciclo: 7,
+        tipo: "Obligatorio",
+        modalidad: "Presencial",
+        descripcion:
+            "Principios, patrones y estilos arquitectónicos aplicados a sistemas empresariales.",
+        horario: [
+            { dia: "Lunes", inicio: "10:00", fin: "12:00" }
+        ]
+    }
+];
+
+
+
+/* ============================================================
+   GENERACIÓN DE TARJETAS DE CURSOS
+============================================================ */
+
 function generarTarjetasCursos() {
-    const contenedor = document.querySelector('.cursos-inscritos');
+    const contenedor = document.querySelector(".cursos-inscritos");
     if (!contenedor) return;
 
-    contenedor.innerHTML = '';
+    contenedor.innerHTML = "";
 
-    state.cursos.forEach(curso => {
-        const card = document.createElement('div');
-        card.classList.add('curso-card');
+    cursosMatriculados.forEach(curso => {
+        const card = document.createElement("div");
+        card.classList.add("curso-card");
 
         card.innerHTML = `
-            <h3>${curso.codigoSeccion || ''} — ${curso.nombreCurso || ''}</h3>
-            <p class="descripcion">Docente: ${curso.docente || 'Por asignar'}</p>
+            <h3>${curso.codigo} — ${curso.nombre}</h3>
+            <p class="descripcion">${curso.descripcion}</p>
 
             <div class="curso-grid">
-                <span><strong>Sección:</strong> ${curso.codigoSeccion || '-'}</span>
-                <span><strong>Aula:</strong> ${curso.aula || '-'}</span>
-                <span><strong>Horas semanales:</strong> ${curso.horasSemanales ?? '-'}</span>
-                <span><strong>Créditos:</strong> ${curso.creditos ?? '-'}</span>
-                <span><strong>Modalidad:</strong> ${curso.modalidad || '-'}</span>
+                <span><strong>Sección:</strong> ${curso.seccion}</span>
+                <span><strong>Aula:</strong> ${curso.aula}</span>
+                <span><strong>Horas semanales:</strong> ${curso.horas}</span>
+                <span><strong>Créditos:</strong> ${curso.creditos}</span>
+                <span><strong>Ciclo:</strong> ${curso.ciclo}</span>
+                <span><strong>Tipo:</strong> ${curso.tipo}</span>
+                <span><strong>Modalidad:</strong> ${curso.modalidad}</span>
             </div>
         `;
 
@@ -107,63 +142,37 @@ function generarTarjetasCursos() {
     });
 }
 
-function renderTablaCursos() {
-    const tbody = document.querySelector('#vista-matricula table tbody');
-    if (!tbody) return;
-    tbody.innerHTML = '';
 
-    if (!state.cursos.length) {
-        const tr = document.createElement('tr');
-        tr.innerHTML = '<td colspan="10" class="muted">No tienes cursos inscritos en este ciclo</td>';
-        tbody.appendChild(tr);
-        return;
-    }
-
-    state.cursos.forEach(curso => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td class="checkbox__container"><input type="checkbox" disabled></td>
-            <td>${curso.codigoSeccion || '-'}</td>
-            <td>${curso.nombreCurso || '-'}</td>
-            <td>${curso.horasSemanales ?? '-'}</td>
-            <td>${curso.creditos ?? '-'}</td>
-            <td>${state.perfil?.cicloActual ?? '-'}</td>
-            <td>Activo</td>
-            <td>-</td>
-            <td>${curso.modalidad || '-'}</td>
-            <td class="menu">⋮</td>
-        `;
-        tbody.appendChild(tr);
-    });
-}
 
 /* ============================================================
    GENERADOR COMPLETO DE TABLA DE HORARIO
+   (Lunes a Domingo • 8am a 10pm)
 ============================================================ */
+
 function generarTablaHorario() {
-    const tbody = document.querySelector('#vista-horario .horario-completo tbody');
+    const tbody = document.querySelector("#vista-horario .horario-completo tbody");
     if (!tbody) return;
 
-    tbody.innerHTML = '';
+    tbody.innerHTML = "";
 
     const horaInicio = 8;
     const horaFin = 22;
 
-    const dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+    const dias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
 
     for (let h = horaInicio; h < horaFin; h++) {
-        const fila = document.createElement('tr');
+        const fila = document.createElement("tr");
 
-        const horaInicioStr = String(h).padStart(2, '0') + ':00';
-        const horaFinStr = String(h + 1).padStart(2, '0') + ':00';
+        const horaInicioStr = String(h).padStart(2, "0") + ":00";
+        const horaFinStr = String(h + 1).padStart(2, "0") + ":00";
 
-        const celdaHora = document.createElement('td');
+        const celdaHora = document.createElement("td");
         celdaHora.textContent = `${horaInicioStr} - ${horaFinStr}`;
         fila.appendChild(celdaHora);
 
         dias.forEach(() => {
-            const celda = document.createElement('td');
-            celda.classList.add('empty');
+            const celda = document.createElement("td");
+            celda.classList.add("empty");
             fila.appendChild(celda);
         });
 
@@ -171,202 +180,75 @@ function generarTablaHorario() {
     }
 }
 
-function pintarHorario() {
-    const tbody = document.querySelector('#vista-horario .horario-completo tbody');
-    if (!tbody) return;
-
-    const mapaDias = {
-        LUNES: 1,
-        MARTES: 2,
-        MIERCOLES: 3,
-        JUEVES: 4,
-        VIERNES: 5,
-        SABADO: 6,
-        DOMINGO: 7
-    };
-
-    state.horario.forEach(bloque => {
-        const inicioHora = parseInt((bloque.horaInicio || '0').split(':')[0], 10);
-        const finHora = parseInt((bloque.horaFin || '0').split(':')[0], 10);
-        const columna = mapaDias[(bloque.dia || '').toUpperCase()];
-        if (!columna) return;
-
-        for (let h = inicioHora; h < finHora; h++) {
-            const fila = tbody.children[h - 8];
-            if (!fila) continue;
-            const celda = fila.children[columna];
-            if (!celda) continue;
-            celda.classList.remove('empty');
-            celda.innerHTML = `<strong>${bloque.curso || ''}</strong><br>${bloque.horaInicio || ''} - ${bloque.horaFin || ''}<br>${bloque.docente || ''}`;
-        }
-    });
-}
-
 /* ============================================================
    INICIALIZACIÓN GENERAL
 ============================================================ */
 function inicializarHorario() {
+    generarTarjetasCursos();
     generarTablaHorario();
-    pintarHorario();
 }
+document.addEventListener("DOMContentLoaded", inicializarHorario);
 
-async function cargarDatosIniciales() {
-    try {
-        const [perfil, matriculaActual, cursos, horario, pagos] = await Promise.all([
-            fetchJson('/alumno/info', 'No se pudo obtener la información del alumno'),
-            fetchJson('/alumno/matricula/actual', 'No se pudo obtener la matrícula actual'),
-            fetchJson('/alumno/matricula/cursos', 'No se pudieron cargar los cursos'),
-            fetchJson('/alumno/horario', 'No se pudo cargar el horario'),
-            fetchJson('/alumno/pagos', 'No se pudieron cargar las pensiones')
-        ]);
 
-        state.perfil = perfil;
-        state.resumen = matriculaActual;
-        state.cursos = Array.isArray(cursos) ? cursos : [];
-        state.horario = Array.isArray(horario) ? horario : [];
-        state.pagos = Array.isArray(pagos) ? pagos : [];
 
-        actualizarResumenMatricula();
-        actualizarDatosPensiones();
-        actualizarInformacionAdicional();
-        generarTarjetasCursos();
-        renderTablaCursos();
-        inicializarHorario();
-    } catch (err) {
-        // Errores ya manejados en fetchJson
-    }
-}
+// ===============================
+//  MANEJO DE SOLICITUD DE SECCIÓN
+// ===============================
 
-document.addEventListener('DOMContentLoaded', cargarDatosIniciales);
+const form = document.querySelector(".solicitud-container");
+const historialVacio = document.querySelector(".historial-vacio");
+const historialLista = document.querySelector(".historial-lista");
 
-function actualizarResumenMatricula() {
-    const contenedor = document.querySelector('#aside-derecho .resumen');
-    if (!contenedor) return;
-    const items = contenedor.querySelectorAll('.resumen__info');
-    const resumen = state.resumen || {};
+form.addEventListener("submit", function(e){
+    e.preventDefault();
 
-    if (items[0]) items[0].textContent = `Cursos: ${resumen.totalCursos ?? state.cursos.length ?? 0}`;
-    if (items[1]) items[1].textContent = `Horas semanales: ${resumen.totalHoras ?? '-'}`;
-    if (items[2]) items[2].textContent = `Créditos: ${resumen.totalCreditos ?? '-'}`;
-    if (items[3]) items[3].textContent = `Monto: S/ ${Number(resumen.montoTotal || 0).toFixed(2)}`;
-}
+    const curso = document.getElementById("curso").value;
+    const turno = document.getElementById("turno").value;
+    const modalidad = document.getElementById("modalidad").value;
+    const correo = document.getElementById("correo").value;
+    const telefono = document.getElementById("telefono").value;
+    const motivo = document.getElementById("motivo").value;
+    const evidencia = document.getElementById("evidencia").files[0];
 
-function actualizarInformacionAdicional() {
-    const adicional = document.querySelector('.adicional__info');
-    if (!adicional || !state.perfil) return;
-    adicional.innerHTML = `
-        <strong>${state.perfil.nombres || ''} ${state.perfil.apellidos || ''}</strong><br>
-        Código: ${state.perfil.codigo || '-'}<br>
-        Carrera: ${state.perfil.carrera || '-'}<br>
-        Ciclo: ${state.perfil.cicloActual || '-'}
+    const fecha = new Date().toLocaleDateString("es-PE", {
+        day: "numeric",
+        month: "short",
+        year: "numeric"
+    });
+
+    // Ocultar mensaje vacío
+    historialVacio.style.display = "none";
+
+    // Crear tarjeta
+    const card = document.createElement("div");
+    card.classList.add("solicitud-card");
+
+    card.innerHTML = `
+        <div class="curso-titulo">${curso}</div>
+        <strong>Turno:</strong> ${turno}<br>
+        <strong>Modalidad:</strong> ${modalidad}<br>
+        <strong>Correo:</strong> ${correo}<br>
+        <strong>Teléfono:</strong> ${telefono}<br>
+        <strong>Motivo:</strong> ${motivo}<br>
+        <strong>Fecha de solicitud:</strong> ${fecha}<br>
     `;
 
-    const contactoInfo = document.querySelector('.contact__info');
-    if (contactoInfo) {
-        contactoInfo.textContent = `Correo institucional: ${state.perfil.correoInstitucional || '-'}`;
-    }
-}
+    // Si hay evidencia, crear botón de descarga
+    if (evidencia) {
+        const link = document.createElement("a");
+        link.classList.add("btn-descargar");
+        link.textContent = `Descargar evidencia (${evidencia.name})`;
 
-/* ============================================================
-   PENSIONES
-============================================================ */
-function actualizarDatosPensiones() {
-    const deudaCard = document.querySelector('.pension-card.alerta .monto');
-    const proximoCard = document.querySelector('.pension-card.info .dato');
-    const proximoSub = document.querySelector('.pension-card.info .subtexto');
-    const cicloCard = document.querySelector('.pension-card.success .dato');
-    const tabla = document.querySelector('.tabla-pensiones tbody');
+        const url = URL.createObjectURL(evidencia);
+        link.href = url;
+        link.download = evidencia.name;
 
-    const pendientes = state.pagos.filter(p => p.estado !== 'PAGADO');
-    const deudaTotal = pendientes.reduce((acc, p) => acc + (p.monto || 0), 0);
-    if (deudaCard) deudaCard.textContent = `S/ ${deudaTotal.toFixed(2)}`;
-
-    const proximo = pendientes
-        .filter(p => p.vencimiento)
-        .sort((a, b) => new Date(a.vencimiento) - new Date(b.vencimiento))[0];
-    if (proximoCard) proximoCard.textContent = proximo?.vencimiento || '—';
-    if (proximoSub) proximoSub.textContent = proximo?.concepto || '';
-
-    if (cicloCard) cicloCard.textContent = state.pagos[0]?.periodo || '—';
-
-    if (!tabla) return;
-    tabla.innerHTML = '';
-
-    if (!state.pagos.length) {
-        tabla.innerHTML = '<tr><td colspan="7" class="muted">No hay pagos registrados</td></tr>';
-        return;
+        card.appendChild(link);
     }
 
-    state.pagos.forEach(pago => {
-        const tr = document.createElement('tr');
-        const total = (pago.monto || 0).toFixed(2);
-        const badgeClass = pago.estado === 'PAGADO' ? 'pagado' : 'pendiente';
-        tr.innerHTML = `
-            <td>${pago.concepto || ''}</td>
-            <td>${pago.vencimiento || '—'}</td>
-            <td>${total}</td>
-            <td>0.00</td>
-            <td>${total}</td>
-            <td><span class="badge ${badgeClass}">${pago.estado || ''}</span></td>
-            <td class="action-cell"><ion-icon name="document-text-outline" class="icon-btn"></ion-icon></td>
-        `;
-        tabla.appendChild(tr);
-    });
-}
+    // Agregar al historial
+    historialLista.appendChild(card);
 
-/* ============================================================
-   MANEJO DE SOLICITUD DE SECCIÓN
-============================================================ */
-const form = document.querySelector('.solicitud-container');
-const historialVacio = document.querySelector('.historial-vacio');
-const historialLista = document.querySelector('.historial-lista');
-
-if (form) {
-    form.addEventListener('submit', function(e){
-        e.preventDefault();
-
-        const curso = document.getElementById('curso').value;
-        const turno = document.getElementById('turno').value;
-        const modalidad = document.getElementById('modalidad').value;
-        const correo = document.getElementById('correo').value;
-        const telefono = document.getElementById('telefono').value;
-        const motivo = document.getElementById('motivo').value;
-        const evidencia = document.getElementById('evidencia').files[0];
-
-        const fecha = new Date().toLocaleDateString('es-PE', {
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric'
-        });
-
-        if (historialVacio) historialVacio.style.display = 'none';
-
-        const card = document.createElement('div');
-        card.classList.add('solicitud-card');
-
-        card.innerHTML = `
-            <div class="curso-titulo">${curso}</div>
-            <strong>Turno:</strong> ${turno}<br>
-            <strong>Modalidad:</strong> ${modalidad}<br>
-            <strong>Correo:</strong> ${correo}<br>
-            <strong>Teléfono:</strong> ${telefono}<br>
-            <strong>Motivo:</strong> ${motivo}<br>
-            <strong>Fecha de solicitud:</strong> ${fecha}<br>
-        `;
-
-        if (evidencia) {
-            const link = document.createElement('a');
-            link.classList.add('btn-descargar');
-            link.textContent = `Descargar evidencia (${evidencia.name})`;
-
-            const url = URL.createObjectURL(evidencia);
-            link.href = url;
-            link.download = evidencia.name;
-
-            card.appendChild(link);
-        }
-
-        historialLista.appendChild(card);
-        form.reset();
-    });
-}
+    // Reset form
+    form.reset();
+});

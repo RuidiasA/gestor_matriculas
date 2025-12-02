@@ -16,6 +16,10 @@ public class CustomUserDetails implements UserDetails {
         this.usuario = usuario;
     }
 
+    public Usuario getUsuario() {
+        return this.usuario;
+    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority("ROLE_" + usuario.getRol().name()));
@@ -32,22 +36,14 @@ public class CustomUserDetails implements UserDetails {
     }
 
     @Override
-    public boolean isAccountNonExpired() {
-        return usuario.isActivo();
-    }
+    public boolean isAccountNonExpired() { return true; }
 
     @Override
-    public boolean isAccountNonLocked() {
-        return usuario.isActivo();
-    }
+    public boolean isAccountNonLocked() { return true; }
 
     @Override
-    public boolean isCredentialsNonExpired() {
-        return usuario.isActivo();
-    }
+    public boolean isCredentialsNonExpired() { return true; }
 
     @Override
-    public boolean isEnabled() {
-        return usuario.isActivo();
-    }
+    public boolean isEnabled() { return usuario.isActivo(); }
 }
