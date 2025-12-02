@@ -14,14 +14,22 @@ import java.util.Optional;
 
 public interface MatriculaRepository extends JpaRepository<Matricula, Long> {
 
+    List<Matricula> findByAlumnoId(Long alumnoId);
+
     List<Matricula> findByAlumnoIdOrderByFechaMatriculaDesc(Long alumnoId);
 
     Optional<Matricula> findByAlumnoIdAndCicloAcademico(Long alumnoId, String cicloAcademico);
 
-    @EntityGraph(attributePaths = {"detalles", "detalles.seccion", "detalles.seccion.curso", "detalles.docente"})
+    @EntityGraph(attributePaths = {
+            "detalles",
+            "detalles.seccion",
+            "detalles.seccion.curso",
+            "detalles.seccion.docente"
+    })
     @Query("SELECT DISTINCT m FROM Matricula m WHERE m.alumno.id = :alumnoId AND m.cicloAcademico = :ciclo")
     Optional<Matricula> findWithDetallesByAlumnoAndCiclo(@Param("alumnoId") Long alumnoId, @Param("ciclo") String ciclo);
 
     @Query("SELECT DISTINCT m.cicloAcademico FROM Matricula m WHERE m.alumno.id = :alumnoId ORDER BY m.cicloAcademico DESC")
     List<String> findDistinctCiclosByAlumnoId(@Param("alumnoId") Long alumnoId);
 }
+

@@ -26,6 +26,8 @@ public interface AlumnoRepository extends JpaRepository<Alumno, Long> {
 
     Optional<Alumno> findByDniAndCodigoAlumnoAndCorreoInstitucional(String dni, String codigoAlumno, String correoInstitucional);
 
+    List<Alumno> findAllByOrderByApellidosAscNombresAsc();
+
     @Query("""
             SELECT a FROM Alumno a
             WHERE (:filtro IS NULL OR :filtro = ''

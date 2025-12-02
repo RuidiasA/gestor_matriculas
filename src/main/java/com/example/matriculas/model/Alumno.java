@@ -46,19 +46,11 @@ public class Alumno {
     @Column(name = "correo_personal")
     private String correoPersonal;
 
-    @Column(length = 150)
-    private String direccion;
-
     @Column(nullable = false, unique = true)
     private String correoInstitucional;
 
-    /* Dirección (nuevo campo) */
     @Column(nullable = true)
     private String direccion;
-
-    /* Estado del alumno: ACTIVO / INACTIVO / SUSPENDIDO */
-    @Column(nullable = false)
-    private String estado = "ACTIVO";
 
     /* Año en que inició la carrera */
     @Column(nullable = false)

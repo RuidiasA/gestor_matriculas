@@ -1788,9 +1788,9 @@ function createSeccionesModule(tools, alumnosModule) {
 // =====================
 document.addEventListener('DOMContentLoaded', () => {
     const tools = createTools();
-    const seccionesModule = createSeccionesModule(tools, alumnosModule);
     const alumnosModule = createAlumnosModule(tools);
     const docentesModule = createDocentesModule(tools);
+    const seccionesModule = createSeccionesModule(tools, alumnosModule);
 
     setupNavigation(() => seccionesModule.resetFicha());
 
@@ -1798,3 +1798,4 @@ document.addEventListener('DOMContentLoaded', () => {
     docentesModule.init();
     seccionesModule.init();
 });
+

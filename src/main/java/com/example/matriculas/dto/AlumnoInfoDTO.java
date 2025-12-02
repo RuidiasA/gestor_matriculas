@@ -28,7 +28,11 @@ public class AlumnoInfoDTO {
         dto.setCarreraNombre(a.getCarrera().getNombre());
         dto.setAnioIngreso(a.getAnioIngreso());
         dto.setCicloActual(a.getCicloActual());
-        dto.setEstado(a.getEstado());
+        dto.setEstado(
+                a.getEstado() != null
+                        ? a.getEstado().name()
+                        : null
+        );
         return dto;
     }
 }

@@ -43,16 +43,18 @@ public class MatriculaService {
                 .stream()
                 .map(det -> {
                     CursoMatriculadoDTO dto = new CursoMatriculadoDTO();
-                    dto.setSeccion(det.getSeccion().getCodigo());
-                    dto.setCurso(det.getSeccion().getCurso().getNombre());
+
+                    dto.setCodigoSeccion(det.getSeccion().getCodigo());
+                    dto.setNombreCurso(det.getSeccion().getCurso().getNombre());
+
                     dto.setDocente(det.getSeccion().getDocente().getNombres()
                             + " " + det.getSeccion().getDocente().getApellidos());
-                    dto.setAula(det.getAula());
-                    dto.setCicloCurso(det.getSeccion().getCurso().getCiclo());
+
                     dto.setCreditos(det.getCreditos());
-                    dto.setHoras(det.getHorasSemanales());
-                    dto.setTipo(det.getSeccion().getCurso().getTipo().name());
+                    dto.setHorasSemanales(det.getHorasSemanales());
                     dto.setModalidad(det.getModalidad().name());
+                    dto.setAula(det.getAula());
+
                     return dto;
                 })
                 .collect(Collectors.toList());
@@ -67,16 +69,35 @@ public class MatriculaService {
                 .stream()
                 .sorted(Comparator.comparing(Matricula::getFechaMatricula).reversed())
                 .map(m -> {
-                    HistorialMatriculaDTO dto = new HistorialMatriculaDTO();
 
-                    dto.setCiclo(m.getCicloAcademico());
-                    dto.setCursos(m.getDetalles().size());
-                    dto.setCreditos(m.getTotalCreditos());
-                    dto.setHoras(m.getTotalHoras());
-                    dto.setMonto(m.getMontoTotal());
-                    dto.setFecha(m.getFechaMatricula().format(fmt));
+                    // Convertir detalles a lista de Cursos DTO
+                    List<CursoMatriculadoDTO> cursosDTO = m.getDetalles()
+                            .stream()
+                            .map(det -> CursoMatriculadoDTO.builder()
+                                    .codigoSeccion(det.getSeccion().getCodigo())
+                                    .nombreCurso(det.getSeccion().getCurso().getNombre())
+                                    .docente(det.getSeccion().getDocente().getNombres()
+                                            + " " + det.getSeccion().getDocente().getApellidos())
+                                    .creditos(det.getCreditos())
+                                    .horasSemanales(det.getHorasSemanales())
+                                    .modalidad(det.getModalidad().name())
+                                    .aula(det.getAula())
+                                    .build())
+                            .collect(Collectors.toList());
 
-                    return dto;
+                    return HistorialMatriculaDTO.builder()
+                            .ciclo(m.getCicloAcademico())
+                            .estado(m.getEstado() != null ? m.getEstado().name() : null)
+                            .totalCursos(m.getDetalles().size())
+                            .totalCreditos(m.getTotalCreditos())
+                            .totalHoras(m.getTotalHoras())
+                            .matricula(null)      // No existe este dato en Matricula
+                            .pension(null)        // No existe este dato en Matricula
+                            .mora(null)           // No existe este dato en Matricula
+                            .descuentos(null)     // No existe este dato en Matricula
+                            .montoTotal(m.getMontoTotal())
+                            .cursos(cursosDTO)
+                            .build();
                 })
                 .collect(Collectors.toList());
     }

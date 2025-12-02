@@ -1,5 +1,6 @@
 package com.example.matriculas.dto;
 
+import com.example.matriculas.model.DetalleMatricula;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,4 +18,17 @@ public class CursoMatriculadoDTO {
     private Integer horasSemanales;
     private String modalidad;
     private String aula;
+
+    public static CursoMatriculadoDTO fromDetalle(DetalleMatricula det) {
+        return CursoMatriculadoDTO.builder()
+                .codigoSeccion(det.getSeccion().getCodigo())
+                .nombreCurso(det.getSeccion().getCurso().getNombre())
+                .docente(det.getSeccion().getDocente().getNombres()
+                        + " " + det.getSeccion().getDocente().getApellidos())
+                .creditos(det.getCreditos())
+                .horasSemanales(det.getHorasSemanales())
+                .modalidad(det.getModalidad().name())
+                .aula(det.getAula())
+                .build();
+    }
 }

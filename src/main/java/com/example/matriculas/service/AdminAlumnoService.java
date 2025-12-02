@@ -5,6 +5,7 @@ import com.example.matriculas.dto.AlumnoDTO;
 import com.example.matriculas.model.Alumno;
 import com.example.matriculas.repository.AlumnoRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -29,11 +30,17 @@ public class AdminAlumnoService {
         if (!StringUtils.hasText(filtro)) {
             return List.of();
         }
-        return alumnoRepository.buscarPorFiltro(filtro.trim())
+
+        return alumnoRepository.buscarPorFiltro(
+                        filtro.trim().toLowerCase(),
+                        PageRequest.of(0, 50) // tamaño de página (ajustable)
+                )
+                .getContent()
                 .stream()
                 .map(AlumnoDTO::fromEntity)
                 .toList();
     }
+
 
     public AlumnoDTO obtener(Long id) {
         return AlumnoDTO.fromEntity(obtenerAlumno(id));

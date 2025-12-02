@@ -333,14 +333,19 @@ public class AlumnoService {
                 .codigoSeccion(detalle.getSeccion() != null ? detalle.getSeccion().getCodigo() : null)
                 .nombreCurso(detalle.getSeccion() != null && detalle.getSeccion().getCurso() != null ?
                         detalle.getSeccion().getCurso().getNombre() : null)
-                .docente(detalle.getDocente() != null ?
-                        (detalle.getDocente().getNombres() + " " + detalle.getDocente().getApellidos()).trim() : null)
+                .docente(
+                        detalle.getSeccion() != null && detalle.getSeccion().getDocente() != null
+                                ? (detalle.getSeccion().getDocente().getNombres() + " "
+                                + detalle.getSeccion().getDocente().getApellidos()).trim()
+                                : null
+                )
                 .creditos(detalle.getCreditos())
                 .horasSemanales(detalle.getHorasSemanales())
                 .modalidad(detalle.getModalidad() != null ? detalle.getModalidad().name() : null)
                 .aula(detalle.getAula())
                 .build();
     }
+
 
     private record ResumenMontos(double matricula, double pension, double mora, double descuentos, double montoTotal) {}
     private AlumnoBusquedaDTO mapearBusqueda(Alumno alumno) {

@@ -38,7 +38,11 @@ public class AlumnoDTO {
         dto.setTelefonoPersonal(a.getTelefonoPersonal());
 
         dto.setDireccion(a.getDireccion());
-        dto.setEstado(a.getEstado());
+        dto.setEstado(
+                a.getEstado() != null
+                        ? a.getEstado().name()
+                        : null
+        );
 
         dto.setAnioIngreso(a.getAnioIngreso());
         dto.setCicloActual(a.getCicloActual());

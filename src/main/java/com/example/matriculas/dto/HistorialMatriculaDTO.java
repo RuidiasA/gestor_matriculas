@@ -1,5 +1,6 @@
 package com.example.matriculas.dto;
 
+import com.example.matriculas.model.Matricula;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -23,4 +24,27 @@ public class HistorialMatriculaDTO {
     private Double descuentos;
     private Double montoTotal;
     private List<CursoMatriculadoDTO> cursos;
+
+    public static HistorialMatriculaDTO fromEntity(Matricula m) {
+
+        List<CursoMatriculadoDTO> cursosDTO = m.getDetalles()
+                .stream()
+                .map(CursoMatriculadoDTO::fromDetalle)
+                .toList();
+
+        return HistorialMatriculaDTO.builder()
+                .ciclo(m.getCicloAcademico())
+                .estado(m.getEstado() != null ? m.getEstado().name() : null)
+                .totalCursos(cursosDTO.size())
+                .totalCreditos(m.getTotalCreditos())
+                .totalHoras(m.getTotalHoras())
+                .matricula(null)
+                .pension(null)
+                .mora(null)
+                .descuentos(null)
+                .montoTotal(m.getMontoTotal())
+                .cursos(cursosDTO)
+                .build();
+    }
 }
+
