@@ -1,87 +1,75 @@
 package com.example.matriculas.model;
 
-import com.example.matriculas.model.enums.EstadoUsuario;
-import com.example.matriculas.model.enums.Turno;
+import com.example.matriculas.enums.EstadoAlumno;
+import com.example.matriculas.enums.Turno;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "alumnos", uniqueConstraints = {
-        @UniqueConstraint(columnNames = "dni"),
-        @UniqueConstraint(columnNames = "correoInstitucional")
-})
-@Getter
-@Setter
+@Table(name = "alumnos")
+@Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class Alumno {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /* Código institucional único del alumno */
-    @Column(nullable = false, unique = true, length = 20)
+    @Column(name = "codigo_alumno", nullable = false, unique = true)
     private String codigoAlumno;
 
-    /* Nombres y apellidos */
+    @Column(nullable = false, unique = true)
+    private String dni;
+
     @Column(nullable = false)
     private String nombres;
 
     @Column(nullable = false)
     private String apellidos;
 
-    /* DNI único */
-    @Column(nullable = false, unique = true, length = 8)
-    private String dni;
-
-    /* Información de contacto */
-    @Column(name = "telefono_personal", length = 9)
-    private String telefonoPersonal;
-
-    @Column(name = "correo_personal")
-    private String correoPersonal;
-
-    @Column(nullable = false, unique = true)
+    @Column(name = "correo_institucional", nullable = false, unique = true)
     private String correoInstitucional;
 
-    @Column(nullable = true)
+    private String correoPersonal;
+
+    private String telefonoPersonal;
+
     private String direccion;
 
-    /* Año en que inició la carrera */
-    @Column(nullable = false)
+    @Column(name = "anio_ingreso", nullable = false)
     private Integer anioIngreso;
 
-    /* Ciclo actual del alumno (2–10) */
-    @Column(nullable = false)
+    @Column(name = "ciclo_actual")
     private Integer cicloActual;
 
     @Enumerated(EnumType.STRING)
     private Turno turno;
 
-    /* Orden de mérito / prioridad del alumno */
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private EstadoAlumno estado;
+
     @Column(name = "orden_merito")
     private Integer ordenMerito;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "estado")
-    private EstadoUsuario estado = EstadoUsuario.ACTIVO;
-
-    /* Relación con carrera */
     @ManyToOne
     @JoinColumn(name = "carrera_id", nullable = false)
     private Carrera carrera;
 
-    /* Relación con el usuario (login) */
     @OneToOne
-    @JoinColumn(name = "usuario_id", unique = true)
+    @JoinColumn(name = "usuario_id")
     private Usuario usuario;
 
-    /* Matrículas hechas por el alumno */
-    @OneToMany(mappedBy = "alumno", cascade = CascadeType.ALL, orphanRemoval = false)
-    private List<Matricula> matriculas = new ArrayList<>();
+    @OneToMany(mappedBy = "alumno")
+    private List<Matricula> matriculas;
+
+    @OneToMany(mappedBy = "alumno")
+    private List<Pago> pagos;
+
+    @OneToMany(mappedBy = "alumno")
+    private List<SolicitudSeccion> solicitudes;
 }

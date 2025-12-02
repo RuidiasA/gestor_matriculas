@@ -1,77 +1,68 @@
 package com.example.matriculas.model;
 
-import com.example.matriculas.model.enums.Modalidad;
-import com.example.matriculas.model.enums.TipoCurso;
+import com.example.matriculas.enums.Modalidad;
+import com.example.matriculas.enums.TipoCurso;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "cursos", uniqueConstraints = {
-        @UniqueConstraint(columnNames = "codigo")
-})
-@Getter
-@Setter
+@Table(name = "cursos")
+@Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class Curso {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /* Código único del curso: IA401, BD302, INF205, etc. */
-    @Column(nullable = false)
-    private String codigo;
-
-    /* Nombre del curso */
-    @Column(nullable = false)
-    private String nombre;
-
-    /* Descripción del curso */
-    @Column(columnDefinition = "TEXT")
-    private String descripcion;
-
-    /* Créditos del curso */
-    @Column(nullable = false)
-    private int creditos;
-
-    /* Horas semanales */
-    @Column(name = "horas_semanales", nullable = false)
-    private int horasSemanales;
-
-    /* Ciclo sugerido / nivel del curso */
-    @Column(nullable = false)
-    private int ciclo;
-
-    /* Tipo del curso: OBLIGATORIO / ELECTIVO */
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private TipoCurso tipo;
-
-    /* Modalidad: PRESENCIAL / VIRTUAL / SEMIPRESENCIAL */
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Modalidad modalidad;
-
-    /* Carrera a la que pertenece el curso */
     @ManyToOne
     @JoinColumn(name = "carrera_id", nullable = false)
     private Carrera carrera;
 
-    /* Prerrequisitos del curso (Muchos a Muchos hacia sí mismo) */
+    @Column(nullable = false, unique = true)
+    private String codigo;
+
+    @Column(nullable = false)
+    private String nombre;
+
+    @Column(columnDefinition = "TEXT")
+    private String descripcion;
+
+    @Column(nullable = false)
+    private Integer ciclo;
+
+    @Column(nullable = false)
+    private Integer creditos;
+
+    @Column(name = "horas_semanales", nullable = false)
+    private Integer horasSemanales;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TipoCurso tipo;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Modalidad modalidad;
+
     @ManyToMany
     @JoinTable(
             name = "curso_prerrequisitos",
             joinColumns = @JoinColumn(name = "curso_id"),
             inverseJoinColumns = @JoinColumn(name = "prerrequisito_id")
     )
-    private List<Curso> prerrequisitos = new ArrayList<>();
+    private List<Curso> prerrequisitos;
 
-    /* Relación con las secciones del curso */
-    @OneToMany(mappedBy = "curso", fetch = FetchType.LAZY)
-    private List<Seccion> secciones = new ArrayList<>();
+    @ManyToMany(mappedBy = "cursosDictables")
+    private List<Docente> docentes;
+
+    @OneToMany(mappedBy = "curso")
+    private List<Seccion> secciones;
+
+    @OneToMany(mappedBy = "curso")
+    private List<SolicitudSeccion> solicitudes;
 }

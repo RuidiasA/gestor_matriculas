@@ -4,54 +4,36 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(
-        name = "administradores",
-        uniqueConstraints = {
-                @UniqueConstraint(columnNames = "dni"),
-                @UniqueConstraint(columnNames = "correoInstitucional"),
-                @UniqueConstraint(columnNames = "codigoAdmin"),
-                @UniqueConstraint(columnNames = "usuario_id")
-        }
-)
-@Getter
-@Setter
+@Table(name = "administradores")
+@Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class Administrador {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /* Datos personales */
-    @Column(nullable = false)
-    private String nombres;
+    @Column(name = "codigo_admin", nullable = false, unique = true)
+    private String codigoAdmin;
 
-    @Column(nullable = false)
-    private String apellidos;
-
-    @Column(nullable = false, unique = true, length = 8)
+    @Column(nullable = false, unique = true)
     private String dni;
 
-    /* Información de contacto */
-    @Column(nullable = false, unique = true)
+    private String nombres;
+
+    private String apellidos;
+
+    @Column(name = "correo_institucional", nullable = false, unique = true)
     private String correoInstitucional;
 
     private String telefonoPersonal;
 
-    /* Código administrativo: A + añoIngreso + ID
-       Ejemplo: A20250001
-    */
-    @Column(nullable = false, unique = true, length = 20)
-    private String codigoAdmin;
-
-    /* Usuario vinculado (login) */
-    @OneToOne
-    @JoinColumn(name = "usuario_id", unique = true)
-    private Usuario usuario;
-
-    /* Año de ingreso al área administrativa (opcional) */
+    @Column(name = "anio_ingreso")
     private Integer anioIngreso;
 
+    @OneToOne
+    @JoinColumn(name = "usuario_id")
+    private Usuario usuario;
 }

@@ -1,11 +1,12 @@
 package com.example.matriculas.controller;
 
-import com.example.matriculas.dto.AlumnoInfoDTO;
-import com.example.matriculas.dto.CursoMatriculadoDTO;
-import com.example.matriculas.dto.HistorialMatriculaDTO;
-import com.example.matriculas.service.AlumnoService;
+import com.example.matriculas.dto.request.MatriculaRequest;
+import com.example.matriculas.dto.response.MatriculaResponse;
+import com.example.matriculas.enums.EstadoMatricula;
 import com.example.matriculas.service.MatriculaService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,24 +18,20 @@ public class AdminMatriculaController {
 
     private final MatriculaService matriculaService;
 
-    // CICLOS
-    @GetMapping("/{alumnoId}/ciclos")
-    public List<String> ciclos(@PathVariable Long alumnoId) {
-        return matriculaService.obtenerCiclosAlumno(alumnoId);
+    @GetMapping
+    public List<MatriculaResponse> listar() { return matriculaService.listar(); }
+
+    @GetMapping("/{id}")
+    public MatriculaResponse obtener(@PathVariable Long id) { return matriculaService.obtener(id); }
+
+    @PostMapping
+    public MatriculaResponse crear(@Valid @RequestBody MatriculaRequest request) { return matriculaService.crear(request); }
+
+    @PatchMapping("/{id}/estado")
+    public MatriculaResponse actualizarEstado(@PathVariable Long id, @RequestParam EstadoMatricula estado) {
+        return matriculaService.actualizarEstado(id, estado);
     }
 
-    // CURSOS POR CICLO
-    @GetMapping("/{alumnoId}/ciclo/{ciclo}")
-    public List<CursoMatriculadoDTO> cursos(
-            @PathVariable Long alumnoId,
-            @PathVariable String ciclo) {
-        return matriculaService.obtenerCursosPorCiclo(alumnoId, ciclo);
-    }
-
-    // HISTORIAL
-    @GetMapping("/{alumnoId}/historial")
-    public List<HistorialMatriculaDTO> historial(@PathVariable Long alumnoId) {
-        return matriculaService.obtenerHistorial(alumnoId);
-    }
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> eliminar(@PathVariable Long id) { matriculaService.eliminar(id); return ResponseEntity.noContent().build(); }
 }
-

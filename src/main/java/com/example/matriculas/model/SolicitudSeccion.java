@@ -7,50 +7,37 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "solicitudes_seccion")
-@Getter
-@Setter
+@Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class SolicitudSeccion {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /* Alumno que realizó la solicitud */
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "alumno_id")
+    @ManyToOne
+    @JoinColumn(name = "alumno_id", nullable = false)
     private Alumno alumno;
 
-    /* Curso que el alumno quiere solicitar */
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "curso_id")
+    @ManyToOne
+    @JoinColumn(name = "curso_id", nullable = false)
     private Curso curso;
 
-    /* Turno solicitado: Diurno / Nocturno */
-    @Column(nullable = false)
-    private String turno;
+    @Column(name = "fecha_solicitud", nullable = false)
+    private LocalDateTime fechaSolicitud;
 
-    /* Modalidad solicitada */
-    @Column(nullable = false)
     private String modalidad;
 
-    /* Datos de contacto */
-    @Column(nullable = false)
-    private String correo;
+    private String turno;
 
-    @Column(nullable = false)
     private String telefono;
 
-    /* Motivo de la solicitud */
-    @Column(nullable = false, columnDefinition = "TEXT")
+    private String correo;
+
     private String motivo;
 
-    /* Nombre del archivo adjunto (si lo hay) */
+    @Column(name = "evidencia_nombre_archivo")
     private String evidenciaNombreArchivo;
-
-    /* Fecha en la que se realizó la solicitud */
-    @Column(nullable = false)
-    private LocalDateTime fechaSolicitud;
 }
