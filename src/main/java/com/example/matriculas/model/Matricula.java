@@ -2,11 +2,16 @@ package com.example.matriculas.model;
 
 import com.example.matriculas.model.enums.EstadoMatricula;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
 @Table(name = "matriculas")
+@Getter
+@Setter
 public class Matricula {
 
     @Id

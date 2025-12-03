@@ -1,9 +1,13 @@
 package com.example.matriculas.model;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Table(name = "administradores")
+@Getter
+@Setter
 public class Administrador {
 
     @Id

@@ -1,10 +1,17 @@
 package com.example.matriculas.model;
 
 import jakarta.persistence.*;
+import lombok.*;
+
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "seccion_cambios")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class SeccionCambio {
 
     @Id
@@ -23,6 +30,4 @@ public class SeccionCambio {
 
     @Column(columnDefinition = "TEXT")
     private String observacion;
-
-    public SeccionCambio() {}
 }

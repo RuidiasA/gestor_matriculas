@@ -2,10 +2,17 @@ package com.example.matriculas.model;
 
 import com.example.matriculas.model.enums.EstadoDocente;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "docentes")
+@Getter
+@Setter
 public class Docente {
 
     @Id
@@ -47,7 +54,7 @@ public class Docente {
             joinColumns = @JoinColumn(name = "docente_id"),
             inverseJoinColumns = @JoinColumn(name = "curso_id")
     )
-    private List<Curso> cursosDictados;
+    private Set<Curso> cursosDictados = new HashSet<>();
 
     @OneToMany(mappedBy = "docente")
     private List<Seccion> secciones;

@@ -35,11 +35,12 @@ public class AdminDocenteController {
             }
         }
 
-        return docenteRepository.buscar(filtro.toLowerCase(), estado, cursoId)
+        return docenteService.buscar(filtro.toLowerCase(), estado, cursoId)
                 .stream()
                 .map(DocenteBusquedaDTO::fromEntity)
                 .toList();
     }
+
 
 
     @GetMapping("/cursos")
@@ -84,7 +85,7 @@ public class AdminDocenteController {
             @PathVariable Long id,
             @RequestParam Long cursoId
     ) {
-        DocenteCursoDictableDTO dto = docenteService.agregarCursoDictable(id, cursoId);
+        DocenteCursoDictableDTO dto = docenteService.agregarCursoDictado(id, cursoId);
         return ResponseEntity.status(HttpStatus.CREATED).body(dto);
     }
 
@@ -93,7 +94,7 @@ public class AdminDocenteController {
             @PathVariable Long id,
             @PathVariable Long cursoId
     ) {
-        docenteService.eliminarCursoDictable(id, cursoId);
+        docenteService.eliminarCursoDictado(id, cursoId);
         return ResponseEntity.noContent().build();
     }
 }

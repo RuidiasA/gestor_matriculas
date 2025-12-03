@@ -13,7 +13,7 @@ import com.example.matriculas.model.Seccion;
 import com.example.matriculas.model.SeccionHorario;
 import com.example.matriculas.model.Usuario;
 import com.example.matriculas.model.enums.DiaSemana;
-import com.example.matriculas.model.enums.EstadoUsuario;
+import com.example.matriculas.model.enums.EstadoDocente;
 import com.example.matriculas.repository.CursoRepository;
 import com.example.matriculas.repository.DocenteRepository;
 import com.example.matriculas.repository.SeccionRepository;
@@ -62,7 +62,7 @@ public class DocenteService {
             docente.setCodigoDocente("D" + System.currentTimeMillis());
         }
         if (docente.getEstado() == null) {
-            docente.setEstado(EstadoUsuario.ACTIVO);
+            docente.setEstado(EstadoDocente.ACTIVO);
         }
 
         return docenteRepository.save(docente);
@@ -106,16 +106,16 @@ public class DocenteService {
     @Transactional(readOnly = true)
     public List<DocenteBusquedaDTO> buscar(String filtro, Long cursoId, String estado) {
         String filtroLimpio = filtro != null ? filtro.trim().toLowerCase() : "";
-        EstadoUsuario estadoUsuario = null;
+        EstadoDocente estadoDocente = null;
         if (StringUtils.hasText(estado)) {
             try {
-                estadoUsuario = EstadoUsuario.valueOf(estado.toUpperCase());
+                estadoDocente = EstadoDocente.valueOf(estado.toUpperCase());
             } catch (IllegalArgumentException ignored) {
-                estadoUsuario = null;
+                estadoDocente = null;
             }
         }
         PageRequest pageable = PageRequest.of(0, 50);
-        Page<Docente> pagina = docenteRepository.buscar(filtroLimpio, estadoUsuario, cursoId, pageable);
+        Page<Docente> pagina = docenteRepository.buscar(filtroLimpio, estadoDocente, cursoId, pageable);
         return pagina.getContent().stream()
                 .map(this::mapearBusqueda)
                 .collect(Collectors.toList());
@@ -129,7 +129,7 @@ public class DocenteService {
         Docente docente = docenteRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Docente no encontrado"));
 
-        List<DocenteCursoDictableDTO> cursosDictables = docente.getCursosDictables()
+        List<DocenteCursoDictableDTO> cursosDictables = docente.getCursosDictados()
                 .stream()
                 .map(this::mapearCursoDictable)
                 .sorted(Comparator.comparing(DocenteCursoDictableDTO::getNombre))
@@ -191,7 +191,7 @@ public class DocenteService {
         docente.setDni(dto.getDni().trim());
         docente.setEspecialidad(trimOrNull(dto.getEspecialidad()));
         if (StringUtils.hasText(dto.getEstado())) {
-            docente.setEstado(EstadoUsuario.valueOf(dto.getEstado().toUpperCase()));
+            docente.setEstado(EstadoDocente.valueOf(dto.getEstado().toUpperCase()));
         }
         if (StringUtils.hasText(dto.getCorreoInstitucional())) {
             docente.setCorreoInstitucional(dto.getCorreoInstitucional().trim());
@@ -220,36 +220,55 @@ public class DocenteService {
     // ADMIN: Gestionar cursos dictables
     // ===============================================================
     @Transactional
-    public DocenteCursoDictableDTO agregarCursoDictable(Long docenteId, Long cursoId) {
+    public DocenteCursoDictableDTO agregarCursoDictado(Long docenteId, Long cursoId) {
         Docente docente = docenteRepository.findById(docenteId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Docente no encontrado"));
+
         Curso curso = cursoRepository.findById(cursoId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Curso no encontrado"));
 
-        Set<Curso> cursos = docente.getCursosDictables();
+        // Aseguramos que exista la colección
+        Set<Curso> cursos = docente.getCursosDictados();
         if (cursos == null) {
             cursos = new HashSet<>();
-            docente.setCursosDictables(cursos);
+            docente.setCursosDictados(cursos);
         }
-        if (cursos.stream().anyMatch(c -> c.getId().equals(cursoId))) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "El curso ya está marcado como dictable");
+
+        // Validar si ya existe
+        boolean yaDicta = cursos.stream().anyMatch(c -> c.getId().equals(cursoId));
+        if (yaDicta) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "El docente ya tiene este curso como dictado"
+            );
         }
+
         cursos.add(curso);
         docenteRepository.save(docente);
-        return mapearCursoDictable(curso);
+
+        return mapearCursoDictado(curso);
     }
 
+
     @Transactional
-    public void eliminarCursoDictable(Long docenteId, Long cursoId) {
+    public void eliminarCursoDictado(Long docenteId, Long cursoId) {
         Docente docente = docenteRepository.findById(docenteId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Docente no encontrado"));
 
-        boolean removido = docente.getCursosDictables().removeIf(c -> c.getId().equals(cursoId));
+        Set<Curso> cursos = docente.getCursosDictados();
+        if (cursos == null || cursos.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "El docente no tiene cursos asignados");
+        }
+
+        boolean removido = cursos.removeIf(c -> c.getId().equals(cursoId));
+
         if (!removido) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "El curso no está asociado al docente");
         }
+
         docenteRepository.save(docente);
     }
+
 
     // ===============================================================
     // Métodos previos conservados
@@ -272,6 +291,20 @@ public class DocenteService {
     @Transactional(readOnly = true)
     public boolean docenteDisponible(Long docenteId, Integer diaSemana, String horaInicio, String horaFin) {
         return true;
+    }
+
+    @Transactional(readOnly = true)
+    public List<Docente> buscar(String filtro, EstadoDocente estado, Long cursoId) {
+        String filtroLimpio = filtro != null ? filtro.trim().toLowerCase() : "";
+
+        Page<Docente> pagina = docenteRepository.buscar(
+                filtroLimpio,
+                estado,
+                cursoId,
+                PageRequest.of(0, 50) // o el tamaño que desees
+        );
+
+        return pagina.getContent();
     }
 
     // ===============================================================
@@ -307,7 +340,9 @@ public class DocenteService {
                 .turno(seccion.getTurno() != null ? seccion.getTurno().name() : null)
                 .horario(formatearHorario(seccion.getHorarios()))
                 .aula(seccion.getAula())
-                .estudiantesInscritos(seccion.getMatriculas() != null ? seccion.getMatriculas().size() : 0)
+                .estudiantesInscritos(
+                        seccion.getDetalles() != null ? seccion.getDetalles().size() : 0
+                )
                 .build();
     }
 
@@ -320,7 +355,9 @@ public class DocenteService {
                 .creditos(seccion.getCurso() != null ? seccion.getCurso().getCreditos() : null)
                 .turno(seccion.getTurno() != null ? seccion.getTurno().name() : null)
                 .horario(formatearHorario(seccion.getHorarios()))
-                .estudiantesFinalizados(seccion.getMatriculas() != null ? seccion.getMatriculas().size() : 0)
+                .estudiantesFinalizados(
+                        seccion.getDetalles() != null ? seccion.getDetalles().size() : 0
+                )
                 .notaPromedio(null)
                 .porcentajeAprobacion(null)
                 .observaciones(null)
@@ -331,12 +368,24 @@ public class DocenteService {
         if (horarios == null || horarios.isEmpty()) {
             return "-";
         }
+
         return horarios.stream()
-                .sorted(Comparator.comparing(SeccionHorario::getDia, Comparator.nullsLast(Comparator.comparing(DiaSemana::ordinal)))
-                        .thenComparing(SeccionHorario::getHoraInicio, Comparator.nullsLast(String::compareTo)))
-                .map(h -> String.format("%s %s-%s", h.getDia(), h.getHoraInicio(), h.getHoraFin()))
+                .sorted(
+                        Comparator.comparing(
+                                SeccionHorario::getDia,
+                                Comparator.nullsLast(Comparator.comparing(DiaSemana::ordinal))
+                        ).thenComparing(
+                                SeccionHorario::getHoraInicio,
+                                Comparator.nullsLast(Comparator.naturalOrder())
+                        )
+                )
+                .map(h -> String.format("%s %s-%s",
+                        h.getDia(),
+                        h.getHoraInicio(),
+                        h.getHoraFin()))
                 .collect(Collectors.joining(" / "));
     }
+
 
     private int contarHoras(String horarioTexto) {
         if (!StringUtils.hasText(horarioTexto)) {
@@ -358,7 +407,7 @@ public class DocenteService {
         }
         if (StringUtils.hasText(dto.getEstado())) {
             try {
-                EstadoUsuario.valueOf(dto.getEstado().toUpperCase());
+                EstadoDocente.valueOf(dto.getEstado().toUpperCase());
             } catch (IllegalArgumentException ex) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Estado inválido");
             }
@@ -382,4 +431,14 @@ public class DocenteService {
         String limpio = valor.trim();
         return limpio.isEmpty() ? null : limpio;
     }
+    private DocenteCursoDictableDTO mapearCursoDictado(Curso curso) {
+        return DocenteCursoDictableDTO.builder()
+                .idCurso(curso.getId())
+                .codigo(curso.getCodigo())
+                .nombre(curso.getNombre())
+                .creditos(curso.getCreditos())
+                .ciclo(curso.getCiclo())
+                .build();
+    }
+
 }

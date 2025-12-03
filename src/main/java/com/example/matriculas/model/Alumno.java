@@ -3,10 +3,15 @@ package com.example.matriculas.model;
 import com.example.matriculas.model.enums.EstadoAlumno;
 import com.example.matriculas.model.enums.Turno;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.List;
 
 @Entity
 @Table(name = "alumnos")
+@Getter
+@Setter
 public class Alumno {
 
     @Id

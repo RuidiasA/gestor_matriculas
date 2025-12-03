@@ -9,9 +9,9 @@ import com.example.matriculas.dto.ResumenMatriculaDTO;
 import com.example.matriculas.model.Alumno;
 import com.example.matriculas.model.DetalleMatricula;
 import com.example.matriculas.model.Matricula;
-import com.example.matriculas.model.Pension;
+import com.example.matriculas.model.Pago;
 import com.example.matriculas.model.Usuario;
-import com.example.matriculas.model.enums.EstadoUsuario;
+import com.example.matriculas.model.enums.EstadoAlumno;
 import com.example.matriculas.repository.AlumnoRepository;
 import com.example.matriculas.repository.MatriculaRepository;
 import com.example.matriculas.repository.PagoRepository;
@@ -39,7 +39,7 @@ public class AlumnoService {
     private final AlumnoRepository alumnoRepository;
     private final UsuarioService usuarioService;
     private final MatriculaRepository matriculaRepository;
-    private final PagoRepository pensionRepository;
+    private final PagoRepository pagoRepository;
 
     private static final Pattern CORREO_PATTERN = Pattern.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");
     private static final Pattern TELEFONO_PATTERN = Pattern.compile("^\\d{9}$");
@@ -167,7 +167,7 @@ public class AlumnoService {
         Alumno alumno = alumnoRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Alumno no encontrado"));
 
-        if (alumno.getEstado() == EstadoUsuario.INACTIVO) {
+        if (alumno.getEstado() == EstadoAlumno.INACTIVO) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "No se puede editar un alumno inactivo");
         }
 
@@ -294,7 +294,10 @@ public class AlumnoService {
         for (Pago p : pagos) {
 
             String tipo = p.getTipo() != null ? p.getTipo().name() : "";
-            BigDecimal monto = p.getMonto() != null ? p.getMonto() : BigDecimal.ZERO;
+
+            BigDecimal monto = (p.getMonto() != null)
+                    ? BigDecimal.valueOf(p.getMonto())
+                    : BigDecimal.ZERO;
 
             switch (tipo) {
                 case "MATRICULA" -> montoMatricula = montoMatricula.add(monto);
@@ -366,7 +369,7 @@ public class AlumnoService {
                 .carrera(alumno.getCarrera() != null ? alumno.getCarrera().getNombre() : null)
                 .direccion(alumno.getDireccion())
                 .estado(alumno.getEstado() != null ?
-                        (alumno.getEstado() == EstadoUsuario.ACTIVO ? "Activo" : "Inactivo") : null)
+                        (alumno.getEstado() == EstadoAlumno.ACTIVO ? "Activo" : "Inactivo") : null)
                 .periodos(obtenerPeriodos(alumno.getId()))
                 .build();
     }
@@ -384,7 +387,7 @@ public class AlumnoService {
                 .telefono(alumno.getTelefonoPersonal())
                 .direccion(alumno.getDireccion())
                 .estado(alumno.getEstado() != null ?
-                        (alumno.getEstado() == EstadoUsuario.ACTIVO ? "Activo" : "Inactivo") : null)
+                        (alumno.getEstado() == EstadoAlumno.ACTIVO ? "Activo" : "Inactivo") : null)
                 .periodos(periodos)
                 .build();
     }

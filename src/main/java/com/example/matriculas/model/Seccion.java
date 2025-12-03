@@ -4,11 +4,16 @@ import com.example.matriculas.model.enums.EstadoSeccion;
 import com.example.matriculas.model.enums.Modalidad;
 import com.example.matriculas.model.enums.Turno;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
 @Table(name = "secciones")
+@Getter
+@Setter
 public class Seccion {
 
     @Id
@@ -49,6 +54,9 @@ public class Seccion {
 
     @OneToMany(mappedBy = "seccion")
     private List<SeccionCambio> cambios;
+
+    @OneToMany(mappedBy = "seccion")
+    private List<DetalleMatricula> detalles;
 
     public Seccion() {}
 }

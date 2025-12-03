@@ -14,10 +14,8 @@ import java.util.Optional;
 @Repository
 public interface DocenteRepository extends JpaRepository<Docente, Long> {
 
-    // Buscar docente por DNI
     Optional<Docente> findByDni(String dni);
 
-    // Buscar docente por código
     Optional<Docente> findByCodigoDocente(String codigoDocente);
 
     boolean existsByCodigoDocente(String codigoDocente);
@@ -41,4 +39,6 @@ public interface DocenteRepository extends JpaRepository<Docente, Long> {
                          @Param("estado") EstadoDocente estado,
                          @Param("cursoId") Long cursoId,
                          Pageable pageable);
+
+    Optional<Docente> findByUsuario_CorreoInstitucional(String correo);
 }

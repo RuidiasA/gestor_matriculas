@@ -3,9 +3,13 @@ package com.example.matriculas.model;
 import com.example.matriculas.model.enums.EstadoDetalleMatricula;
 import com.example.matriculas.model.enums.Modalidad;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Table(name = "detalle_matricula")
+@Getter
+@Setter
 public class DetalleMatricula {
 
     @Id

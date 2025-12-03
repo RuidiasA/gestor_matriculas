@@ -3,10 +3,10 @@ package com.example.matriculas.service;
 import com.example.matriculas.dto.*;
 import com.example.matriculas.model.Alumno;
 import com.example.matriculas.model.Matricula;
-import com.example.matriculas.model.Pension;
+import com.example.matriculas.model.Pago;
 import com.example.matriculas.model.SeccionHorario;
 import com.example.matriculas.model.enums.EstadoMatricula;
-import com.example.matriculas.model.enums.EstadoPension;
+import com.example.matriculas.model.enums.EstadoPago;
 import com.example.matriculas.repository.AlumnoRepository;
 import com.example.matriculas.repository.MatriculaRepository;
 import com.example.matriculas.repository.PagoRepository;
@@ -106,21 +106,26 @@ public class AlumnoPortalService {
 
         return matricula.getDetalles().stream()
                 .filter(det -> det.getMatricula() != null && det.getMatricula().getEstado() != EstadoMatricula.ANULADA)
-                .sorted(Comparator.comparing(det -> det.getSeccion() != null && det.getSeccion().getCurso() != null
-                        ? det.getSeccion().getCurso().getNombre()
-                        : ""))
+                .sorted(Comparator.comparing(det ->
+                        det.getSeccion() != null && det.getSeccion().getCurso() != null
+                                ? det.getSeccion().getCurso().getNombre()
+                                : ""
+                ))
                 .flatMap(det -> {
-                    List<SeccionHorario> horarios = det.getSeccion() != null ? det.getSeccion().getHorarios() : new ArrayList<>();
+                    List<SeccionHorario> horarios =
+                            det.getSeccion() != null ? det.getSeccion().getHorarios() : new ArrayList<>();
+
                     if (horarios == null || horarios.isEmpty()) {
                         return List.<HorarioDTO>of().stream();
                     }
+
                     return horarios.stream().map(h -> HorarioDTO.builder()
                             .curso(det.getSeccion() != null && det.getSeccion().getCurso() != null
                                     ? det.getSeccion().getCurso().getNombre()
                                     : null)
                             .dia(h.getDia() != null ? h.getDia().name() : null)
-                            .horaInicio(h.getHoraInicio())
-                            .horaFin(h.getHoraFin())
+                            .horaInicio(h.getHoraInicio() != null ? h.getHoraInicio().toString() : null)
+                            .horaFin(h.getHoraFin() != null ? h.getHoraFin().toString() : null)
                             .aula(det.getAula())
                             .docente(det.getSeccion().getDocente() != null
                                     ? (det.getSeccion().getDocente().getNombres() + " " + det.getSeccion().getDocente().getApellidos()).trim()
@@ -138,9 +143,9 @@ public class AlumnoPortalService {
             return List.of();
         }
 
-        List<Pension> pensiones = pensionRepository.findByAlumnoIdAndPeriodo(alumno.getId(), ciclo);
+        List<Pago> pensiones = pensionRepository.findByAlumnoIdAndPeriodo(alumno.getId(), ciclo);
         return pensiones.stream()
-                .filter(p -> !soloPendientes || EstadoPension.PAGADO != p.getEstado())
+                .filter(p -> !soloPendientes || EstadoPago.PAGADO != p.getEstado())
                 .map(this::mapearPago)
                 .collect(Collectors.toList());
     }
@@ -148,20 +153,20 @@ public class AlumnoPortalService {
     @Transactional
     public void marcarPagoComoPagado(Long pagoId) {
         Alumno alumno = obtenerAlumnoActual();
-        Pension pension = pensionRepository.findByIdAndAlumnoId(pagoId, alumno.getId())
+        Pago pension = pensionRepository.findByIdAndAlumnoId(pagoId, alumno.getId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pago no encontrado"));
-        pension.setEstado(EstadoPension.PAGADO);
+        pension.setEstado(EstadoPago.PAGADO);
         pension.setFechaPago(LocalDate.now());
         pensionRepository.save(pension);
     }
 
-    private PagoDTO mapearPago(Pension p) {
+    private PagoDTO mapearPago(Pago p) {
         return PagoDTO.builder()
                 .id(p.getId())
                 .concepto(p.getConcepto())
                 .periodo(p.getPeriodo())
                 .monto(p.getMonto() != null ? p.getMonto().doubleValue() : null)
-                .vencimiento(p.getVencimiento())
+                .vencimiento(p.getFechaVencimiento())
                 .estado(p.getEstado() != null ? p.getEstado().name() : null)
                 .fechaPago(p.getFechaPago())
                 .build();

@@ -1,11 +1,7 @@
 package com.example.matriculas.service;
 
 import com.example.matriculas.dto.*;
-import com.example.matriculas.model.Curso;
-import com.example.matriculas.model.Docente;
-import com.example.matriculas.model.Seccion;
-import com.example.matriculas.model.SeccionHorario;
-import com.example.matriculas.model.SeccionCambioLog;
+import com.example.matriculas.model.*;
 import com.example.matriculas.model.enums.DiaSemana;
 import com.example.matriculas.model.enums.EstadoMatricula;
 import com.example.matriculas.model.enums.EstadoSeccion;
@@ -353,7 +349,7 @@ public class SeccionService {
     public void registrarLogManual(Long seccionId, SeccionCambioDTO dto) {
         Seccion seccion = seccionRepository.findById(seccionId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Sección no encontrada"));
-        SeccionCambioLog log = SeccionCambioLog.builder()
+        SeccionCambio log = SeccionCambio.builder()
                 .seccion(seccion)
                 .fecha(Optional.ofNullable(dto.getFecha()).orElseGet(java.time.LocalDateTime::now))
                 .usuario(Optional.ofNullable(dto.getUsuario()).orElse("Sistema"))
@@ -407,7 +403,7 @@ public class SeccionService {
     }
 
     private void registrarCambio(Seccion seccion, String campo, String anterior, String nuevo, String observacion) {
-        SeccionCambioLog log = SeccionCambioLog.builder()
+        SeccionCambio log = SeccionCambio.builder()
                 .seccion(seccion)
                 .fecha(java.time.LocalDateTime.now())
                 .usuario("Sistema")
@@ -437,11 +433,13 @@ public class SeccionService {
                     DiaSemana dia = parsearDia(horarioDTO.getDia());
                     String horaInicio = validarHora(horarioDTO.getHoraInicio());
                     String horaFin = validarHora(horarioDTO.getHoraFin());
+
                     validarRangoHorario(horaInicio, horaFin, dia);
+
                     return SeccionHorario.builder()
                             .dia(dia)
-                            .horaInicio(horaInicio)
-                            .horaFin(horaFin)
+                            .horaInicio(LocalTime.parse(horaInicio))
+                            .horaFin(LocalTime.parse(horaFin))
                             .seccion(seccion)
                             .build();
                 })
@@ -449,6 +447,7 @@ public class SeccionService {
 
         validarCruceHorarios(horariosActualizados);
         return horariosActualizados;
+
     }
 
     private void reemplazarHorarios(Seccion seccion, List<SeccionHorario> horariosActualizados) {
@@ -518,8 +517,8 @@ public class SeccionService {
                 .sorted(Comparator.comparing(h -> orden.getOrDefault(h.getDia(), 9)))
                 .map(h -> SeccionDetalleDTO.HorarioDTO.builder()
                         .dia(h.getDia() != null ? h.getDia().name() : null)
-                        .horaInicio(h.getHoraInicio())
-                        .horaFin(h.getHoraFin())
+                        .horaInicio(h.getHoraInicio() != null ? h.getHoraInicio().toString() : null)
+                        .horaFin(h.getHoraFin() != null ? h.getHoraFin().toString() : null)
                         .build())
                 .toList();
     }
@@ -585,26 +584,36 @@ public class SeccionService {
     }
 
     private void validarCruceHorarios(List<SeccionHorario> horarios) {
+
         Map<DiaSemana, List<SeccionHorario>> agrupados = horarios.stream()
                 .collect(Collectors.groupingBy(SeccionHorario::getDia));
 
         for (Map.Entry<DiaSemana, List<SeccionHorario>> entry : agrupados.entrySet()) {
+
             List<SeccionHorario> delDia = entry.getValue().stream()
-                    .sorted(Comparator.comparing(h -> LocalTime.parse(h.getHoraInicio())))
+                    .sorted(Comparator.comparing(SeccionHorario::getHoraInicio)) // ✔ ordena por LocalTime
                     .toList();
 
             LocalTime ultimoFin = null;
+
             for (SeccionHorario horario : delDia) {
-                LocalTime inicio = LocalTime.parse(horario.getHoraInicio());
-                LocalTime fin = LocalTime.parse(horario.getHoraFin());
+
+                LocalTime inicio = horario.getHoraInicio(); // ✔ ya es LocalTime
+                LocalTime fin = horario.getHoraFin();       // ✔ ya es LocalTime
+
                 if (ultimoFin != null && !inicio.isAfter(ultimoFin)) {
-                    throw new ResponseStatusException(HttpStatus.CONFLICT,
-                            "Los horarios se sobreponen para el día " + entry.getKey().name().toLowerCase(Locale.ROOT));
+                    throw new ResponseStatusException(
+                            HttpStatus.CONFLICT,
+                            "Los horarios se sobreponen para el día "
+                                    + entry.getKey().name().toLowerCase(Locale.ROOT)
+                    );
                 }
+
                 ultimoFin = fin;
             }
         }
     }
+
 
     private String formatearModalidad(Modalidad modalidad) {
         if (modalidad == null) return "-";
@@ -619,7 +628,6 @@ public class SeccionService {
         if (estado == null) return "-";
         return switch (estado) {
             case ACTIVA -> "Activa";
-            case INACTIVA -> "Inactiva";
             case ANULADA -> "Anulada";
         };
     }
@@ -651,21 +659,33 @@ public class SeccionService {
 
         return horarios.stream()
                 .filter(Objects::nonNull)
-                .sorted(Comparator.comparing((SeccionHorario h) -> orden.getOrDefault(h.getDia(), 8))
-                        .thenComparing(SeccionHorario::getHoraInicio, Comparator.nullsLast(String::compareTo)))
-                .map(h -> String.format("%s %s-%s", abreviatura.apply(h.getDia()),
-                        h.getHoraInicio(), h.getHoraFin()))
+                .sorted(
+                        Comparator.comparing((SeccionHorario h) -> orden.getOrDefault(h.getDia(), 8))
+                                .thenComparing(SeccionHorario::getHoraInicio,
+                                        Comparator.nullsLast(Comparator.naturalOrder()))
+                )
+                .map(h -> String.format("%s %s-%s",
+                        abreviatura.apply(h.getDia()),
+                        h.getHoraInicio(),
+                        h.getHoraFin()))
                 .collect(Collectors.joining(" | "));
+
     }
 
     private String formatearEstadoMatricula(EstadoMatricula estado) {
         if (estado == null) return "-";
+
         return switch (estado) {
+            case PREREGISTRO -> "Pre-registro";
             case GENERADA -> "Generada";
+            case OBSERVADA -> "Observada";
+            case CONFIRMADA -> "Confirmada";
             case PAGADA -> "Matriculado";
+            case RETIRADA -> "Retirada";
             case ANULADA -> "Anulada";
         };
     }
+
 
     private String formatearNombre(String apellidos, String nombres) {
         String apellidoTxt = apellidos != null ? apellidos.trim() : "";
