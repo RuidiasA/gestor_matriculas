@@ -132,7 +132,7 @@ public class DocenteService {
         List<DocenteCursoDictableDTO> cursosDictables = docente.getCursosDictados()
                 .stream()
                 .map(this::mapearCursoDictable)
-                .sorted(Comparator.comparing(DocenteCursoDictableDTO::getNombre))
+                .sorted(Comparator.comparing(DocenteCursoDictableDTO::getNombreCompleto))
                 .collect(Collectors.toList());
 
         List<Seccion> secciones = seccionRepository.findWithHorariosByDocente(id);
@@ -293,20 +293,6 @@ public class DocenteService {
         return true;
     }
 
-    @Transactional(readOnly = true)
-    public List<Docente> buscar(String filtro, EstadoDocente estado, Long cursoId) {
-        String filtroLimpio = filtro != null ? filtro.trim().toLowerCase() : "";
-
-        Page<Docente> pagina = docenteRepository.buscar(
-                filtroLimpio,
-                estado,
-                cursoId,
-                PageRequest.of(0, 50) // o el tamaño que desees
-        );
-
-        return pagina.getContent();
-    }
-
     // ===============================================================
     // Helpers
     // ===============================================================
@@ -323,10 +309,10 @@ public class DocenteService {
     private DocenteCursoDictableDTO mapearCursoDictable(Curso curso) {
         return DocenteCursoDictableDTO.builder()
                 .idCurso(curso.getId())
-                .nombre(curso.getNombre())
-                .codigo(curso.getCodigo())
-                .creditos(curso.getCreditos())
-                .ciclo(curso.getCiclo())
+                .nombreCompleto(curso.getNombre())
+                .codigoDocente(curso.getCodigo())
+                .creditosCurso(curso.getCreditos())
+                .cicloCurso(curso.getCiclo())
                 .build();
     }
 
@@ -434,10 +420,10 @@ public class DocenteService {
     private DocenteCursoDictableDTO mapearCursoDictado(Curso curso) {
         return DocenteCursoDictableDTO.builder()
                 .idCurso(curso.getId())
-                .codigo(curso.getCodigo())
-                .nombre(curso.getNombre())
-                .creditos(curso.getCreditos())
-                .ciclo(curso.getCiclo())
+                .codigoDocente(curso.getCodigo())
+                .nombreCompleto(curso.getNombre())
+                .creditosCurso(curso.getCreditos())
+                .cicloCurso(curso.getCiclo())
                 .build();
     }
 

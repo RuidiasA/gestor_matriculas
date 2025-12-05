@@ -4,6 +4,7 @@ import { createTools, setupNavigation } from './utils.js';
 import { createAlumnosModule } from './alumnos.js';
 import { createDocentesModule } from './docentes.js';
 import { createSeccionesModule } from './secciones.js';
+import { createCursosModule } from "./cursos.js";
 
 document.addEventListener('DOMContentLoaded', () => {
     const tools = createTools();
@@ -11,10 +12,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const alumnosModule = createAlumnosModule(tools);
     const docentesModule = createDocentesModule(tools);
     const seccionesModule = createSeccionesModule(tools, alumnosModule);
+    const cursosModule = createCursosModule(tools);
 
     setupNavigation(() => seccionesModule.resetFicha());
 
     alumnosModule.init();
     docentesModule.init();
     seccionesModule.init();
+    cursosModule.init();
 });

@@ -7,7 +7,6 @@
     <script type="module" src="/js/admin/main.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
-
 <body>
 <div class="admin-layout">
     <!-- ASIDE LEFT -->
@@ -23,21 +22,229 @@
             <a class="logout" href="/logout">CERRAR SESIÓN</a>
         </div>
     </aside>
-
     <!-- MAIN CONTENT -->
     <main>
-        <!-- CURSOS -->
-        <section id="cursos" class="admin-section">
-        <h2>Mantenimiento de Cursos</h2>
-            <!-- Aquí se cargará dinámicamente la lista de cursos desde el backend -->
+        <!-- ==========================================================================================
+                                                  CURSOS
+        =========================================================================================== -->
+        <section id="cursos" class="admin-section active" >
+            <div class="admin-panel">
+                <!-- PANEL IZQUIERDO: BÚSQUEDA + LISTA -->
+                <div class="panel-izquierdo">
+
+                    <!-- TARJETA UNIFICADA: BUSCAR + LISTADO -->
+                    <article class="card card--buscar-cursos">
+
+                        <!-- HEADER -->
+                        <header class="card__header">
+                            <h3>Buscar cursos</h3>
+                            <div class="card__actions">
+                                <button type="button" id="btnLimpiarCursos" class="clear-button">Limpiar</button>
+                                <button type="button" id="btnNuevoCurso" class="btn-secondary">Nuevo curso</button>
+                            </div>
+                        </header>
+
+                        <!-- FORMULARIO DE BÚSQUEDA -->
+                        <form id="formBusquedaCursos" class="cursos-form">
+
+                            <div class="form-grid">
+                                <label>
+                                    Texto libre
+                                    <input type="text" id="filtroCursoTexto" placeholder="Código, nombre...">
+                                </label>
+
+                                <label>
+                                    Carrera
+                                    <select id="filtroCursoCarrera">
+                                        <option value="">Todas</option>
+                                    </select>
+                                </label>
+
+                                <label>
+                                    Ciclo
+                                    <select id="filtroCursoCiclo">
+                                        <option value="">Todos</option>
+                                    </select>
+                                </label>
+
+                                <label>
+                                    Tipo
+                                    <select id="filtroCursoTipo">
+                                        <option value="">Todos</option>
+                                    </select>
+                                </label>
+
+                                <label>
+                                    Estado
+                                    <select id="filtroCursoEstado">
+                                        <option value="">Todos</option>
+                                    </select>
+                                </label>
+
+                                <div class="form-actions">
+                                    <button class="btn-primary" type="submit">Buscar</button>
+                                </div>
+                            </div>
+                        </form>
+
+                        <!-- TABLA -->
+                        <div class="table-wrapper table-wrapper--cursos">
+                            <table class="admin-table" id="tablaCursos">
+                                <thead>
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Nombre</th>
+                                    <th>Ciclo</th>
+                                    <th>Créditos</th>
+                                    <th>Horas</th>
+                                    <th>Modalidad</th>
+                                    <th>Tipo</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr><td colspan="7" class="muted">Sin resultados</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <p id="estadoBusquedaCursos" class="muted" hidden></p>
+                    </article>
+
+                </div>
+
+
+                <!-- PANEL DERECHO: DETALLE -->
+                <div class="panel-derecho">
+                    <!-- DATOS GENERALES -->
+                    <div class="card detalle-card">
+                        <div class="card-header-between">
+                            <h3>Datos generales del curso</h3>
+                            <div class="card-actions">
+                                <button type="button" id="btnEditarCurso" class="btn-outline" disabled>Editar</button>
+                                <button type="button" id="btnEliminarCurso" class="btn-danger" disabled>Eliminar</button>
+                            </div>
+                        </div>
+                        <div class="detalle-grid">
+                            <div>
+                                <p class="detalle-label">Código</p>
+                                <p id="cursoCodigo" class="detalle-valor">Selecciona un curso</p>
+                            </div>
+                            <div>
+                                <p class="detalle-label">Nombre</p>
+                                <p id="cursoNombre" class="detalle-valor">-</p>
+                            </div>
+                            <div>
+                                <p class="detalle-label">Carrera</p>
+                                <p id="cursoCarrera" class="detalle-valor">-</p>
+                            </div>
+                            <div>
+                                <p class="detalle-label">Ciclo</p>
+                                <p id="cursoCiclo" class="detalle-valor">-</p>
+                            </div>
+                            <div>
+                                <p class="detalle-label">Tipo</p>
+                                <p id="cursoTipo" class="detalle-valor">-</p>
+                            </div>
+                            <div>
+                                <p class="detalle-label">Créditos</p>
+                                <p id="cursoCreditos" class="detalle-valor">-</p>
+                            </div>
+                            <div>
+                                <p class="detalle-label">Horas semanales</p>
+                                <p id="cursoHoras" class="detalle-valor">-</p>
+                            </div>
+                            <div>
+                                <p class="detalle-label">Modalidad</p>
+                                <p id="cursoModalidad" class="detalle-valor">-</p>
+                            </div>
+                            <div>
+                                <p class="detalle-label">Estado</p>
+                                <p id="cursoEstado" class="detalle-valor badge">-</p>
+                            </div>
+                        </div>
+                        <div class="detalle-descripcion">
+                            <p class="detalle-label">Descripción</p>
+                            <p id="cursoDescripcion" class="detalle-valor detalle-valor--multiline">-</p>
+                        </div>
+                    </div>
+
+                    <!-- PRERREQUISITOS -->
+                    <div class="card detalle-card">
+                        <div class="card-header-between">
+                            <h3>Prerrequisitos</h3>
+                            <button type="button" id="btnGuardarPrerrequisitos" class="btn-primary" disabled>Guardar cambios</button>
+                        </div>
+                        <div class="form-grid form-grid--compact">
+                            <div class="form-field">
+                                <label for="selectPrerrequisito">Agregar curso prerrequisito</label>
+                                <div class="inline-group">
+                                    <select id="selectPrerrequisito">
+                                        <option value="">Selecciona curso</option>
+                                    </select>
+                                    <button type="button" id="btnAgregarPrerrequisito" class="btn-secondary" disabled>Agregar</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tabla-wrapper tabla-wrapper--small">
+                            <table class="admin-table admin-table--compact" id="tablaPrerrequisitos">
+                                <thead>
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Nombre</th>
+                                    <th></th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <!-- prerrequisitos -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- DOCENTES DICTABLES -->
+                    <div class="card detalle-card">
+                        <div class="card-header-between">
+                            <h3>Docentes habilitados para dictar</h3>
+                            <button type="button" id="btnGuardarDocentesCurso" class="btn-primary" disabled>Guardar cambios</button>
+                        </div>
+                        <div class="form-grid form-grid--compact">
+                            <div class="form-field">
+                                <label for="selectDocenteCurso">Agregar docente</label>
+                                <div class="inline-group">
+                                    <select id="selectDocenteCurso">
+                                        <option value="">Selecciona docente</option>
+                                    </select>
+                                    <button type="button" id="btnAgregarDocenteCurso" class="btn-secondary" disabled>Agregar</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tabla-wrapper tabla-wrapper--small">
+                            <table class="admin-table admin-table--compact" id="tablaDocentesCurso">
+                                <thead>
+                                <tr>
+                                    <th>Docente</th>
+                                    <th>DNI</th>
+                                    <th></th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <!-- docentes dictables -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </section>
 
-        <!-- SECCIONES -->
+        <!-- ==========================================================================================
+                                                  SECCIONES
+        =========================================================================================== -->
         <section id="secciones" class="admin-section">
             <div class="secciones-grid">
 
                 <!-- ==============================
-                     COLUMNA IZQUIERDA
+                         COLUMNA IZQUIERDA
                 =============================== -->
                 <div class="secciones-col secciones-col--left">
 
@@ -72,7 +279,7 @@
 
 
                 <!-- ==============================
-                     COLUMNA DERECHA (FICHA)
+                          COLUMNA DERECHA
                 =============================== -->
                 <aside class="secciones-col secciones-col--right">
 
@@ -254,7 +461,7 @@
                 </aside>
 
                 <!-- ==============================
-                     HISTORIAL
+                             HISTORIAL
                 =============================== -->
                 <div class="secciones-historial">
                     <article class="card">
@@ -328,9 +535,9 @@
             </div>
         </section>
 
-
-
-        <!-- ALUMNOS -->
+        <!-- ==========================================================================================
+                                                  ALUMNOS
+        =========================================================================================== -->
         <section id="alumnos" class="admin-section">
             <div class="panel-grid">
                 <article class="panel shadow panel--tabla">
@@ -504,11 +711,13 @@
             </div>
         </section>
 
-
-        <!-- DOCENTES -->
+        <!-- ==========================================================================================
+                                                 DOCENTES
+        =========================================================================================== -->
         <section id="docentes" class="admin-section">
             <div class="docentes-grid">
                 <div class="docentes-col docentes-col--left">
+                    <!-- ==================  TARJETA 1  ===================== -->
                     <article class="card">
                         <header class="card__header">
                             <h3>Cursos que puede dictar</h3>
@@ -537,6 +746,7 @@
                         </div>
                     </article>
 
+                    <!-- ==================  TARJETA 2  ===================== -->
                     <article class="card">
                         <header class="card__header card-header-flex">
                             <h3>Secciones asignadas actualmente</h3>
@@ -569,6 +779,7 @@
                         </div>
                     </article>
 
+                    <!-- ==================  TARJETA 3  ===================== -->
                     <article class="card">
                         <header class="card__header">
                             <h3>Historial académico</h3>
@@ -599,8 +810,7 @@
                 </div>
 
                 <div class="docentes-col docentes-col--right">
-
-                    <!-- ⬅️ FICHA DEL DOCENTE (MOVIDA AQUÍ ARRIBA Y SIN CAMBIAR NADA MÁS) -->
+                    <!-- ==================  TARJETA 4  ===================== -->
                     <article class="card" id="fichaDocente">
                         <header class="card__header">
                             <div>
@@ -652,7 +862,7 @@
                         </div>
                     </article>
 
-                    <!-- Modales de edición de docente -->
+                    <!-- ===============    ====  Modales  ====================== -->
                     <div class="modal modal--docente" id="modalDatosDocente" hidden>
                         <div class="modal__dialog">
                             <header class="modal__header">
@@ -681,7 +891,6 @@
                             </form>
                         </div>
                     </div>
-
                     <div class="modal modal--docente" id="modalContactoDocente" hidden>
                         <div class="modal__dialog">
                             <header class="modal__header">
@@ -704,7 +913,7 @@
                         </div>
                     </div>
 
-                    <!-- BUSCAR Y LISTAR DOCENTES -->
+                    <!-- ==================  TARJETA 5  ===================== -->
                     <article class="card card--buscar-docentes">
                         <header class="card__header">
                             <h3>Buscar docentes</h3>
@@ -751,9 +960,7 @@
                         </div>
                         <p id="estadoBusquedaDocentes" class="muted" hidden></p>
                     </article>
-
                 </div>
-
             </div>
         </section>
     </main>

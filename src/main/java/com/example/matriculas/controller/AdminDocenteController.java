@@ -1,6 +1,10 @@
 package com.example.matriculas.controller;
 
-import com.example.matriculas.dto.*;
+import com.example.matriculas.dto.DocenteActualizarContactoDTO;
+import com.example.matriculas.dto.DocenteActualizarDatosDTO;
+import com.example.matriculas.dto.DocenteBusquedaDTO;
+import com.example.matriculas.dto.DocenteCursoDictableDTO;
+import com.example.matriculas.dto.DocenteDetalleDTO;
 import com.example.matriculas.model.enums.EstadoDocente;
 import com.example.matriculas.repository.CursoRepository;
 import com.example.matriculas.service.DocenteService;
@@ -22,9 +26,17 @@ public class AdminDocenteController {
     private final DocenteService docenteService;
     private final CursoRepository cursoRepository;
 
+    // ===========================================================
+    // 1. BÚSQUEDA GENERAL DE DOCENTES
+    // ===========================================================
     @GetMapping("/buscar")
-    public List<DocenteBusquedaDTO> buscar(String filtro, Long cursoId, String estadoStr) {
+    public List<DocenteBusquedaDTO> buscar(
+            @RequestParam(defaultValue = "") String filtro,
+            @RequestParam(required = false) Long cursoId,
+            @RequestParam(required = false) String estadoStr
+    ) {
 
+        // Convertir estado recibido
         EstadoDocente estado = null;
 
         if (estadoStr != null && !estadoStr.isBlank()) {
@@ -35,33 +47,42 @@ public class AdminDocenteController {
             }
         }
 
-        return docenteService.buscar(filtro.toLowerCase(), estado, cursoId)
-                .stream()
-                .map(DocenteBusquedaDTO::fromEntity)
-                .toList();
+        // 🔥 El service retorna List<DocenteBusquedaDTO> directamente
+        return docenteService.buscar(
+                filtro.trim(),
+                cursoId,
+                estado != null ? estado.name() : null
+        );
     }
 
-
-
+    // ===========================================================
+    // 2. LISTAR CURSOS DISPONIBLES PARA ASIGNAR A DOCENTE
+    // ===========================================================
     @GetMapping("/cursos")
     public List<DocenteCursoDictableDTO> listarCursosDisponibles() {
         return cursoRepository.findAll()
                 .stream()
                 .map(c -> DocenteCursoDictableDTO.builder()
                         .idCurso(c.getId())
-                        .codigo(c.getCodigo())
-                        .nombre(c.getNombre())
-                        .creditos(c.getCreditos())
-                        .ciclo(c.getCiclo())
+                        .codigoDocente(c.getCodigo())
+                        .nombreCompleto(c.getNombre())
+                        .creditosCurso(c.getCreditos())
+                        .cicloCurso(c.getCiclo())
                         .build())
                 .toList();
     }
 
+    // ===========================================================
+    // 3. DETALLE COMPLETO DEL DOCENTE
+    // ===========================================================
     @GetMapping("/{id}")
     public DocenteDetalleDTO detalle(@PathVariable Long id) {
         return docenteService.obtenerDetalle(id);
     }
 
+    // ===========================================================
+    // 4. ACTUALIZAR DATOS PERSONALES + ESTADO
+    // ===========================================================
     @PutMapping("/{id}")
     public ResponseEntity<Void> actualizarDatos(
             @PathVariable Long id,
@@ -71,6 +92,9 @@ public class AdminDocenteController {
         return ResponseEntity.noContent().build();
     }
 
+    // ===========================================================
+    // 5. ACTUALIZAR CONTACTO (teléfono, correos, dirección)
+    // ===========================================================
     @PutMapping("/{id}/contacto")
     public ResponseEntity<Void> actualizarContacto(
             @PathVariable Long id,
@@ -80,6 +104,9 @@ public class AdminDocenteController {
         return ResponseEntity.noContent().build();
     }
 
+    // ===========================================================
+    // 6. AGREGAR CURSO DICTABLE
+    // ===========================================================
     @PostMapping("/{id}/cursos")
     public ResponseEntity<DocenteCursoDictableDTO> agregarCurso(
             @PathVariable Long id,
@@ -89,6 +116,9 @@ public class AdminDocenteController {
         return ResponseEntity.status(HttpStatus.CREATED).body(dto);
     }
 
+    // ===========================================================
+    // 7. ELIMINAR CURSO DICTABLE
+    // ===========================================================
     @DeleteMapping("/{id}/cursos/{cursoId}")
     public ResponseEntity<Void> eliminarCurso(
             @PathVariable Long id,

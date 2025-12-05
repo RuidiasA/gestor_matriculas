@@ -6,7 +6,10 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
+
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "cursos")
@@ -43,7 +46,7 @@ public class Curso {
     private Modalidad modalidad;
 
     @ManyToMany(mappedBy = "cursosDictados")
-    private List<Docente> docentes;
+    private Set<Docente> docentes = new HashSet<>();
 
     @ManyToMany
     @JoinTable(

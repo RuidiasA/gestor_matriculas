@@ -1,9 +1,6 @@
 package com.example.matriculas.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Data
 @NoArgsConstructor
@@ -11,9 +8,14 @@ import lombok.NoArgsConstructor;
 @Builder
 public class DocenteCursoDictableDTO {
 
+    private Long idDocente;
     private Long idCurso;
-    private String nombre;
-    private String codigo;
-    private Integer creditos;
-    private Integer ciclo;
+
+    private String codigoDocente;
+    private String nombreCompleto;
+    private String dni;
+
+    private Integer creditosCurso;
+    private Integer cicloCurso;
 }
+
