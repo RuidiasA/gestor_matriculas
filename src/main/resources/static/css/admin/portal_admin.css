@@ -1,26 +1,102 @@
-/* =========================================
-   PORTAL ADMIN — IMPORT CENTRAL
-   (asegúrate que las rutas sean correctas
-   según tu estructura de carpetas)
-========================================= */
+@import "design-system.css";
 
-/* CORE */
-@import "core/reset.css";
-@import "core/variables.css";
-@import "core/layout.css";
-@import "core/utilities.css";
+/* =============================================================
+   LAYOUT PRINCIPAL
+   ============================================================= */
+body { min-height: 100vh; }
 
-/* COMPONENTS */
-@import "components/buttons.css";
-@import "components/tables.css";
-@import "components/cards.css";
-@import "components/forms.css";
-@import "components/badges.css";
-@import "components/toasts.css";
+.admin-layout { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
 
-/* SECTIONS */
-@import "sections/alumnos.css";
-@import "sections/docentes.css";
-@import "sections/secciones.css";
-@import "sections/cursos.css";
+/* Sidebar */
+.aside-left { background: rgba(17, 24, 39, 0.9); border-right: 1px solid var(--color-borde); position: sticky; top: 0; height: 100vh; }
+.aside-left__container { padding: var(--space-5); display: flex; flex-direction: column; gap: var(--space-5); height: 100%; }
+.logo { height: 46px; border-radius: var(--radius-md); background: linear-gradient(135deg, rgba(37,99,235,0.35), rgba(34,211,238,0.25)); border: 1px solid var(--color-borde); box-shadow: var(--shadow-sm); }
+.admin-nav { display: flex; flex-direction: column; gap: var(--space-2); }
+.admin-nav a { color: var(--color-texto); text-decoration: none; padding: 12px 14px; border-radius: var(--radius-md); border: 1px solid transparent; font-weight: 600; transition: background var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast); }
+.admin-nav a:hover { background: rgba(255,255,255,0.04); border-color: var(--color-borde); transform: translateX(4px); }
+.admin-nav a.active { background: linear-gradient(135deg, rgba(37,99,235,0.4), rgba(34,211,238,0.25)); border-color: rgba(255,255,255,0.1); box-shadow: var(--shadow-sm); }
+.logout { margin-top: auto; text-align: center; color: #fca5a5; font-weight: 700; text-decoration: none; padding: 12px 14px; border-radius: var(--radius-md); border: 1px solid rgba(239,68,68,0.35); transition: background var(--transition-fast), color var(--transition-fast); }
+.logout:hover { background: rgba(239,68,68,0.08); color: #fecdd3; }
 
+/* Main */
+main { padding: var(--space-5); display: flex; flex-direction: column; gap: var(--space-5); }
+.page-header { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
+.page-header__title { display: flex; flex-direction: column; gap: 6px; }
+.page-header__meta { display: flex; align-items: center; gap: 10px; color: var(--color-texto-suave); }
+
+.admin-section { display: none; flex-direction: column; gap: var(--space-5); }
+.admin-section.active { display: flex; }
+
+/* =============================================================
+   SECCIÓN CURSOS
+   ============================================================= */
+.admin-panel { display: grid; grid-template-columns: 1.15fr 1fr; gap: var(--space-5); }
+.panel-izquierdo, .panel-derecho { display: flex; flex-direction: column; gap: var(--space-4); }
+
+.card--buscar-cursos .card__actions { gap: var(--space-2); }
+.cursos-form { display: flex; flex-direction: column; gap: var(--space-4); }
+.table-wrapper--cursos { max-height: 420px; }
+.detalle-card { display: flex; flex-direction: column; gap: var(--space-4); }
+.detalle-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: var(--space-3); }
+.detalle-label { color: var(--color-texto-suave); font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; margin: 0 0 6px; }
+.detalle-valor { color: var(--color-texto); font-weight: 700; }
+.detalle-valor--multiline { white-space: pre-line; }
+.detalle-descripcion { padding: var(--space-3); border: 1px solid var(--color-borde); border-radius: var(--radius-md); background: rgba(255,255,255,0.02); }
+.card-header-between { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); margin-bottom: var(--space-3); }
+.tabla-wrapper--small { max-height: 260px; }
+
+/* =============================================================
+   SECCIÓN SECCIONES
+   ============================================================= */
+.secciones-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: var(--space-4); }
+.secciones-col { display: flex; flex-direction: column; gap: var(--space-4); }
+.form-grid-secciones { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: var(--space-3); }
+.form-actions-secciones { justify-content: flex-start; gap: var(--space-2); }
+.seccion-ficha { display: flex; flex-direction: column; gap: var(--space-4); }
+.ficha-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: var(--space-3); }
+.ficha-acciones { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+.tabs { display: inline-flex; gap: var(--space-2); background: rgba(255,255,255,0.04); padding: 4px; border-radius: var(--radius-md); }
+.tab { background: transparent; border: 1px solid transparent; color: var(--color-texto-suave); padding: 8px 12px; border-radius: var(--radius-md); cursor: pointer; font-weight: 600; }
+.tab.active { background: rgba(37,99,235,0.25); color: #dbeafe; border-color: rgba(37,99,235,0.4); }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* =============================================================
+   SECCIÓN ALUMNOS
+   ============================================================= */
+.alumnos-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+.ficha-alumno { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: var(--space-3); }
+.resumen-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: var(--space-3); }
+.historial { display: flex; flex-direction: column; gap: var(--space-3); }
+.historial__items { display: flex; flex-direction: column; gap: var(--space-2); }
+.accordion-item { border: 1px solid var(--color-borde); border-radius: var(--radius-md); padding: var(--space-3); background: rgba(255,255,255,0.02); }
+
+/* =============================================================
+   SECCIÓN DOCENTES
+   ============================================================= */
+.docentes-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: var(--space-4); }
+.docentes-col { display: flex; flex-direction: column; gap: var(--space-4); }
+.agregar-curso { display: flex; gap: var(--space-2); align-items: center; }
+.secciones-badges { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.resumen-secciones-docente { margin-top: var(--space-2); }
+
+/* =============================================================
+   NAV: ESTADOS
+   ============================================================= */
+#estadoBusquedaCursos { font-size: 13px; color: var(--color-texto-suave); }
+
+/* =============================================================
+   RESPONSIVE
+   ============================================================= */
+@media (max-width: 1200px) {
+  .admin-layout { grid-template-columns: 1fr; }
+  .aside-left { position: static; height: auto; }
+  .admin-panel, .secciones-grid, .alumnos-grid, .docentes-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 768px) {
+  main { padding: var(--space-4); }
+  .page-header { flex-direction: column; align-items: flex-start; }
+  .admin-nav a { padding: 10px 12px; }
+  .agregar-curso, .ficha-acciones { flex-direction: column; }
+}

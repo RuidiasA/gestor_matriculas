@@ -164,7 +164,13 @@ export function createCursosModule(globalTools) {
         tools.fillSelect(filtroCiclo, catalogos.ciclos, 'Todos', c => c, c => c);
         tools.fillSelect(filtroTipo, catalogos.tipos, 'Todos', t => t, t => t);
         tools.fillSelect(selectPrerrequisito, catalogos.cursos, 'Seleccione', c => c.id, c => `${c.codigo} - ${c.nombre}`);
-        tools.fillSelect(selectDocenteCurso, catalogos.docentes, 'Seleccione', d => d.idDocente, d => d.nombreCompleto);
+        tools.fillSelect(
+            selectDocenteCurso,
+            catalogos.docentes,
+            'Seleccione',
+            d => d.idDocente ?? d.id,
+            d => d.nombreCompleto
+        );
     }
 
     // ======= LISTADO =======
