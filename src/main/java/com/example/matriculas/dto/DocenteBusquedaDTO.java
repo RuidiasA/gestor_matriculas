@@ -12,7 +12,13 @@ import lombok.NoArgsConstructor;
 @Builder
 public class DocenteBusquedaDTO {
 
+    /**
+     * Identificador único del docente. Se expone como {@code id} y {@code idDocente}
+     * para mantener compatibilidad con el frontend existente.
+     */
     private Long id;
+    private Long idDocente;
+
     private String codigo;
     private String nombreCompleto;
     private String dni;
@@ -23,6 +29,7 @@ public class DocenteBusquedaDTO {
 
         return DocenteBusquedaDTO.builder()
                 .id(d.getId())
+                .idDocente(d.getId())
                 .codigo(d.getCodigoDocente())
                 .nombreCompleto((d.getApellidos() + " " + d.getNombres()).trim())
                 .dni(d.getDni())

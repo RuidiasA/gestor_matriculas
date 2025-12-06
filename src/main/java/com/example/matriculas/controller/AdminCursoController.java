@@ -76,13 +76,7 @@ public class AdminCursoController {
 
         var docentes = docenteService.buscar("", null, (String) null)
                 .stream()
-                .map(d -> DocenteBusquedaDTO.builder()
-                        .id(d.getId())
-                        .codigo(d.getCodigo())
-                        .nombreCompleto(d.getNombreCompleto())
-                        .dni(d.getDni())
-                        .estado(d.getEstado())
-                        .build())
+                .map(DocenteBusquedaDTO::fromEntity)
                 .toList();
 
         var cursos = cursoService.listarTodos()

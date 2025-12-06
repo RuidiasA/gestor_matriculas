@@ -299,6 +299,7 @@ public class DocenteService {
     private DocenteBusquedaDTO mapearBusqueda(Docente docente) {
         return DocenteBusquedaDTO.builder()
                 .id(docente.getId())
+                .idDocente(docente.getId())
                 .codigo(docente.getCodigoDocente())
                 .nombreCompleto((docente.getApellidos() + " " + docente.getNombres()).trim())
                 .dni(docente.getDni())
