@@ -8,11 +8,11 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
-<div class="admin-layout">
+<div class="admin-shell">
     <!-- ASIDE LEFT -->
-    <aside class="aside-left">
-        <div class="aside-left__container">
-            <div class="logo"></div>
+    <aside class="admin-sidebar">
+        <div class="admin-sidebar__inner">
+            <div class="brand"></div>
             <nav class="admin-nav">
                 <a href="#" class="active" data-section="cursos">Cursos</a>
                 <a href="#" data-section="secciones">Secciones</a>
@@ -23,7 +23,7 @@
         </div>
     </aside>
     <!-- MAIN CONTENT -->
-    <main>
+    <main class="admin-main">
         <header class="page-header">
             <div class="page-header__title">
                 <p class="muted">Portal administrador</p>
@@ -33,11 +33,13 @@
                     <span class="badge">Design system activo</span>
                 </div>
             </div>
-            <div class="card" style="padding: 12px 16px; min-width: 240px;">
-                <p class="muted" style="margin-bottom:6px;">Estado del periodo</p>
-                <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
-                    <strong id="badgeTotalCursos">0 cursos</strong>
-                    <span class="badge success">Operativo</span>
+            <div class="panel-bar">
+                <div class="panel-bar__item">
+                    <p class="muted">Estado del periodo</p>
+                    <div class="section-actions" style="justify-content: space-between; align-items: center;">
+                        <strong id="badgeTotalCursos">0 cursos</strong>
+                        <span class="badge badge--success">Operativo</span>
+                    </div>
                 </div>
             </div>
         </header>
@@ -45,25 +47,31 @@
         <!-- ==========================================================================================
                                                   CURSOS
         =========================================================================================== -->
-        <section id="cursos" class="admin-section active" >
-            <div class="admin-panel">
+                <section id="cursos" class="admin-section active" >
+            <div class="admin-section-title">
+                <div>
+                    <p class="muted">Gestión académica</p>
+                    <h2>Cursos</h2>
+                </div>
+            </div>
+            <div class="cursos-layout">
                 <!-- PANEL IZQUIERDO: BÚSQUEDA + LISTA -->
-                <div class="panel-izquierdo">
+                <div class="cards-stack">
 
                     <!-- TARJETA UNIFICADA: BUSCAR + LISTADO -->
-                    <article class="card card--buscar-cursos">
+                    <article class="admin-card card--buscar-cursos">
 
                         <!-- HEADER -->
-                        <header class="card__header">
+                        <header class="admin-card card__header">
                             <h3>Buscar cursos</h3>
-                            <div class="card__actions">
+                            <div class="admin-card card__actions">
                                 <button type="button" id="btnLimpiarCursos" class="clear-button">Limpiar</button>
                                 <button type="button" id="btnNuevoCurso" class="btn-secondary">Nuevo curso</button>
                             </div>
                         </header>
 
                         <!-- FORMULARIO DE BÚSQUEDA -->
-                        <form id="formBusquedaCursos" class="cursos-form">
+                        <form id="formBusquedaCursos" class="cursos-form admin-form">
 
                             <div class="form-grid">
                                 <label>
@@ -125,12 +133,12 @@
 
 
                 <!-- PANEL DERECHO: DETALLE -->
-                <div class="panel-derecho">
+                <div class="cards-stack">
                     <!-- DATOS GENERALES -->
-                    <div class="card detalle-card">
-                        <div class="card-header-between">
+                    <div class="admin-card detalle-card">
+                        <div class="admin-card card-header-between">
                             <h3>Datos generales del curso</h3>
-                            <div class="card-actions">
+                            <div class="admin-card card-actions">
                                 <button type="button" id="btnEditarCurso" class="btn-outline" disabled>Editar</button>
                                 <button type="button" id="btnEliminarCurso" class="btn-danger" disabled>Eliminar</button>
                             </div>
@@ -176,8 +184,8 @@
                     </div>
 
                     <!-- PRERREQUISITOS -->
-                    <div class="card detalle-card">
-                        <div class="card-header-between">
+                    <div class="admin-card detalle-card">
+                        <div class="admin-card card-header-between">
                             <h3>Prerrequisitos</h3>
                             <button type="button" id="btnGuardarPrerrequisitos" class="btn-primary" disabled>Guardar cambios</button>
                         </div>
@@ -209,8 +217,8 @@
                     </div>
 
                     <!-- DOCENTES DICTABLES -->
-                    <div class="card detalle-card">
-                        <div class="card-header-between">
+                    <div class="admin-card detalle-card">
+                        <div class="admin-card card-header-between">
                             <h3>Docentes habilitados para dictar</h3>
                             <button type="button" id="btnGuardarDocentesCurso" class="btn-primary" disabled>Guardar cambios</button>
                         </div>
@@ -256,8 +264,8 @@
                 <div class="secciones-col secciones-col--left">
 
                     <!-- LISTADO -->
-                    <article class="card">
-                        <header class="card__header">
+                    <article class="admin-card card">
+                        <header class="admin-card card__header">
                             <h3>Listado de secciones</h3>
                         </header>
 
@@ -291,8 +299,8 @@
                 <aside class="secciones-col secciones-col--right">
 
                     <!-- BUSQUEDA -->
-                    <article class="card card-busqueda-secciones">
-                        <header class="card__header">
+                    <article class="admin-card card card-busqueda-secciones">
+                        <header class="admin-card card__header">
                             <h3>Búsqueda de secciones</h3>
                         </header>
 
@@ -343,8 +351,8 @@
 
 
 
-                    <article class="card seccion-ficha" id="fichaSeccion">
-                        <header class="card__header">
+                    <article class="admin-card card seccion-ficha" id="fichaSeccion">
+                        <header class="admin-card card__header">
                             <div>
                                 <p class="muted">Curso</p>
                                 <h3 id="seccionCurso">-</h3>
@@ -352,7 +360,7 @@
                             <span class="badge" id="seccionEstado">-</span>
                         </header>
 
-                        <div class="card__body">
+                        <div class="admin-card card__body">
                             <div class="summary-grid" id="resumenDashboardSeccion">
                                 <div class="summary-item">
                                     <p class="label">Matriculados actuales</p>
@@ -471,8 +479,8 @@
                              HISTORIAL
                 =============================== -->
                 <div class="secciones-historial">
-                    <article class="card">
-                        <header class="card__header">
+                    <article class="admin-card card">
+                        <header class="admin-card card__header">
                             <h3>Historial de secciones</h3>
                             <div class="tabs">
                                 <button class="tab active" data-tab="tab-movimientos">Movimientos</button>
@@ -547,13 +555,13 @@
         =========================================================================================== -->
         <section id="alumnos" class="admin-section">
             <div class="alumnos-layout">
-                <article class="card" aria-labelledby="tituloBusquedaAlumnos">
-                    <header class="card__header">
+                <article class="admin-card card" aria-labelledby="tituloBusquedaAlumnos">
+                    <header class="admin-card card__header">
                         <div>
                             <p class="muted">Explora y filtra</p>
                             <h3 id="tituloBusquedaAlumnos">Búsqueda de alumnos</h3>
                         </div>
-                        <div class="card__actions">
+                        <div class="admin-card card__actions">
                             <button type="button" id="btnLimpiarBusqueda" class="btn-outline">Limpiar</button>
                             <button type="submit" form="formBusquedaAlumnos" class="btn-primary">Buscar</button>
                         </div>
@@ -591,8 +599,8 @@
                     </div>
                 </article>
 
-                <article class="card" id="fichaAlumno">
-                    <header class="card__header">
+                <article class="admin-card card" id="fichaAlumno">
+                    <header class="admin-card card__header">
                         <div>
                             <p class="muted">Perfil seleccionado</p>
                             <h3>Ficha del alumno</h3>
@@ -660,8 +668,8 @@
                 </article>
             </div>
 
-            <article class="card alumnos-secondary" id="detalleAcademico">
-                <header class="card__header">
+            <article class="admin-card card alumnos-secondary" id="detalleAcademico">
+                <header class="admin-card card__header">
                     <div>
                         <p class="muted">Matrículas recientes</p>
                         <h3>Detalle académico</h3>
@@ -739,8 +747,8 @@
             <div class="docentes-grid">
                 <div class="docentes-col docentes-col--left">
                     <!-- ==================  TARJETA 1  ===================== -->
-                    <article class="card">
-                        <header class="card__header">
+                    <article class="admin-card card">
+                        <header class="admin-card card__header">
                             <h3>Cursos que puede dictar</h3>
                             <div class="agregar-curso">
                                 <select id="selectCursoDictable">
@@ -768,8 +776,8 @@
                     </article>
 
                     <!-- ==================  TARJETA 2  ===================== -->
-                    <article class="card">
-                        <header class="card__header card-header-flex">
+                    <article class="admin-card card">
+                        <header class="admin-card card__header card-header-flex">
                             <h3>Secciones asignadas actualmente</h3>
                             <span id="badgeSeccionesDocente" class="badge-count">0 secciones</span>
                         </header>
@@ -801,8 +809,8 @@
                     </article>
 
                     <!-- ==================  TARJETA 3  ===================== -->
-                    <article class="card">
-                        <header class="card__header">
+                    <article class="admin-card card">
+                        <header class="admin-card card__header">
                             <h3>Historial académico</h3>
                         </header>
                         <div class="table-wrapper">
@@ -832,15 +840,15 @@
 
                 <div class="docentes-col docentes-col--right">
                     <!-- ==================  TARJETA 4  ===================== -->
-                    <article class="card" id="fichaDocente">
-                        <header class="card__header">
+                    <article class="admin-card card" id="fichaDocente">
+                        <header class="admin-card card__header">
                             <div>
                                 <p class="muted">Código</p>
                                 <h3 id="docCodigo">-</h3>
                             </div>
                             <div class="badge" id="docEstado">-</div>
                         </header>
-                        <div class="card__body">
+                        <div class="admin-card card__body">
                             <div class="ficha-grid">
                                 <div>
                                     <p class="label">Apellidos</p>
@@ -935,10 +943,10 @@
                     </div>
 
                     <!-- ==================  TARJETA 5  ===================== -->
-                    <article class="card card--buscar-docentes">
-                        <header class="card__header">
+                    <article class="admin-card card card--buscar-docentes">
+                        <header class="admin-card card__header">
                             <h3>Buscar docentes</h3>
-                            <div class="card__actions">
+                            <div class="admin-card card__actions">
                                 <button type="button" id="btnLimpiarDocentes" class="clear-button">Limpiar</button>
                             </div>
                         </header>
