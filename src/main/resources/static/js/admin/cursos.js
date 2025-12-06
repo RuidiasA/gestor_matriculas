@@ -20,9 +20,11 @@ export function createCursosModule(globalTools) {
     const btnNuevo = seccion.querySelector('#btnNuevoCurso');
     const estadoBusqueda = seccion.querySelector('#estadoBusquedaCursos');
     const badgeTotalCursos = seccion.querySelector('#badgeTotalCursos');
-    // Tabla de cursos
+
+    // Tabla
     const tablaCursosBody = seccion.querySelector('#tablaCursos tbody');
-    // Detalle datos generales
+
+    // Detalle general
     const campoCodigo = seccion.querySelector('#cursoCodigo');
     const campoNombre = seccion.querySelector('#cursoNombre');
     const campoCarrera = seccion.querySelector('#cursoCarrera');
@@ -61,19 +63,37 @@ export function createCursosModule(globalTools) {
     let cursosActuales = [];
     let cursoSeleccionado = null;
 
-    // Mantendremos los cambios locales en memoria
-    let prerrequisitosActuales = [];   // array de {idCurso, codigo, nombre}
-    let docentesDictablesActuales = []; // array de {idDocente, nombreCompleto, dni}
+    let prerrequisitosActuales = [];
+    let docentesDictablesActuales = [];
 
-    // ======= HELPERS FETCH =======
+    // ======= HELPERS FETCH (CORREGIDOS) =======
 
     async function fetchJson(url, errorMsg, options = {}) {
         const resp = await fetch(url, options);
+
         if (!resp.ok) {
             const texto = await resp.text();
-            throw new Error(texto || errorMsg || 'Error al conectar con el servidor');
+            throw new Error(texto || errorMsg);
         }
-        return resp.json();
+
+        // Si hay contenido → intentar json
+        const text = await resp.text();
+        if (!text) return null;
+
+        try {
+            return JSON.parse(text);
+        } catch {
+            return text;
+        }
+    }
+
+    async function fetchVoid(url, errorMsg, options = {}) {
+        const resp = await fetch(url, options);
+        if (!resp.ok) {
+            const texto = await resp.text();
+            throw new Error(texto || errorMsg);
+        }
+        return true;
     }
 
     // ======= INICIALIZACIÓN =======
@@ -100,202 +120,134 @@ export function createCursosModule(globalTools) {
 
         if (btnLimpiar) {
             btnLimpiar.addEventListener('click', () => {
-                if (filtroTexto) filtroTexto.value = '';
-                if (filtroCarrera) filtroCarrera.value = '';
-                if (filtroCiclo) filtroCiclo.value = '';
-                if (filtroTipo) filtroTipo.value = '';
+                filtroTexto.value = '';
+                filtroCarrera.value = '';
+                filtroCiclo.value = '';
+                filtroTipo.value = '';
                 cursoSeleccionado = null;
-                cursosActuales = [];
                 limpiarDetalle();
                 buscarCursos();
             });
         }
 
-        if (btnNuevo) {
-            btnNuevo.addEventListener('click', () => abrirModalCursoNuevo());
-        }
+        btnNuevo?.addEventListener('click', () => abrirModalCursoNuevo());
 
-        if (btnEditarCurso) {
-            btnEditarCurso.addEventListener('click', () => {
-                if (!cursoSeleccionado) {
-                    tools.showToast('Selecciona un curso primero', 'info');
-                    return;
-                }
-                abrirModalEditarCurso(cursoSeleccionado);
-            });
-        }
+        btnEditarCurso?.addEventListener('click', () => {
+            if (!cursoSeleccionado) return tools.showToast('Selecciona un curso', 'info');
+            abrirModalEditarCurso(cursoSeleccionado);
+        });
 
-        if (btnEliminarCurso) {
-            btnEliminarCurso.addEventListener('click', () => {
-                if (!cursoSeleccionado) {
-                    tools.showToast('Selecciona un curso primero', 'info');
-                    return;
-                }
-                confirmarEliminarCurso(cursoSeleccionado);
-            });
-        }
+        btnEliminarCurso?.addEventListener('click', () => {
+            if (!cursoSeleccionado) return tools.showToast('Selecciona un curso', 'info');
+            confirmarEliminarCurso(cursoSeleccionado);
+        });
 
-        if (btnAgregarPrerrequisito) {
-            btnAgregarPrerrequisito.addEventListener('click', agregarPrerrequisito);
-        }
+        btnAgregarPrerrequisito?.addEventListener('click', agregarPrerrequisito);
+        btnGuardarPrerrequisitos?.addEventListener('click', guardarPrerrequisitos);
 
-        if (btnGuardarPrerrequisitos) {
-            btnGuardarPrerrequisitos.addEventListener('click', guardarPrerrequisitos);
-        }
-
-        if (btnAgregarDocenteCurso) {
-            btnAgregarDocenteCurso.addEventListener('click', agregarDocenteDictable);
-        }
-
-        if (btnGuardarDocentesCurso) {
-            btnGuardarDocentesCurso.addEventListener('click', guardarDocentesDictables);
-        }
+        btnAgregarDocenteCurso?.addEventListener('click', agregarDocenteDictable);
+        btnGuardarDocentesCurso?.addEventListener('click', guardarDocentesDictables);
     }
 
     // ======= CARGA DE CATÁLOGOS =======
 
     async function cargarCatalogos() {
-        try {
-            const data = await fetchJson('/admin/cursos/catalogos', 'No se pudieron cargar los catálogos');
+        const data = await fetchJson('/admin/cursos/catalogos', 'No se pudieron cargar catálogos');
+        catalogos.carreras = data.carreras ?? [];
+        catalogos.ciclos = data.ciclos ?? [];
+        catalogos.tipos = data.tipos ?? [];
+        catalogos.modalidades = data.modalidades ?? [];
+        catalogos.cursos = data.cursos ?? [];
+        catalogos.docentes = data.docentes ?? [];
 
-            catalogos.carreras = data.carreras || [];
-            catalogos.ciclos = data.ciclos || [];
-            catalogos.tipos = data.tipos || [];
-            catalogos.modalidades = data.modalidades || [];
-            catalogos.cursos = data.cursos || [];
-            catalogos.docentes = data.docentes || [];
-
-            // Filtros
-            tools.fillSelect(filtroCarrera, catalogos.carreras, 'Todas', c => c.idCarrera ?? c.id, c => c.nombre);
-            tools.fillSelect(filtroCiclo, catalogos.ciclos, 'Todos', c => c, c => c);
-            tools.fillSelect(filtroTipo, catalogos.tipos, 'Todos', t => t, t => t);
-
-            // Select para agregar prerrequisitos (se filtra luego según curso)
-            tools.fillSelect(selectPrerrequisito, catalogos.cursos, 'Selecciona curso', c => c.id ?? c.idCurso, c => `${c.codigo} - ${c.nombre}`);
-
-            // Select para docentes dictables
-            tools.fillSelect(selectDocenteCurso, catalogos.docentes, 'Selecciona docente', d => d.idDocente ?? d.id, d => `${d.nombreCompleto} (${d.dni || ''})`);
-
-        } catch (err) {
-            console.error(err);
-            throw err;
-        }
+        tools.fillSelect(filtroCarrera, catalogos.carreras, 'Todas', c => c.id, c => c.nombre);
+        tools.fillSelect(filtroCiclo, catalogos.ciclos, 'Todos', c => c, c => c);
+        tools.fillSelect(filtroTipo, catalogos.tipos, 'Todos', t => t, t => t);
+        tools.fillSelect(selectPrerrequisito, catalogos.cursos, 'Seleccione', c => c.id, c => `${c.codigo} - ${c.nombre}`);
+        tools.fillSelect(selectDocenteCurso, catalogos.docentes, 'Seleccione', d => d.idDocente, d => d.nombreCompleto);
     }
 
-    // ======= BUSCAR LISTA DE CURSOS =======
+    // ======= LISTADO =======
 
     async function buscarCursos() {
-        tools.showStatus(estadoBusqueda, 'Buscando cursos...', false);
+        tools.showStatus(estadoBusqueda, 'Buscando...', false);
         tools.renderEmptyRow(tablaCursosBody, 7, 'Cargando...');
 
         const params = new URLSearchParams();
-        if (filtroTexto?.value?.trim()) params.append('filtro', filtroTexto.value.trim());
-        if (filtroCarrera?.value) params.append('carreraId', filtroCarrera.value);
-        if (filtroCiclo?.value) params.append('ciclo', filtroCiclo.value);
-        if (filtroTipo?.value) params.append('tipo', filtroTipo.value);
+        if (filtroTexto.value.trim()) params.append('filtro', filtroTexto.value.trim());
+        if (filtroCarrera.value) params.append('carreraId', filtroCarrera.value);
+        if (filtroCiclo.value) params.append('ciclo', filtroCiclo.value);
+        if (filtroTipo.value) params.append('tipo', filtroTipo.value);
 
         let url = '/admin/cursos';
-        if ([...params.keys()].length) {
-            url += `?${params.toString()}`;
-        }
+        if (params.toString()) url += `?${params.toString()}`;
 
-        try {
-            const cursos = await fetchJson(url, 'No se pudo buscar cursos');
+        const cursos = await fetchJson(url, 'Error al listar cursos');
+        cursosActuales = Array.isArray(cursos) ? cursos : [];
 
-            cursosActuales = Array.isArray(cursos) ? cursos : [];
-            renderizarListaCursos(cursosActuales);
-            if (!cursosActuales.length) {
-                tools.showStatus(estadoBusqueda, 'Sin resultados', true);
-            } else {
-                estadoBusqueda.hidden = true;
-            }
-        } catch (err) {
-            console.error(err);
-            cursosActuales = [];
-            renderizarListaCursos([]);
-            tools.showStatus(estadoBusqueda, err.message || 'No se pudo cargar la lista de cursos', true);
-        }
+        renderizarListaCursos(cursosActuales);
+        estadoBusqueda.hidden = true;
     }
 
-    function renderizarListaCursos(cursos) {
+    function renderizarListaCursos(lista) {
         tablaCursosBody.innerHTML = '';
 
         if (badgeTotalCursos) {
-            const total = cursos.length || 0;
-            badgeTotalCursos.textContent = `${total} curso${total === 1 ? '' : 's'}`;
+            badgeTotalCursos.textContent = `${lista.length} curso${lista.length === 1 ? '' : 's'}`;
         }
 
-        if (!cursos || !cursos.length) {
+        if (!lista.length) {
             tools.renderEmptyRow(tablaCursosBody, 7, 'Sin resultados');
             deshabilitarDetalle();
             return;
         }
 
-            cursos.forEach(curso => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${curso.codigo || '-'}</td>
-                    <td>${curso.nombre || '-'}</td>
-                <td>${curso.ciclo || '-'}</td>
-                <td>${curso.creditos ?? '-'}</td>
-                <td>${curso.horasSemanales ?? '-'}</td>
-                <td>${curso.modalidad || '-'}</td>
-                <td>${curso.tipo || '-'}</td>
+        lista.forEach(curso => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${curso.codigo}</td>
+                <td>${curso.nombre}</td>
+                <td>${curso.ciclo}</td>
+                <td>${curso.creditos}</td>
+                <td>${curso.horasSemanales}</td>
+                <td>${curso.modalidad ?? '-'}</td>
+                <td>${curso.tipo ?? '-'}</td>
             `;
             tr.addEventListener('click', () => {
                 tools.markSelectedRow(tablaCursosBody, tr);
-                const cursoId = curso.id ?? curso.idCurso;
-                if (cursoId) {
-                    cargarDetalleCurso(cursoId);
-                }
+                cargarDetalleCurso(curso.id);
             });
             tablaCursosBody.appendChild(tr);
         });
     }
 
-    // ======= DETALLE DE CURSO =======
+    // ======= DETALLE =======
 
-    async function cargarDetalleCurso(idCurso) {
-        if (!idCurso) return;
-
+    async function cargarDetalleCurso(id) {
         mostrarCargandoDetalle();
+        const detalle = await fetchJson(`/admin/cursos/${id}`, 'Error al obtener detalle');
 
-        try {
-            const detalle = await fetchJson(`/admin/cursos/${idCurso}`, 'No se pudo obtener el detalle del curso');
+        cursoSeleccionado = detalle;
 
-            cursoSeleccionado = { ...detalle, idCurso: detalle.id };
-            prerrequisitosActuales = (detalle.prerrequisitos || []).map(p => ({
-                idCurso: p.idCurso,
-                codigo: p.codigo,
-                nombre: p.nombre
-            }));
-            docentesDictablesActuales = (detalle.docentesDictables || []).map(d => ({
-                idDocente: d.idDocente,
-                nombreCompleto: d.nombreCompleto,
-                dni: d.dni
-            }));
+        prerrequisitosActuales = detalle.prerrequisitos || [];
+        docentesDictablesActuales = detalle.docentesDictables || [];
 
-            renderizarDetalleCurso(detalle);
-            renderizarPrerrequisitos();
-            renderizarDocentesDictables();
-            habilitarDetalle(true);
-        } catch (err) {
-            console.error(err);
-            tools.showToast(err.message || 'No se pudo cargar el detalle', 'error');
-            limpiarDetalle();
-        }
+        renderizarDetalleCurso(detalle);
+        renderizarPrerrequisitos();
+        renderizarDocentesDictables();
+        habilitarDetalle(true);
     }
 
     function mostrarCargandoDetalle() {
         campoCodigo.textContent = 'Cargando...';
         campoNombre.textContent = 'Cargando...';
-        campoCarrera.textContent = 'Cargando...';
-        campoCiclo.textContent = 'Cargando...';
-        campoTipo.textContent = 'Cargando...';
-        campoCreditos.textContent = '...';
-        campoHoras.textContent = '...';
-        campoModalidad.textContent = '...';
-        campoDescripcion.textContent = 'Cargando descripción...';
+        campoCarrera.textContent = '-';
+        campoCiclo.textContent = '-';
+        campoTipo.textContent = '-';
+        campoCreditos.textContent = '-';
+        campoHoras.textContent = '-';
+        campoModalidad.textContent = '-';
+        campoDescripcion.textContent = 'Cargando...';
 
         tools.renderEmptyRow(tablaPrerrequisitosBody, 3, 'Cargando...');
         tools.renderEmptyRow(tablaDocentesCursoBody, 3, 'Cargando...');
@@ -304,16 +256,15 @@ export function createCursosModule(globalTools) {
     }
 
     function renderizarDetalleCurso(curso) {
-        campoCodigo.textContent = curso.codigo || '-';
-        campoNombre.textContent = curso.nombre || '-';
-        campoCarrera.textContent = curso.carreraNombre || curso.carrera || '-';
-        campoCiclo.textContent = curso.ciclo || '-';
-        campoTipo.textContent = curso.tipo || '-';
-        campoCreditos.textContent = curso.creditos ?? '-';
-        campoHoras.textContent = curso.horasSemanales ?? '-';
-        campoModalidad.textContent = curso.modalidad || '-';
-
-        campoDescripcion.textContent = curso.descripcion || '-';
+        campoCodigo.textContent = curso.codigo;
+        campoNombre.textContent = curso.nombre;
+        campoCarrera.textContent = curso.carrera ?? '-';
+        campoCiclo.textContent = curso.ciclo;
+        campoTipo.textContent = curso.tipo;
+        campoCreditos.textContent = curso.creditos;
+        campoHoras.textContent = curso.horasSemanales;
+        campoModalidad.textContent = curso.modalidad;
+        campoDescripcion.textContent = curso.descripcion;
     }
 
     function limpiarDetalle() {
@@ -327,21 +278,22 @@ export function createCursosModule(globalTools) {
         campoModalidad.textContent = '-';
         campoDescripcion.textContent = '-';
 
-        tools.renderEmptyRow(tablaPrerrequisitosBody, 3, 'Selecciona un curso para ver sus prerrequisitos');
-        tools.renderEmptyRow(tablaDocentesCursoBody, 3, 'Selecciona un curso para ver sus docentes habilitados');
-
         prerrequisitosActuales = [];
         docentesDictablesActuales = [];
+
+        tools.renderEmptyRow(tablaPrerrequisitosBody, 3, 'Selecciona un curso');
+        tools.renderEmptyRow(tablaDocentesCursoBody, 3, 'Selecciona un curso');
+
         habilitarDetalle(false);
     }
 
-    function habilitarDetalle(habilitado) {
-        btnEditarCurso.disabled = !habilitado;
-        btnEliminarCurso.disabled = !habilitado;
-        btnAgregarPrerrequisito.disabled = !habilitado;
-        btnGuardarPrerrequisitos.disabled = !habilitado;
-        btnAgregarDocenteCurso.disabled = !habilitado;
-        btnGuardarDocentesCurso.disabled = !habilitado;
+    function habilitarDetalle(flag) {
+        btnEditarCurso.disabled = !flag;
+        btnEliminarCurso.disabled = !flag;
+        btnAgregarPrerrequisito.disabled = !flag;
+        btnGuardarPrerrequisitos.disabled = !flag;
+        btnAgregarDocenteCurso.disabled = !flag;
+        btnGuardarDocentesCurso.disabled = !flag;
     }
 
     function deshabilitarDetalle() {
@@ -354,84 +306,75 @@ export function createCursosModule(globalTools) {
         tablaPrerrequisitosBody.innerHTML = '';
 
         if (!prerrequisitosActuales.length) {
-            tools.renderEmptyRow(tablaPrerrequisitosBody, 3, 'Sin prerrequisitos registrados');
+            tools.renderEmptyRow(tablaPrerrequisitosBody, 3, 'Sin prerrequisitos');
             return;
         }
 
         prerrequisitosActuales.forEach(pr => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td>${pr.codigo || '-'}</td>
-                <td>${pr.nombre || '-'}</td>
+                <td>${pr.codigo}</td>
+                <td>${pr.nombre}</td>
                 <td class="text-right">
-                    <button type="button" class="btn-link btn-sm" data-id="${pr.idCurso}">Quitar</button>
+                    <button class="btn-link btn-sm">Quitar</button>
                 </td>
             `;
-            tr.querySelector('button')?.addEventListener('click', () => {
+            tr.querySelector('button').onclick = () => {
                 prerrequisitosActuales = prerrequisitosActuales.filter(p => p.idCurso !== pr.idCurso);
                 renderizarPrerrequisitos();
-            });
+            };
+
             tablaPrerrequisitosBody.appendChild(tr);
         });
     }
 
     function agregarPrerrequisito() {
-        if (!cursoSeleccionado) {
-            tools.showToast('Selecciona un curso primero', 'info');
-            return;
-        }
-        const idSel = selectPrerrequisito?.value;
+        if (!cursoSeleccionado) return tools.showToast('Selecciona un curso', 'info');
+
+        const idSel = Number(selectPrerrequisito.value);
         if (!idSel) return;
 
-        const idNum = Number(idSel);
-        if (cursoSeleccionado.idCurso && idNum === cursoSeleccionado.idCurso) {
-            tools.showToast('Un curso no puede ser prerrequisito de sí mismo', 'warning');
-            return;
+        if (idSel === cursoSeleccionado.id) {
+            return tools.showToast('Un curso no puede ser prerrequisito de sí mismo', 'warning');
         }
 
-        if (prerrequisitosActuales.some(p => p.idCurso === idNum)) {
-            tools.showToast('El prerrequisito ya está agregado', 'info');
-            return;
+        if (prerrequisitosActuales.some(p => p.idCurso === idSel)) {
+            return tools.showToast('Ya está agregado', 'info');
         }
 
-        const cursoBase = (catalogos.cursos || []).find(c => (c.id ?? c.idCurso) === idNum);
-        if (!cursoBase) {
-            tools.showToast('Curso no encontrado en el catálogo', 'error');
-            return;
-        }
+        const base = catalogos.cursos.find(c => c.id === idSel);
+        if (!base) return;
 
         prerrequisitosActuales.push({
-            idCurso: cursoBase.id ?? cursoBase.idCurso,
-            codigo: cursoBase.codigo,
-            nombre: cursoBase.nombre
+            idCurso: base.id,
+            codigo: base.codigo,
+            nombre: base.nombre
         });
+
         renderizarPrerrequisitos();
     }
 
     async function guardarPrerrequisitos() {
-        if (!cursoSeleccionado) {
-            tools.showToast('Selecciona un curso', 'info');
-            return;
-        }
+        if (!cursoSeleccionado) return tools.showToast('Selecciona un curso', 'info');
+
+        const body = {
+            idsPrerrequisitos: prerrequisitosActuales.map(p => p.idCurso)
+        };
 
         try {
             btnGuardarPrerrequisitos.disabled = true;
-            const body = {
-                idsPrerrequisitos: prerrequisitosActuales.map(p => p.idCurso)
-            };
-            await fetchJson(
-                `/admin/cursos/${cursoSeleccionado.id}/prerrequisitos`,
 
-                'No se pudieron guardar los prerrequisitos',
+            await fetchVoid(`/admin/cursos/${cursoSeleccionado.id}/prerrequisitos`,
+                'Error al guardar prerrequisitos',
                 {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(body)
-                }
-            );
+                });
+
             tools.showToast('Prerrequisitos actualizados', 'success');
-        } catch (err) {
-            tools.showToast(err.message, 'error');
+        } catch (e) {
+            tools.showToast(e.message, 'error');
         } finally {
             btnGuardarPrerrequisitos.disabled = false;
         }
@@ -450,202 +393,138 @@ export function createCursosModule(globalTools) {
         docentesDictablesActuales.forEach(doc => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td>${doc.nombreCompleto || '-'}</td>
-                <td>${doc.dni || '-'}</td>
-                <td class="text-right">
-                    <button type="button" class="btn-link btn-sm" data-id="${doc.idDocente}">Quitar</button>
-                </td>
+                <td>${doc.nombreCompleto}</td>
+                <td>${doc.dni ?? '-'}</td>
+                <td class="text-right"><button class="btn-link btn-sm">Quitar</button></td>
             `;
-            tr.querySelector('button')?.addEventListener('click', () => {
+            tr.querySelector('button').onclick = () => {
                 docentesDictablesActuales = docentesDictablesActuales.filter(d => d.idDocente !== doc.idDocente);
                 renderizarDocentesDictables();
-            });
+            };
+
             tablaDocentesCursoBody.appendChild(tr);
         });
     }
 
     function agregarDocenteDictable() {
-        if (!cursoSeleccionado) {
-            tools.showToast('Selecciona un curso primero', 'info');
-            return;
-        }
-        const idSel = selectDocenteCurso?.value;
+        if (!cursoSeleccionado) return tools.showToast('Selecciona un curso', 'info');
+
+        const idSel = Number(selectDocenteCurso.value);
         if (!idSel) return;
 
-        const idNum = Number(idSel);
-        if (docentesDictablesActuales.some(d => d.idDocente === idNum)) {
-            tools.showToast('El docente ya está asignado', 'info');
-            return;
+        if (docentesDictablesActuales.some(d => d.idDocente === idSel)) {
+            return tools.showToast('Docente ya agregado', 'info');
         }
 
-        const docenteBase = (catalogos.docentes || []).find(d => (d.idDocente ?? d.id) === idNum);
-        if (!docenteBase) {
-            tools.showToast('Docente no encontrado en el catálogo', 'error');
-            return;
-        }
+        const base = catalogos.docentes.find(d => d.idDocente === idSel);
+        if (!base) return;
 
         docentesDictablesActuales.push({
-            idDocente: docenteBase.idDocente ?? docenteBase.id,
-            nombreCompleto: docenteBase.nombreCompleto,
-            dni: docenteBase.dni
+            idDocente: base.idDocente,
+            nombreCompleto: base.nombreCompleto,
+            dni: base.dni
         });
+
         renderizarDocentesDictables();
     }
 
     async function guardarDocentesDictables() {
-        if (!cursoSeleccionado) {
-            tools.showToast('Selecciona un curso', 'info');
-            return;
-        }
+        if (!cursoSeleccionado) return tools.showToast('Selecciona un curso', 'info');
+
+        const body = {
+            idsDocentes: docentesDictablesActuales.map(p => p.idDocente)
+        };
 
         try {
             btnGuardarDocentesCurso.disabled = true;
-            const body = {
-                idsDocentes: docentesDictablesActuales.map(d => d.idDocente)
-            };
-            await fetchJson(
-                `/admin/cursos/${cursoSeleccionado.id}/docentes`,
-                'No se pudieron guardar los docentes',
+
+            await fetchVoid(`/admin/cursos/${cursoSeleccionado.id}/docentes`,
+                'Error al guardar docentes',
                 {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(body)
-                }
-            );
+                });
+
             tools.showToast('Docentes actualizados', 'success');
-        } catch (err) {
-            tools.showToast(err.message, 'error');
+        } catch (e) {
+            tools.showToast(e.message, 'error');
         } finally {
             btnGuardarDocentesCurso.disabled = false;
         }
     }
 
-    // ======= CRUD CURSO (CREAR / EDITAR / ELIMINAR) =======
+    // ======= CRUD =======
 
-    function construirHtmlFormCurso(curso, tituloCarreraLabel = 'Carrera') {
-        const tipos = catalogos.tipos || [];
-        const modalidades = catalogos.modalidades || [];
-        const ciclos = catalogos.ciclos || [];
-        const carreras = catalogos.carreras || [];
+    function construirHtmlFormCurso(curso = {}) {
+        const tipos = catalogos.tipos ?? [];
+        const modalidades = catalogos.modalidades ?? [];
+        const ciclos = catalogos.ciclos ?? [];
+        const carreras = catalogos.carreras ?? [];
 
-        const selOptions = (lista, valorActual) => lista.map(v => {
-            const code = typeof v === 'string' ? v : v.codigo || v.nombre || v.idCarrera || v.id;
-            const label = typeof v === 'string' ? v : (v.nombre || v.descripcion || code);
-            const value = typeof v === 'string' ? v : (v.idCarrera ?? v.id ?? v);
-            const selected = (valorActual !== undefined && valorActual !== null && String(valorActual) === String(value)) ? 'selected' : '';
-            return `<option value="${value}" ${selected}>${label}</option>`;
+        const buildOptions = (lista, val) => lista.map(x => {
+            const id = x.id ?? x;
+            const label = x.nombre ?? x.descripcion ?? x;
+            return `<option value="${id}" ${String(val) === String(id) ? 'selected' : ''}>${label}</option>`;
         }).join('');
 
         return `
             <div class="swal-form-grid">
-                <div class="form-field">
-                    <label>Código</label>
-                    <input id="swalCursoCodigo" type="text" value="${curso?.codigo || ''}" maxlength="20" />
+                <div><label>Código</label><input id="swalCodigo" value="${curso.codigo ?? ''}"></div>
+                <div><label>Nombre</label><input id="swalNombre" value="${curso.nombre ?? ''}"></div>
+                <div>
+                    <label>Carrera</label>
+                    <select id="swalCarrera"><option value="">Seleccione</option>${buildOptions(carreras, curso.carreraId)}</select>
                 </div>
-                <div class="form-field">
-                    <label>Nombre</label>
-                    <input id="swalCursoNombre" type="text" value="${curso?.nombre || ''}" />
-                </div>
-                <div class="form-field">
-                    <label>${tituloCarreraLabel}</label>
-                    <select id="swalCursoCarrera">
-                        <option value="">Seleccione</option>
-                        ${selOptions(carreras, curso?.idCarrera)}
-                    </select>
-                </div>
-                <div class="form-field">
+                <div>
                     <label>Ciclo</label>
-                    <select id="swalCursoCiclo">
-                        <option value="">Seleccione</option>
-                        ${selOptions(ciclos, curso?.ciclo)}
-                    </select>
+                    <select id="swalCiclo"><option value="">Seleccione</option>${buildOptions(ciclos, curso.ciclo)}</select>
                 </div>
-                <div class="form-field">
+                <div>
                     <label>Tipo</label>
-                    <select id="swalCursoTipo">
-                        <option value="">Seleccione</option>
-                        ${selOptions(tipos, curso?.tipo)}
-                    </select>
+                    <select id="swalTipo"><option value="">Seleccione</option>${buildOptions(tipos, curso.tipo)}</select>
                 </div>
-                <div class="form-field">
+                <div>
                     <label>Modalidad</label>
-                    <select id="swalCursoModalidad">
-                        <option value="">Seleccione</option>
-                        ${selOptions(modalidades, curso?.modalidad)}
-                    </select>
+                    <select id="swalModalidad"><option value="">Seleccione</option>${buildOptions(modalidades, curso.modalidad)}</select>
                 </div>
-                <div class="form-field">
-                    <label>Créditos</label>
-                    <input id="swalCursoCreditos" type="number" min="0" max="20" value="${curso?.creditos ?? ''}" />
-                </div>
-                <div class="form-field">
-                    <label>Horas semanales</label>
-                    <input id="swalCursoHoras" type="number" min="0" max="40" value="${curso?.horasSemanales ?? ''}" />
-                </div>
-                <div class="form-field form-field--full">
+                <div><label>Créditos</label><input id="swalCreditos" type="number" value="${curso.creditos ?? ''}"></div>
+                <div><label>Horas semanales</label><input id="swalHoras" type="number" value="${curso.horasSemanales ?? ''}"></div>
+                <div class="form-field--full">
                     <label>Descripción</label>
-                    <textarea id="swalCursoDescripcion" rows="3">${curso?.descripcion || ''}</textarea>
+                    <textarea id="swalDescripcion">${curso.descripcion ?? ''}</textarea>
                 </div>
             </div>
         `;
     }
 
-    function leerDatosFormCursoDesdeSwal() {
-        const popup = Swal.getPopup();
-        const get = id => popup.querySelector(`#${id}`);
+    function leerFormCurso() {
+        const codigo = Swal.getPopup().querySelector('#swalCodigo').value.trim();
+        const nombre = Swal.getPopup().querySelector('#swalNombre').value.trim();
+        const carreraId = Swal.getPopup().querySelector('#swalCarrera').value;
+        const ciclo = Swal.getPopup().querySelector('#swalCiclo').value;
+        const tipo = Swal.getPopup().querySelector('#swalTipo').value;
+        const modalidad = Swal.getPopup().querySelector('#swalModalidad').value;
+        const creditos = Swal.getPopup().querySelector('#swalCreditos').value;
+        const horas = Swal.getPopup().querySelector('#swalHoras').value;
+        const descripcion = Swal.getPopup().querySelector('#swalDescripcion').value;
 
-        const codigo = get('swalCursoCodigo')?.value.trim();
-        const nombre = get('swalCursoNombre')?.value.trim();
-        const carreraId = get('swalCursoCarrera')?.value;
-        const ciclo = get('swalCursoCiclo')?.value;
-        const tipo = get('swalCursoTipo')?.value;
-        const modalidad = get('swalCursoModalidad')?.value;
-        const creditos = get('swalCursoCreditos')?.value;
-        const horas = get('swalCursoHoras')?.value;
-        const descripcion = get('swalCursoDescripcion')?.value.trim();
-
-        if (!codigo) {
-            Swal.showValidationMessage('El código es obligatorio');
-            return null;
-        }
-        if (!nombre) {
-            Swal.showValidationMessage('El nombre es obligatorio');
-            return null;
-        }
-        if (!carreraId) {
-            Swal.showValidationMessage('Selecciona una carrera');
-            return null;
-        }
-        if (!ciclo) {
-            Swal.showValidationMessage('Selecciona un ciclo');
-            return null;
-        }
-        if (!tipo) {
-            Swal.showValidationMessage('Selecciona un tipo de curso');
-            return null;
-        }
-        if (!modalidad) {
-            Swal.showValidationMessage('Selecciona una modalidad');
-            return null;
-        }
-        if (!creditos || Number(creditos) <= 0) {
-            Swal.showValidationMessage('Ingresa los créditos del curso');
-            return null;
-        }
-        if (!horas || Number(horas) <= 0) {
-            Swal.showValidationMessage('Ingresa las horas semanales');
-            return null;
-        }
+        if (!codigo) return Swal.showValidationMessage('Código obligatorio');
+        if (!nombre) return Swal.showValidationMessage('Nombre obligatorio');
+        if (!carreraId) return Swal.showValidationMessage('Seleccione carrera');
+        if (!ciclo) return Swal.showValidationMessage('Seleccione ciclo');
+        if (!tipo) return Swal.showValidationMessage('Seleccione tipo');
+        if (!modalidad) return Swal.showValidationMessage('Seleccione modalidad');
+        if (!creditos || creditos <= 0) return Swal.showValidationMessage('Créditos inválidos');
+        if (!horas || horas <= 0) return Swal.showValidationMessage('Horas inválidas');
 
         return {
-            codigo,
-            nombre,
+            codigo, nombre,
             carreraId: Number(carreraId),
-            ciclo: ciclo ? Number(ciclo) : null,
-            tipo,
-            modalidad,
-            creditos: creditos ? Number(creditos) : null,
-            horasSemanales: horas ? Number(horas) : null,
+            ciclo: Number(ciclo),
+            tipo, modalidad,
+            creditos: Number(creditos),
+            horasSemanales: Number(horas),
             descripcion
         };
     }
@@ -653,106 +532,79 @@ export function createCursosModule(globalTools) {
     function abrirModalCursoNuevo() {
         Swal.fire({
             title: 'Nuevo curso',
-            html: construirHtmlFormCurso(null),
+            html: construirHtmlFormCurso(),
             width: 700,
-            focusConfirm: false,
             showCancelButton: true,
             confirmButtonText: 'Guardar',
-            cancelButtonText: 'Cancelar',
             preConfirm: async () => {
-                const payload = leerDatosFormCursoDesdeSwal();
+                const payload = leerFormCurso();
                 if (!payload) return false;
-                try {
-                    await fetchJson('/admin/cursos', 'No se pudo crear el curso', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-                    return payload;
-                } catch (err) {
-                    Swal.showValidationMessage(err.message || 'Error al crear el curso');
-                    return false;
-                }
+
+                await fetchVoid('/admin/cursos', 'Error al crear curso', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                return payload;
             }
-        }).then(async result => {
-            if (!result.isConfirmed) return;
+        }).then(async r => {
+            if (!r.isConfirmed) return;
             tools.showToast('Curso creado correctamente', 'success');
-            await buscarCursos();
+            buscarCursos();
         });
     }
 
     function abrirModalEditarCurso(curso) {
-        if (!curso || !cursoSeleccionado) return;
-
-        const cursoForm = {
-            codigo: curso.codigo,
-            nombre: curso.nombre,
-            carreraId: curso.carreraId,
-            ciclo: curso.ciclo,
-            tipo: curso.tipo,
-            modalidad: curso.modalidad,
-            creditos: curso.creditos,
-            horasSemanales: curso.horasSemanales,
-            descripcion: curso.descripcion
-        };
-
         Swal.fire({
             title: 'Editar curso',
-            html: construirHtmlFormCurso(cursoForm),
+            html: construirHtmlFormCurso(curso),
             width: 700,
-            focusConfirm: false,
             showCancelButton: true,
-            confirmButtonText: 'Guardar',
-            cancelButtonText: 'Cancelar',
+            confirmButtonText: 'Guardar cambios',
             preConfirm: async () => {
-                const payload = leerDatosFormCursoDesdeSwal();
+                const payload = leerFormCurso();
                 if (!payload) return false;
-                try {
-                    await fetchJson(`/admin/cursos/${cursoSeleccionado.id}`, 'No se pudo actualizar el curso', {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-                    return payload;
-                } catch (err) {
-                    Swal.showValidationMessage(err.message || 'Error al actualizar el curso');
-                    return false;
-                }
+
+                await fetchVoid(`/admin/cursos/${cursoSeleccionado.id}`, 'Error al actualizar curso', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                return payload;
             }
-        }).then(async result => {
-            if (!result.isConfirmed) return;
-            tools.showToast('Curso actualizado correctamente', 'success');
-            await buscarCursos();
+        }).then(async r => {
+            if (!r.isConfirmed) return;
+            tools.showToast('Curso actualizado', 'success');
+            buscarCursos();
         });
     }
 
     function confirmarEliminarCurso(curso) {
         Swal.fire({
             title: '¿Eliminar curso?',
-            text: `Se eliminará el curso "${curso.nombre}" (${curso.codigo}). Esta acción puede afectar secciones y matrículas relacionadas.`,
+            text: `Esto eliminará el curso ${curso.nombre} (${curso.codigo})`,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonText: 'Sí, eliminar',
-            cancelButtonText: 'Cancelar',
+            confirmButtonText: 'Eliminar',
             confirmButtonColor: '#d33'
-        }).then(async result => {
-            if (!result.isConfirmed) return;
-            try {
-                await fetchJson(`/admin/cursos/${curso.id}`, 'No se pudo eliminar el curso', {
-                    method: 'DELETE'
-                });
-                tools.showToast('Curso eliminado', 'success');
-                cursoSeleccionado = null;
-                limpiarDetalle();
-                await buscarCursos();
-            } catch (err) {
-                tools.showToast(err.message, 'error');
-            }
+        }).then(async r => {
+            if (!r.isConfirmed) return;
+
+            await fetchVoid(`/admin/cursos/${curso.id}`, 'Error al eliminar curso', {
+                method: 'DELETE'
+            });
+
+            tools.showToast('Curso eliminado', 'success');
+            limpiarDetalle();
+            buscarCursos();
         });
     }
-    // ======= API PÚBLICA DEL MÓDULO =======
+
+    // ======= API PUBLICA =======
+
     function resetVista() {
-        // se usa por si al cambiar de pestaña quieres limpiar estados
         limpiarDetalle();
     }
 
