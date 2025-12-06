@@ -74,10 +74,7 @@ public class AdminCursoController {
                 .map(c -> new CarreraDTO(c.getId(), c.getNombre()))
                 .toList();
 
-        var docentes = docenteService.buscar("", null, (String) null)
-                .stream()
-                .map(DocenteBusquedaDTO::fromEntity)
-                .toList();
+        var docentes = docenteService.buscar("", null, (String) null);
 
         var cursos = cursoService.listarTodos()
                 .stream()

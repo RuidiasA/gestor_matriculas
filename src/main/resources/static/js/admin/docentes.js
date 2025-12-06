@@ -263,11 +263,11 @@ export function createDocentesModule(tools) {
         cursos.forEach(curso => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td>${curso.codigo || '-'}</td>
-                <td>${curso.nombre || '-'}</td>
-                <td>${curso.creditos ?? '-'}</td>
-                <td>${curso.horasSemanales ?? '-'}</td>
-                <td>${curso.ciclo ?? '-'}</td>
+                <td>${curso.codigoDocente || '-'}</td>
+                <td>${curso.nombreCompleto || '-'}</td>
+                <td>${curso.creditosCurso ?? '-'}</td>
+                <td>${curso.creditosCurso ? curso.creditosCurso * 1 : '-'}</td> 
+                <td>${curso.cicloCurso ?? '-'}</td>
             `;
             tr.addEventListener('click', () => eliminarCursoDictable(curso.idCurso));
             tablaCursosDictables.appendChild(tr);
