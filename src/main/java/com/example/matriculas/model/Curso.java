@@ -8,7 +8,6 @@ import lombok.Setter;
 import lombok.NoArgsConstructor;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -54,5 +53,5 @@ public class Curso {
             joinColumns = @JoinColumn(name = "curso_id"),
             inverseJoinColumns = @JoinColumn(name = "prerrequisito_id")
     )
-    private List<Curso> prerrequisitos;
+    private Set<Curso> prerrequisitos = new HashSet<>();
 }

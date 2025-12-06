@@ -12,4 +12,7 @@ public class CursoCatalogoDTO {
     private List<CarreraDTO> carreras;
     private List<DocenteBusquedaDTO> docentes;
     private List<CursoListadoDTO> cursos;
+    private List<Integer> ciclos;
+    private List<String> tipos;
+    private List<String> modalidades;
 }

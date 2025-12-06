@@ -16,7 +16,6 @@ export function createCursosModule(globalTools) {
     const filtroCarrera = seccion.querySelector('#filtroCursoCarrera');
     const filtroCiclo = seccion.querySelector('#filtroCursoCiclo');
     const filtroTipo = seccion.querySelector('#filtroCursoTipo');
-    const filtroEstado = seccion.querySelector('#filtroCursoEstado');
     const btnLimpiar = seccion.querySelector('#btnLimpiarCursos');
     const btnNuevo = seccion.querySelector('#btnNuevoCurso');
     const estadoBusqueda = seccion.querySelector('#estadoBusquedaCursos');
@@ -32,7 +31,6 @@ export function createCursosModule(globalTools) {
     const campoCreditos = seccion.querySelector('#cursoCreditos');
     const campoHoras = seccion.querySelector('#cursoHoras');
     const campoModalidad = seccion.querySelector('#cursoModalidad');
-    const campoEstado = seccion.querySelector('#cursoEstado');
     const campoDescripcion = seccion.querySelector('#cursoDescripcion');
 
     const btnEditarCurso = seccion.querySelector('#btnEditarCurso');
@@ -55,7 +53,6 @@ export function createCursosModule(globalTools) {
         carreras: [],
         ciclos: [],
         tipos: [],
-        estados: [],
         modalidades: [],
         cursos: [],
         docentes: []
@@ -107,7 +104,6 @@ export function createCursosModule(globalTools) {
                 if (filtroCarrera) filtroCarrera.value = '';
                 if (filtroCiclo) filtroCiclo.value = '';
                 if (filtroTipo) filtroTipo.value = '';
-                if (filtroEstado) filtroEstado.value = '';
                 cursoSeleccionado = null;
                 cursosActuales = [];
                 limpiarDetalle();
@@ -165,22 +161,20 @@ export function createCursosModule(globalTools) {
             catalogos.carreras = data.carreras || [];
             catalogos.ciclos = data.ciclos || [];
             catalogos.tipos = data.tipos || [];
-            catalogos.estados = data.estados || [];
             catalogos.modalidades = data.modalidades || [];
             catalogos.cursos = data.cursos || [];
             catalogos.docentes = data.docentes || [];
 
             // Filtros
-            tools.fillSelect(filtroCarrera, catalogos.carreras, 'Todas', c => c.idCarrera, c => c.nombre);
+            tools.fillSelect(filtroCarrera, catalogos.carreras, 'Todas', c => c.idCarrera ?? c.id, c => c.nombre);
             tools.fillSelect(filtroCiclo, catalogos.ciclos, 'Todos', c => c, c => c);
             tools.fillSelect(filtroTipo, catalogos.tipos, 'Todos', t => t, t => t);
-            tools.fillSelect(filtroEstado, catalogos.estados, 'Todos', e => e, e => e);
 
             // Select para agregar prerrequisitos (se filtra luego según curso)
-            tools.fillSelect(selectPrerrequisito, catalogos.cursos, 'Selecciona curso', c => c.idCurso, c => `${c.codigo} - ${c.nombre}`);
+            tools.fillSelect(selectPrerrequisito, catalogos.cursos, 'Selecciona curso', c => c.id ?? c.idCurso, c => `${c.codigo} - ${c.nombre}`);
 
             // Select para docentes dictables
-            tools.fillSelect(selectDocenteCurso, catalogos.docentes, 'Selecciona docente', d => d.idDocente, d => `${d.nombreCompleto} (${d.dni || ''})`);
+            tools.fillSelect(selectDocenteCurso, catalogos.docentes, 'Selecciona docente', d => d.idDocente ?? d.id, d => `${d.nombreCompleto} (${d.dni || ''})`);
 
         } catch (err) {
             console.error(err);
@@ -199,7 +193,6 @@ export function createCursosModule(globalTools) {
         if (filtroCarrera?.value) params.append('carreraId', filtroCarrera.value);
         if (filtroCiclo?.value) params.append('ciclo', filtroCiclo.value);
         if (filtroTipo?.value) params.append('tipo', filtroTipo.value);
-        if (filtroEstado?.value) params.append('estado', filtroEstado.value);
 
         let url = '/admin/cursos';
         if ([...params.keys()].length) {
@@ -238,11 +231,11 @@ export function createCursosModule(globalTools) {
             return;
         }
 
-        cursos.forEach(curso => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${curso.codigo || '-'}</td>
-                <td>${curso.nombre || '-'}</td>
+            cursos.forEach(curso => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${curso.codigo || '-'}</td>
+                    <td>${curso.nombre || '-'}</td>
                 <td>${curso.ciclo || '-'}</td>
                 <td>${curso.creditos ?? '-'}</td>
                 <td>${curso.horasSemanales ?? '-'}</td>
@@ -251,8 +244,9 @@ export function createCursosModule(globalTools) {
             `;
             tr.addEventListener('click', () => {
                 tools.markSelectedRow(tablaCursosBody, tr);
-                if (curso.idCurso || curso.id) {
-                    cargarDetalleCurso(curso.idCurso ?? curso.id);
+                const cursoId = curso.id ?? curso.idCurso;
+                if (cursoId) {
+                    cargarDetalleCurso(cursoId);
                 }
             });
             tablaCursosBody.appendChild(tr);
@@ -269,7 +263,7 @@ export function createCursosModule(globalTools) {
         try {
             const detalle = await fetchJson(`/admin/cursos/${idCurso}`, 'No se pudo obtener el detalle del curso');
 
-            cursoSeleccionado = detalle;
+            cursoSeleccionado = { ...detalle, idCurso: detalle.id };
             prerrequisitosActuales = (detalle.prerrequisitos || []).map(p => ({
                 idCurso: p.idCurso,
                 codigo: p.codigo,
@@ -301,8 +295,6 @@ export function createCursosModule(globalTools) {
         campoCreditos.textContent = '...';
         campoHoras.textContent = '...';
         campoModalidad.textContent = '...';
-        campoEstado.textContent = '...';
-        campoEstado.className = 'detalle-valor badge';
         campoDescripcion.textContent = 'Cargando descripción...';
 
         tools.renderEmptyRow(tablaPrerrequisitosBody, 3, 'Cargando...');
@@ -314,7 +306,7 @@ export function createCursosModule(globalTools) {
     function renderizarDetalleCurso(curso) {
         campoCodigo.textContent = curso.codigo || '-';
         campoNombre.textContent = curso.nombre || '-';
-        campoCarrera.textContent = curso.carrera || '-';
+        campoCarrera.textContent = curso.carreraNombre || curso.carrera || '-';
         campoCiclo.textContent = curso.ciclo || '-';
         campoTipo.textContent = curso.tipo || '-';
         campoCreditos.textContent = curso.creditos ?? '-';
@@ -322,14 +314,6 @@ export function createCursosModule(globalTools) {
         campoModalidad.textContent = curso.modalidad || '-';
 
         campoDescripcion.textContent = curso.descripcion || '-';
-
-        // Badge estado
-        campoEstado.textContent = curso.estado || '-';
-        campoEstado.className = 'detalle-valor badge';
-        const est = (curso.estado || '').toUpperCase();
-        if (est.includes('INACTIVO')) campoEstado.classList.add('badge--info');
-        else if (est.includes('SUSPEND')) campoEstado.classList.add('badge--warning');
-        else campoEstado.classList.add('badge--success');
     }
 
     function limpiarDetalle() {
@@ -341,8 +325,6 @@ export function createCursosModule(globalTools) {
         campoCreditos.textContent = '-';
         campoHoras.textContent = '-';
         campoModalidad.textContent = '-';
-        campoEstado.textContent = '-';
-        campoEstado.className = 'detalle-valor badge';
         campoDescripcion.textContent = '-';
 
         tools.renderEmptyRow(tablaPrerrequisitosBody, 3, 'Selecciona un curso para ver sus prerrequisitos');
@@ -412,14 +394,14 @@ export function createCursosModule(globalTools) {
             return;
         }
 
-        const cursoBase = (catalogos.cursos || []).find(c => c.idCurso === idNum);
+        const cursoBase = (catalogos.cursos || []).find(c => (c.id ?? c.idCurso) === idNum);
         if (!cursoBase) {
             tools.showToast('Curso no encontrado en el catálogo', 'error');
             return;
         }
 
         prerrequisitosActuales.push({
-            idCurso: cursoBase.idCurso,
+            idCurso: cursoBase.id ?? cursoBase.idCurso,
             codigo: cursoBase.codigo,
             nombre: cursoBase.nombre
         });
@@ -438,7 +420,7 @@ export function createCursosModule(globalTools) {
                 idsPrerrequisitos: prerrequisitosActuales.map(p => p.idCurso)
             };
             await fetchJson(
-                `/admin/cursos/${cursoSeleccionado.idCurso}/prerrequisitos`,
+                `/admin/cursos/${cursoSeleccionado.id}/prerrequisitos`,
 
                 'No se pudieron guardar los prerrequisitos',
                 {
@@ -496,14 +478,14 @@ export function createCursosModule(globalTools) {
             return;
         }
 
-        const docenteBase = (catalogos.docentes || []).find(d => d.idDocente === idNum);
+        const docenteBase = (catalogos.docentes || []).find(d => (d.idDocente ?? d.id) === idNum);
         if (!docenteBase) {
             tools.showToast('Docente no encontrado en el catálogo', 'error');
             return;
         }
 
         docentesDictablesActuales.push({
-            idDocente: docenteBase.idDocente,
+            idDocente: docenteBase.idDocente ?? docenteBase.id,
             nombreCompleto: docenteBase.nombreCompleto,
             dni: docenteBase.dni
         });
@@ -522,7 +504,7 @@ export function createCursosModule(globalTools) {
                 idsDocentes: docentesDictablesActuales.map(d => d.idDocente)
             };
             await fetchJson(
-                `/admin/cursos/${cursoSeleccionado.idCurso}/docentes`,
+                `/admin/cursos/${cursoSeleccionado.id}/docentes`,
                 'No se pudieron guardar los docentes',
                 {
                     method: 'PUT',
@@ -541,17 +523,16 @@ export function createCursosModule(globalTools) {
     // ======= CRUD CURSO (CREAR / EDITAR / ELIMINAR) =======
 
     function construirHtmlFormCurso(curso, tituloCarreraLabel = 'Carrera') {
-        const estados = catalogos.estados || [];
         const tipos = catalogos.tipos || [];
         const modalidades = catalogos.modalidades || [];
         const ciclos = catalogos.ciclos || [];
         const carreras = catalogos.carreras || [];
 
         const selOptions = (lista, valorActual) => lista.map(v => {
-            const code = typeof v === 'string' ? v : v.codigo || v.nombre || v.idCarrera;
+            const code = typeof v === 'string' ? v : v.codigo || v.nombre || v.idCarrera || v.id;
             const label = typeof v === 'string' ? v : (v.nombre || v.descripcion || code);
-            const value = typeof v === 'string' ? v : (v.idCarrera ?? v);
-            const selected = (valorActual && String(valorActual) === String(value)) ? 'selected' : '';
+            const value = typeof v === 'string' ? v : (v.idCarrera ?? v.id ?? v);
+            const selected = (valorActual !== undefined && valorActual !== null && String(valorActual) === String(value)) ? 'selected' : '';
             return `<option value="${value}" ${selected}>${label}</option>`;
         }).join('');
 
@@ -601,13 +582,6 @@ export function createCursosModule(globalTools) {
                     <label>Horas semanales</label>
                     <input id="swalCursoHoras" type="number" min="0" max="40" value="${curso?.horasSemanales ?? ''}" />
                 </div>
-                <div class="form-field">
-                    <label>Estado</label>
-                    <select id="swalCursoEstado">
-                        <option value="">Seleccione</option>
-                        ${selOptions(estados, curso?.estado)}
-                    </select>
-                </div>
                 <div class="form-field form-field--full">
                     <label>Descripción</label>
                     <textarea id="swalCursoDescripcion" rows="3">${curso?.descripcion || ''}</textarea>
@@ -628,7 +602,6 @@ export function createCursosModule(globalTools) {
         const modalidad = get('swalCursoModalidad')?.value;
         const creditos = get('swalCursoCreditos')?.value;
         const horas = get('swalCursoHoras')?.value;
-        const estado = get('swalCursoEstado')?.value;
         const descripcion = get('swalCursoDescripcion')?.value.trim();
 
         if (!codigo) {
@@ -663,21 +636,16 @@ export function createCursosModule(globalTools) {
             Swal.showValidationMessage('Ingresa las horas semanales');
             return null;
         }
-        if (!estado) {
-            Swal.showValidationMessage('Selecciona un estado');
-            return null;
-        }
 
         return {
             codigo,
             nombre,
-            idCarrera: Number(carreraId),
-            ciclo,
+            carreraId: Number(carreraId),
+            ciclo: ciclo ? Number(ciclo) : null,
             tipo,
             modalidad,
-            creditos: Number(creditos),
-            horasSemanales: Number(horas),
-            estado,
+            creditos: creditos ? Number(creditos) : null,
+            horasSemanales: horas ? Number(horas) : null,
             descripcion
         };
     }
@@ -719,13 +687,12 @@ export function createCursosModule(globalTools) {
         const cursoForm = {
             codigo: curso.codigo,
             nombre: curso.nombre,
-            idCarrera: curso.idCarrera,
+            carreraId: curso.carreraId,
             ciclo: curso.ciclo,
             tipo: curso.tipo,
             modalidad: curso.modalidad,
             creditos: curso.creditos,
             horasSemanales: curso.horasSemanales,
-            estado: curso.estado,
             descripcion: curso.descripcion
         };
 
@@ -741,7 +708,7 @@ export function createCursosModule(globalTools) {
                 const payload = leerDatosFormCursoDesdeSwal();
                 if (!payload) return false;
                 try {
-                    await fetchJson(`/admin/cursos/${cursoSeleccionado.idCurso}`, 'No se pudo actualizar el curso', {
+                    await fetchJson(`/admin/cursos/${cursoSeleccionado.id}`, 'No se pudo actualizar el curso', {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
@@ -771,7 +738,7 @@ export function createCursosModule(globalTools) {
         }).then(async result => {
             if (!result.isConfirmed) return;
             try {
-                await fetchJson(`/admin/cursos/${curso.idCurso}`, 'No se pudo eliminar el curso', {
+                await fetchJson(`/admin/cursos/${curso.id}`, 'No se pudo eliminar el curso', {
                     method: 'DELETE'
                 });
                 tools.showToast('Curso eliminado', 'success');

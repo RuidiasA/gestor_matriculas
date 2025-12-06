@@ -19,6 +19,7 @@ public class CursoDetalleDTO {
     private String tipo;
 
     private Long carreraId;
+    private String carreraNombre;
     private List<CursoPrerequisitoDTO> prerrequisitos;
     private List<DocenteCursoDictableDTO> docentesDictables;
 }
