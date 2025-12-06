@@ -546,16 +546,23 @@
                                                   ALUMNOS
         =========================================================================================== -->
         <section id="alumnos" class="admin-section">
-            <div class="panel-grid">
-                <article class="panel shadow panel--tabla">
-                    <form id="formBusquedaAlumnos" class="search-form">
-                        <h3>Búsqueda de alumnos</h3>
-                        <div class="form-field">
-                            <input id="filtroAlumno" name="filtro" type="text" placeholder="DNI, código, nombre o correo">
+            <div class="alumnos-layout">
+                <article class="card" aria-labelledby="tituloBusquedaAlumnos">
+                    <header class="card__header">
+                        <div>
+                            <p class="muted">Explora y filtra</p>
+                            <h3 id="tituloBusquedaAlumnos">Búsqueda de alumnos</h3>
                         </div>
-                        <div class="search-actions">
-                            <button type="submit" class="btn-primary">Buscar</button>
-                            <button type="button" id="btnLimpiarBusqueda" class="btn-secondary">Limpiar</button>
+                        <div class="card__actions">
+                            <button type="button" id="btnLimpiarBusqueda" class="btn-outline">Limpiar</button>
+                            <button type="submit" form="formBusquedaAlumnos" class="btn-primary">Buscar</button>
+                        </div>
+                    </header>
+
+                    <form id="formBusquedaAlumnos" class="search-form">
+                        <div class="form-field">
+                            <label for="filtroAlumno">Texto libre</label>
+                            <input id="filtroAlumno" name="filtro" type="text" placeholder="DNI, código, nombre o correo">
                         </div>
                     </form>
                     <div id="estadoBusqueda" class="status-message" hidden></div>
@@ -584,11 +591,15 @@
                     </div>
                 </article>
 
-                <article class="panel shadow panel--ficha" id="fichaAlumno">
-                    <div class="panel-header">
-                        <h3>Ficha del alumno</h3>
+                <article class="card" id="fichaAlumno">
+                    <header class="card__header">
+                        <div>
+                            <p class="muted">Perfil seleccionado</p>
+                            <h3>Ficha del alumno</h3>
+                        </div>
                         <span class="badge" id="estadoAlumno">-</span>
-                    </div>
+                    </header>
+
                     <div class="ficha">
                         <div class="ficha__data">
                             <p class="ficha__titulo" id="nombreAlumno">Selecciona un alumno</p>
@@ -647,75 +658,78 @@
                         <p id="estadoContacto" class="status-message" hidden></p>
                     </form>
                 </article>
-
-                <article class="panel shadow panel--detalle" id="detalleAcademico">
-                    <div class="panel-header">
-                        <h3>Detalle académico</h3>
-                        <div class="form-field compact">
-                            <label for="selectorCiclo">Ciclo</label>
-                            <select id="selectorCiclo"></select>
-                        </div>
-                    </div>
-
-                    <div class="table-wrapper">
-                        <table class="admin-table" id="tablaCursosMatriculados">
-                            <thead>
-                            <tr>
-                                <th>Código sección</th>
-                                <th>Curso</th>
-                                <th>Docente</th>
-                                <th>Créditos</th>
-                                <th>Horas</th>
-                                <th>Modalidad</th>
-                                <th>Aula</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr class="skeleton-row" aria-hidden="true">
-                                <td colspan="7">Selecciona un alumno para ver sus cursos</td>
-                            </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div class="resumen-grid">
-                        <div class="resumen-card">
-                            <p class="label">Total cursos</p>
-                            <p id="totalCursos">-</p>
-                        </div>
-                        <div class="resumen-card">
-                            <p class="label">Créditos</p>
-                            <p id="totalCreditos">-</p>
-                        </div>
-                        <div class="resumen-card">
-                            <p class="label">Horas semanales</p>
-                            <p id="totalHoras">-</p>
-                        </div>
-                        <div class="resumen-card">
-                            <p class="label">Matrícula</p>
-                            <p id="montoMatricula">-</p>
-                        </div>
-                        <div class="resumen-card">
-                            <p class="label">Pensión</p>
-                            <p id="montoPension">-</p>
-                        </div>
-                        <div class="resumen-card">
-                            <p class="label">Monto total</p>
-                            <p id="montoTotal">-</p>
-                        </div>
-                    </div>
-
-                    <div class="historial">
-                        <div class="historial__header">
-                            <h4>Historial de matrículas</h4>
-                            <span class="muted" id="subtituloHistorial">-</span>
-                        </div>
-                        <div id="contenedorHistorial" class="historial__items historial__items--accordion">
-                            <p class="muted">Sin registros</p>
-                        </div>
-                    </div>
-                </article>
             </div>
+
+            <article class="card alumnos-secondary" id="detalleAcademico">
+                <header class="card__header">
+                    <div>
+                        <p class="muted">Matrículas recientes</p>
+                        <h3>Detalle académico</h3>
+                    </div>
+                    <div class="form-field compact" style="min-width: 180px;">
+                        <label for="selectorCiclo">Ciclo</label>
+                        <select id="selectorCiclo"></select>
+                    </div>
+                </header>
+
+                <div class="table-wrapper">
+                    <table class="admin-table" id="tablaCursosMatriculados">
+                        <thead>
+                        <tr>
+                            <th>Código sección</th>
+                            <th>Curso</th>
+                            <th>Docente</th>
+                            <th>Créditos</th>
+                            <th>Horas</th>
+                            <th>Modalidad</th>
+                            <th>Aula</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr class="skeleton-row" aria-hidden="true">
+                            <td colspan="7">Selecciona un alumno para ver sus cursos</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="resumen-grid">
+                    <div class="resumen-card">
+                        <p class="label">Total cursos</p>
+                        <p id="totalCursos">-</p>
+                    </div>
+                    <div class="resumen-card">
+                        <p class="label">Créditos</p>
+                        <p id="totalCreditos">-</p>
+                    </div>
+                    <div class="resumen-card">
+                        <p class="label">Horas semanales</p>
+                        <p id="totalHoras">-</p>
+                    </div>
+                    <div class="resumen-card">
+                        <p class="label">Matrícula</p>
+                        <p id="montoMatricula">-</p>
+                    </div>
+                    <div class="resumen-card">
+                        <p class="label">Pensión</p>
+                        <p id="montoPension">-</p>
+                    </div>
+                    <div class="resumen-card">
+                        <p class="label">Monto total</p>
+                        <p id="montoTotal">-</p>
+                    </div>
+                </div>
+
+                <div class="historial">
+                    <div class="historial__header">
+                        <h4>Historial de matrículas</h4>
+                        <span class="muted" id="subtituloHistorial">-</span>
+                    </div>
+                    <div id="contenedorHistorial" class="historial__items historial__items--accordion">
+                        <p class="muted">Sin registros</p>
+                    </div>
+                </div>
+            </article>
         </section>
 
         <!-- ==========================================================================================
