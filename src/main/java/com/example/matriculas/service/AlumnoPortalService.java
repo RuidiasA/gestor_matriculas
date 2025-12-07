@@ -6,6 +6,7 @@ import com.example.matriculas.model.enums.EstadoSolicitud;
 import com.example.matriculas.model.enums.EstadoDetalleMatricula;
 import com.example.matriculas.model.enums.EstadoMatricula;
 import com.example.matriculas.model.enums.EstadoPago;
+import com.example.matriculas.repository.*;
 import com.lowagie.text.Document;
 import com.lowagie.text.DocumentException;
 import com.lowagie.text.Font;
@@ -15,12 +16,6 @@ import com.lowagie.text.Phrase;
 import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
-import com.example.matriculas.repository.AlumnoRepository;
-import com.example.matriculas.repository.DetalleMatriculaRepository;
-import com.example.matriculas.repository.MatriculaRepository;
-import com.example.matriculas.repository.PagoRepository;
-import com.example.matriculas.repository.SeccionRepository;
-import com.example.matriculas.repository.SolicitudSeccionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
@@ -56,6 +51,7 @@ public class AlumnoPortalService {
     private final SeccionRepository seccionRepository;
     private final DetalleMatriculaRepository detalleMatriculaRepository;
     private final SolicitudSeccionRepository solicitudSeccionRepository;
+    private final CursoRepository cursoRepository;
 
 
     @Transactional(readOnly = true)

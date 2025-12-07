@@ -26,6 +26,8 @@ public class SolicitudSeccion {
     private Curso curso;
 
     private LocalDateTime fechaSolicitud;
+
+    @Column(name = "ciclo_academico")
     private String cicloAcademico;
 
     @Enumerated(EnumType.STRING)
