@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class CursoMatriculadoDTO {
+    private Long seccionId;
     private String codigoSeccion;
     private String nombreCurso;
     private String docente;
@@ -21,6 +22,7 @@ public class CursoMatriculadoDTO {
 
     public static CursoMatriculadoDTO fromDetalle(DetalleMatricula det) {
         return CursoMatriculadoDTO.builder()
+                .seccionId(det.getSeccion() != null ? det.getSeccion().getId() : null)
                 .codigoSeccion(det.getSeccion().getCodigo())
                 .nombreCurso(det.getSeccion().getCurso().getNombre())
                 .docente(det.getSeccion().getDocente().getNombres()

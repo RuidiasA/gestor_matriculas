@@ -44,6 +44,7 @@ public class MatriculaService {
                 .map(det -> {
                     CursoMatriculadoDTO dto = new CursoMatriculadoDTO();
 
+                    dto.setSeccionId(det.getSeccion() != null ? det.getSeccion().getId() : null);
                     dto.setCodigoSeccion(det.getSeccion().getCodigo());
                     dto.setNombreCurso(det.getSeccion().getCurso().getNombre());
 
@@ -74,6 +75,7 @@ public class MatriculaService {
                     List<CursoMatriculadoDTO> cursosDTO = m.getDetalles()
                             .stream()
                             .map(det -> CursoMatriculadoDTO.builder()
+                                    .seccionId(det.getSeccion() != null ? det.getSeccion().getId() : null)
                                     .codigoSeccion(det.getSeccion().getCodigo())
                                     .nombreCurso(det.getSeccion().getCurso().getNombre())
                                     .docente(det.getSeccion().getDocente().getNombres()

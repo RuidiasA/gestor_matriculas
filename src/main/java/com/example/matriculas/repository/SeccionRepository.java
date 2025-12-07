@@ -28,6 +28,9 @@ public interface SeccionRepository extends JpaRepository<Seccion, Long>, JpaSpec
     @Query("SELECT s FROM Seccion s WHERE s.id = :id")
     Optional<Seccion> findDetalleById(@Param("id") Long id);
 
+    @EntityGraph(attributePaths = {"curso", "docente", "horarios"})
+    List<Seccion> findByCursoId(Long cursoId);
+
     @Query("SELECT DISTINCT s.periodoAcademico FROM Seccion s WHERE s.periodoAcademico IS NOT NULL ORDER BY s.periodoAcademico DESC")
     List<String> findDistinctPeriodos();
 

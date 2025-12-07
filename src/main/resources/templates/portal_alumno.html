@@ -15,6 +15,7 @@
     <link rel="stylesheet" href="/css/responsive.css">
 
     <!-- JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11" defer></script>
     <script src="/js/matricula.js" defer></script>
 
     <!-- ICONOS -->
@@ -61,83 +62,79 @@
              VISTA — MATRÍCULA
         ======================================================= -->
         <section id="vista-matricula" class="vista-matricula">
-            <header class="page-header">
+            <header class="page-header page-header--center">
                 <div>
                     <p class="eyebrow">Portal del alumno</p>
-                    <h1>Gestión de matrícula</h1>
-                    <p class="muted">Administra tu carga académica con la misma experiencia del portal de docentes.</p>
-                </div>
-                <div class="page-actions">
-                    <button class="btn-secondary" id="btn-guardar-borrador" type="button">Guardar</button>
-                    <button class="btn-outline" id="btn-descargar-resumen" type="button">Descargar</button>
-                    <button class="btn-primary" id="btn-filtrar" type="button">Actualizar</button>
+                    <h1>MATRÍCULA EN LÍNEA</h1>
+                    <p class="muted">Gestiona tus cursos con la misma experiencia de tablas y filtros del portal docente.</p>
                 </div>
             </header>
 
-            <div class="matricula-grid">
-                <div class="matricula-col">
-                    <article class="card filtros-card">
-                        <header class="card__header card__header--blue">
-                            <div>
-                                <p class="eyebrow">Búsqueda</p>
-                                <h2>Filtros de matrícula</h2>
-                                <p class="muted">Selecciona los criterios para encontrar cursos disponibles.</p>
-                            </div>
-                        </header>
-                        <form class="filters-form" id="form-filtros">
-                            <label class="form-field" for="filtro-texto">
-                                <span>Nombre o código de curso</span>
-                                <input id="filtro-texto" type="text" placeholder="Ej. Inteligencia Artificial o IA401">
-                            </label>
-                            <label class="form-field" for="filtro-ciclo">
-                                <span>Ciclo académico</span>
-                                <input id="filtro-ciclo" type="text" placeholder="Ej. 2024-I">
-                            </label>
-                            <label class="form-field" for="filtro-modalidad">
-                                <span>Modalidad</span>
-                                <select id="filtro-modalidad">
-                                    <option value="">Todas</option>
-                                    <option value="PRESENCIAL">Presencial</option>
-                                    <option value="VIRTUAL">Virtual</option>
-                                    <option value="HIBRIDO">Híbrido</option>
-                                </select>
-                            </label>
-                            <div class="form-actions">
-                                <button class="btn-primary" type="submit">Buscar cursos</button>
-                                <button class="btn-outline" type="button" id="btn-limpiar-filtros">Limpiar</button>
-                            </div>
-                        </form>
-                    </article>
+            <article class="card filtros-card filtros-card--docente">
+                <header class="card__header">
+                    <div>
+                        <p class="eyebrow">Búsqueda</p>
+                        <h2>Filtros de matrícula</h2>
+                        <p class="muted">Nombre o código de curso, ciclo y modalidad.</p>
+                    </div>
+                    <div class="card__actions">
+                        <button class="btn-outline" type="button" id="btn-filtrar">Actualizar</button>
+                    </div>
+                </header>
+                <form class="filters-form filters-form--inline" id="form-filtros">
+                    <label class="form-field" for="filtro-texto">
+                        <span>Nombre o código de curso</span>
+                        <input id="filtro-texto" type="text" placeholder="Ej. Arquitectura o ARQ101">
+                    </label>
+                    <label class="form-field" for="filtro-ciclo">
+                        <span>Ciclo</span>
+                        <select id="filtro-ciclo">
+                            <option value="">Todos</option>
+                        </select>
+                    </label>
+                    <label class="form-field" for="filtro-modalidad">
+                        <span>Modalidad</span>
+                        <select id="filtro-modalidad">
+                            <option value="">Todas</option>
+                            <option value="PRESENCIAL">Presencial</option>
+                            <option value="VIRTUAL">Virtual</option>
+                            <option value="ONLINE">Online</option>
+                        </select>
+                    </label>
+                    <div class="form-actions">
+                        <button class="btn-primary" type="submit">Buscar</button>
+                        <button class="btn-outline" type="button" id="btn-limpiar-filtros">Limpiar</button>
+                    </div>
+                </form>
+            </article>
 
+            <div class="matricula-layout">
+                <div class="col-izquierda">
                     <article class="card tabla-cursos-card">
                         <header class="card__header">
                             <div>
                                 <p class="eyebrow">Oferta académica</p>
                                 <h2>Cursos disponibles</h2>
-                                <p class="muted">Selecciona un curso para desplegar sus secciones y matricularte.</p>
+                                <p class="muted">Haz click en un curso para ver sus secciones disponibles.</p>
                             </div>
-                            <div class="card__actions">
-                                <button id="btn-matricular" class="btn-primary" type="button">Matricular</button>
-                                <button id="btn-retirar" class="btn-secondary" type="button">Retirar</button>
-                            </div>
+                            <p class="muted estado-consulta" id="estado-cursos"></p>
                         </header>
                         <div class="table-wrapper">
-                            <table class="admin-table alumno-table">
+                            <table class="admin-table alumno-table" id="tabla-cursos-disponibles">
                                 <thead>
                                 <tr>
                                     <th>Código</th>
                                     <th>Curso</th>
-                                    <th>Ciclo</th>
                                     <th>Créditos</th>
+                                    <th>Ciclo</th>
                                     <th>Modalidad</th>
-                                    <th>Cupos disponibles</th>
                                     <th>Docente</th>
-                                    <th class="col-acciones">Acción</th>
+                                    <th>Cupos disp.</th>
                                 </tr>
                                 </thead>
-                                <tbody id="tabla-cursos-body">
+                                <tbody id="cursos-disponibles-body">
                                 <tr class="fila-empty">
-                                    <td colspan="8" class="estado-vacio">Usa los filtros para cargar el catálogo de cursos disponibles.</td>
+                                    <td colspan="7" class="estado-vacio">Usa los filtros para cargar el catálogo de cursos disponibles.</td>
                                 </tr>
                                 </tbody>
                             </table>
@@ -145,11 +142,11 @@
                     </article>
                 </div>
 
-                <aside id="aside-derecho" class="panel-lateral">
+                <aside id="aside-derecho" class="col-derecha panel-lateral">
                     <article class="card student-card">
                         <header class="card__header card__header--blue">
                             <div>
-                                <p class="eyebrow">Perfil</p>
+                                <p class="eyebrow">Perfil del alumno</p>
                                 <h2 id="alumno-nombre">Alumno</h2>
                                 <p class="muted">Información académica y financiera</p>
                             </div>
@@ -169,19 +166,19 @@
                                 <p id="alumno-ciclo" class="value">—</p>
                             </div>
                             <div>
+                                <p class="label">Créditos usados</p>
+                                <p id="resumen-creditos" class="value">0</p>
+                            </div>
+                            <div>
+                                <p class="label">Créditos máximos</p>
+                                <p id="resumen-creditos-max" class="value">—</p>
+                            </div>
+                            <div>
                                 <p class="label">Orden de mérito</p>
                                 <p id="alumno-orden" class="value">—</p>
                             </div>
                         </div>
                         <div class="student-stats">
-                            <div class="stat">
-                                <p class="label">Créditos matriculados</p>
-                                <p id="resumen-creditos" class="value">0</p>
-                            </div>
-                            <div class="stat">
-                                <p class="label">Créditos máximos</p>
-                                <p id="resumen-creditos-max" class="value">—</p>
-                            </div>
                             <div class="stat">
                                 <p class="label">Cursos</p>
                                 <p id="resumen-cursos" class="value">0</p>
@@ -189,6 +186,10 @@
                             <div class="stat">
                                 <p class="label">Horas semanales</p>
                                 <p id="resumen-horas" class="value">—</p>
+                            </div>
+                            <div class="stat">
+                                <p class="label">Estado pagos</p>
+                                <p id="estado-pagos" class="value">—</p>
                             </div>
                         </div>
                         <div class="student-meta">
@@ -198,6 +199,10 @@
                                 <span class="badge badge--soft">Fin: —</span>
                             </div>
                         </div>
+                        <div class="student-actions">
+                            <button class="btn-secondary" id="btn-guardar-borrador" type="button">Guardar horario</button>
+                            <button class="btn-outline" id="btn-descargar-resumen" type="button" disabled title="Función no disponible">Descargar PDF</button>
+                        </div>
                     </article>
 
                     <article class="card inscritos-card">
@@ -205,11 +210,7 @@
                             <div>
                                 <p class="eyebrow">Carga actual</p>
                                 <h3>Cursos matriculados</h3>
-                                <p class="muted">Mantén tu avance sincronizado con el portal docente.</p>
-                            </div>
-                            <div class="card__actions">
-                                <button class="btn-outline btn-sm" type="button">Filtrar</button>
-                                <button class="btn-secondary btn-sm" type="button" id="btn-descargar">Descargar</button>
+                                <p class="muted">Gestiona retiros y mantén tu carga al día.</p>
                             </div>
                         </header>
                         <div class="table-wrapper table-wrapper--inscritos">
@@ -219,48 +220,46 @@
                                     <th>Sección</th>
                                     <th>Curso</th>
                                     <th>Créditos</th>
-                                    <th>Docente</th>
                                     <th>Modalidad</th>
+                                    <th>Docente</th>
+                                    <th class="col-acciones">Acción</th>
                                 </tr>
                                 </thead>
                                 <tbody id="tabla-inscritos-body">
-                                <tr><td colspan="5" class="estado-vacio">Aún no tienes cursos matriculados.</td></tr>
+                                <tr><td colspan="6" class="estado-vacio">Aún no tienes cursos matriculados.</td></tr>
                                 </tbody>
-                            </table>
-                        </div>
-                    </article>
-
-                    <article class="card horario-card">
-                        <header class="card__header">
-                            <div>
-                                <p class="eyebrow">Disponibilidad</p>
-                                <h3>Horario semanal</h3>
-                            </div>
-                        </header>
-                        <div class="tabla-horario-completa">
-                            <table class="horario-completo">
-                                <thead>
-                                <tr>
-                                    <th>Hora</th>
-                                    <th>Lunes</th>
-                                    <th>Martes</th>
-                                    <th>Miércoles</th>
-                                    <th>Jueves</th>
-                                    <th>Viernes</th>
-                                    <th>Sábado</th>
-                                    <th>Domingo</th>
-                                </tr>
-                                </thead>
-                                <tbody></tbody>
                             </table>
                         </div>
                     </article>
                 </aside>
             </div>
 
-            <div id="detalle-curso" class="hidden" aria-hidden="true"></div>
+            <article class="card horario-card horario-card--full">
+                <header class="card__header">
+                    <div>
+                        <p class="eyebrow">Disponibilidad</p>
+                        <h3>Horario semanal</h3>
+                    </div>
+                </header>
+                <div class="tabla-horario-completa">
+                    <table class="horario-completo">
+                        <thead>
+                        <tr>
+                            <th>Hora</th>
+                            <th>Lunes</th>
+                            <th>Martes</th>
+                            <th>Miércoles</th>
+                            <th>Jueves</th>
+                            <th>Viernes</th>
+                            <th>Sábado</th>
+                            <th>Domingo</th>
+                        </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </article>
         </section>
-
         <!-- ======================================================
             VISTA — HORARIO
        ======================================================= -->

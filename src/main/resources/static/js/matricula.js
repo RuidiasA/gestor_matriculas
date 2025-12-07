@@ -57,10 +57,17 @@ function mostrarVista(vista, event) {
 async function fetchJson(url, errorMessage, options = {}) {
     try {
         const resp = await fetch(url, options);
-        if (!resp.ok) throw new Error(errorMessage || 'Error de servidor');
         const contentType = resp.headers.get('content-type') || '';
-        if (contentType.includes('application/json')) {
-            return await resp.json();
+        const isJson = contentType.includes('application/json');
+        const payload = isJson ? await resp.json().catch(() => null) : null;
+
+        if (!resp.ok) {
+            const detalle = payload?.message || payload?.mensajes?.join?.(' ') || errorMessage;
+            throw new Error(detalle || 'Error de servidor');
+        }
+
+        if (isJson) {
+            return payload;
         }
         return null;
     } catch (err) {
@@ -91,6 +98,36 @@ function mostrarMensajeExito(msg) {
     mostrarToast(msg || 'Operación exitosa', 'success');
 }
 
+async function confirmarAccion(titulo, texto, confirmText = 'Confirmar') {
+    if (window.Swal) {
+        const resp = await Swal.fire({
+            title: titulo,
+            text: texto,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: confirmText,
+            cancelButtonText: 'Cancelar'
+        });
+        return resp.isConfirmed;
+    }
+    return window.confirm(`${titulo}\n${texto || ''}`);
+}
+
+function mostrarModalMensajes(titulo, mensajes = []) {
+    const contenido = Array.isArray(mensajes) && mensajes.length
+        ? `<ul>${mensajes.map(m => `<li>${m}</li>`).join('')}</ul>`
+        : '';
+    if (window.Swal) {
+        Swal.fire({
+            title: titulo,
+            html: contenido || titulo,
+            icon: 'info'
+        });
+    } else {
+        mostrarMensajeError(mensajes.join('. '));
+    }
+}
+
 function construirQueryCursos() {
     const ciclo = document.getElementById('filtro-ciclo')?.value || '';
     const modalidad = document.getElementById('filtro-modalidad')?.value || '';
@@ -117,28 +154,48 @@ function limpiarSeleccionSeccion() {
     document.querySelectorAll('.tabla-secciones tr.selected').forEach(tr => tr.classList.remove('selected'));
 }
 
+async function cargarPeriodos() {
+    const select = document.getElementById('filtro-ciclo');
+    if (!select) return;
+    try {
+        const periodos = await fetchJson('/alumno/cursos/periodos', 'No se pudieron cargar los periodos') || [];
+        const opciones = new Set(periodos.filter(Boolean));
+        if (state.perfil?.cicloActual) opciones.add(state.perfil.cicloActual);
+
+        select.innerHTML = '<option value="">Todos</option>' + Array.from(opciones)
+            .map(p => `<option value="${p}">${p}</option>`).join('');
+    } catch (err) {
+        // silencioso
+    }
+}
+
 /* ============================================================
    RENDER DE CURSOS Y SECCIONES
 ============================================================ */
 async function cargarCursosDisponibles() {
     const url = `/alumno/cursos/disponibles${construirQueryCursos()}`;
+    state.seccionesPorCurso = {};
     state.cursosDisponibles = await fetchJson(url, 'No se pudo cargar el catálogo de cursos') || [];
+    const estado = document.getElementById('estado-cursos');
+    if (estado) {
+        estado.textContent = state.cursosDisponibles.length
+            ? `${state.cursosDisponibles.length} curso(s) encontrado(s)`
+            : 'Sin resultados con los filtros actuales';
+    }
     renderizarCursosTabla();
 }
 
-async function cargarDetalleCurso(cursoId) {
+async function obtenerSeccionesCurso(cursoId) {
     if (!cursoId) return [];
     if (!state.seccionesPorCurso[cursoId]) {
-        const detalle = await fetchJson(`/alumno/cursos/${cursoId}/detalle`, 'No se pudo cargar el detalle del curso');
-        state.seccionesPorCurso[cursoId] = detalle;
+        const secciones = await fetchJson(`/alumno/cursos/${cursoId}/secciones`, 'No se pudieron cargar las secciones');
+        state.seccionesPorCurso[cursoId] = secciones;
     }
-    const detalle = state.seccionesPorCurso[cursoId];
-    const secciones = detalle?.secciones || detalle?.seccion || detalle || [];
-    return Array.isArray(secciones) ? secciones : [];
+    return state.seccionesPorCurso[cursoId] || [];
 }
 
 function renderizarCursosTabla() {
-    const tbody = document.getElementById('tabla-cursos-body');
+    const tbody = document.getElementById('cursos-disponibles-body');
     if (!tbody) return;
     tbody.innerHTML = '';
     limpiarSeleccionSeccion();
@@ -146,7 +203,7 @@ function renderizarCursosTabla() {
     if (!state.cursosDisponibles.length) {
         const tr = document.createElement('tr');
         tr.classList.add('fila-empty');
-        tr.innerHTML = '<td colspan="8" class="estado-vacio">No se encontraron cursos disponibles para los filtros seleccionados.</td>';
+        tr.innerHTML = '<td colspan="7" class="estado-vacio">No se encontraron cursos disponibles para los filtros seleccionados.</td>';
         tbody.appendChild(tr);
         return;
     }
@@ -154,17 +211,17 @@ function renderizarCursosTabla() {
     state.cursosDisponibles.forEach(curso => {
         const tr = document.createElement('tr');
         tr.classList.add('fila-curso');
-        const cursoId = curso.id ?? curso.cursoId ?? curso.seccionId ?? curso.codigoCurso;
+        const cursoId = curso.cursoId ?? curso.id ?? curso.codigoCurso;
         tr.dataset.cursoId = cursoId || '';
 
         const datos = [
-            curso.codigoCurso || curso.codigo || '—',
-            curso.nombreCurso || curso.nombre || '—',
-            curso.ciclo || curso.cicloAcademico || '—',
+            curso.codigoCurso || '—',
+            curso.nombreCurso || '—',
             curso.creditos ?? '—',
+            curso.ciclo || '—',
             curso.modalidad || '—',
-            curso.cuposDisponibles ?? curso.cupos ?? '—',
-            curso.docente || 'Por asignar'
+            curso.docente || '—',
+            curso.cuposDisponibles ?? curso.cupos ?? '—'
         ];
 
         datos.forEach(valor => {
@@ -172,19 +229,6 @@ function renderizarCursosTabla() {
             td.textContent = valor;
             tr.appendChild(td);
         });
-
-        const acciones = document.createElement('td');
-        acciones.className = 'col-acciones';
-        const verBtn = document.createElement('button');
-        verBtn.type = 'button';
-        verBtn.className = 'btn-outline btn-sm';
-        verBtn.textContent = 'Ver secciones';
-        verBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            mostrarSecciones(curso, tr);
-        });
-        acciones.appendChild(verBtn);
-        tr.appendChild(acciones);
 
         tr.addEventListener('click', () => mostrarSecciones(curso, tr));
         tbody.appendChild(tr);
@@ -203,7 +247,7 @@ async function mostrarSecciones(curso, filaCurso) {
         return;
     }
 
-    const secciones = await cargarDetalleCurso(cursoId);
+    const secciones = await obtenerSeccionesCurso(cursoId);
     renderizarSeccionesTabla(cursoId, secciones, filaCurso, curso);
     filaCurso.classList.add('abierto');
 }
@@ -220,7 +264,7 @@ function renderizarSeccionesTabla(cursoId, secciones = [], filaCurso, cursoPadre
     detalleRow.dataset.curso = cursoId;
 
     const cell = document.createElement('td');
-    cell.colSpan = 8;
+    cell.colSpan = 7;
 
     const contenedor = document.createElement('div');
     contenedor.className = 'subtabla-contenedor';
@@ -237,9 +281,9 @@ function renderizarSeccionesTabla(cursoId, secciones = [], filaCurso, cursoPadre
             <tr>
                 <th>Sección</th>
                 <th>Docente</th>
-                <th>Horario</th>
-                <th>Modalidad</th>
                 <th>Turno</th>
+                <th>Horario</th>
+                <th>Aula</th>
                 <th>Cupos</th>
                 <th class="acciones-col">Acciones</th>
             </tr>
@@ -254,18 +298,18 @@ function renderizarSeccionesTabla(cursoId, secciones = [], filaCurso, cursoPadre
         body.appendChild(vacio);
     } else {
         secciones.forEach(seccion => {
-            const seccionId = seccion.id ?? seccion.seccionId ?? seccion.codigoSeccion;
-            const matriculado = state.cursosMatriculados.some(c => String(c.seccionId ?? c.id ?? c.codigoSeccion) === String(seccionId));
+            const seccionId = seccion.seccionId ?? seccion.id ?? seccion.codigoSeccion;
+            const matriculado = state.cursosMatriculados.some(c => String(c.seccionId ?? c.codigoSeccion) === String(seccionId));
             const tr = document.createElement('tr');
             tr.dataset.seccionId = seccionId;
 
             tr.innerHTML = `
                 <td>${seccion.codigoSeccion || seccion.codigo || seccionId || '—'}</td>
                 <td>${seccion.docente || 'Por asignar'}</td>
-                <td>${formatearHorario(seccion.horario || seccion.horarios)}</td>
-                <td>${seccion.modalidad || cursoPadre.modalidad || '—'}</td>
                 <td>${seccion.turno || cursoPadre.turno || '—'}</td>
-                <td>${seccion.cuposDisponibles ?? seccion.cupos ?? '—'}</td>
+                <td>${formatearHorario(seccion.horario || seccion.horarios)}</td>
+                <td>${seccion.aula || '—'}</td>
+                <td>${(seccion.cuposDisponibles ?? '0')} / ${seccion.matriculados ?? '0'}</td>
                 <td class="acciones-col"></td>
             `;
 
@@ -276,7 +320,6 @@ function renderizarSeccionesTabla(cursoId, secciones = [], filaCurso, cursoPadre
             btn.className = matriculado ? 'btn-secondary btn-sm' : 'btn-primary btn-sm';
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                seleccionarSeccion(seccionId, tr);
                 if (matriculado) {
                     retirar(seccionId);
                 } else {
@@ -317,11 +360,14 @@ async function matricular(seccionId) {
     }
 
     try {
-        const validacion = await fetchJson(`/alumno/secciones/${seccionId}/validar`, 'No se pudo validar la sección');
-        if (validacion && validacion.valido === false) {
-            mostrarMensajeError(validacion.mensaje || 'La sección no está disponible');
+        const validacion = await fetchJson(`/alumno/matricula/validar/${seccionId}`, 'No se pudo validar la sección');
+        if (validacion && validacion.puedeMatricular === false) {
+            mostrarModalMensajes('No es posible matricular', validacion.mensajes || ['La sección no está disponible']);
             return;
         }
+
+        const confirmado = await confirmarAccion('¿Matricularte en esta sección?', 'Se validarán horarios y prerrequisitos.', 'Matricular');
+        if (!confirmado) return;
 
         await fetchJson(`/alumno/matricula/${seccionId}`, 'No se pudo completar la matrícula', { method: 'POST' });
         await refrescarEstadoMatricula();
@@ -339,8 +385,10 @@ async function retirar(seccionId) {
     }
 
     try {
-        const resp = await fetch(`/alumno/matricula/${seccionId}`, { method: 'DELETE' });
-        if (!resp.ok) throw new Error('No se pudo retirar la sección');
+        const confirmado = await confirmarAccion('Retirar sección', 'Se eliminará este curso de tu matrícula.', 'Retirar');
+        if (!confirmado) return;
+
+        await fetchJson(`/alumno/matricula/${seccionId}`, 'No se pudo retirar la sección', { method: 'DELETE' });
         await refrescarEstadoMatricula();
         await cargarCursosDisponibles();
         mostrarMensajeExito('Se retiró la sección de tu matrícula');
@@ -468,6 +516,7 @@ function actualizarFichaAlumno() {
     setText('#resumen-horas', resumen.totalHoras ?? '—');
 
     setText('#alumno-estado-financiero', estadoFinanciero);
+    setText('#estado-pagos', deudaTotal > 0 ? 'Pendiente' : 'Al día');
 
     const fechas = document.getElementById('fechas-matricula');
     if (fechas) {
@@ -487,17 +536,26 @@ function renderCursosInscritos() {
     if (tablaBody) {
         tablaBody.innerHTML = '';
         if (!state.cursosMatriculados.length) {
-            tablaBody.innerHTML = '<tr><td colspan="5" class="estado-vacio">Aún no tienes cursos matriculados.</td></tr>';
+            tablaBody.innerHTML = '<tr><td colspan="6" class="estado-vacio">Aún no tienes cursos matriculados.</td></tr>';
         } else {
             state.cursosMatriculados.forEach(curso => {
                 const tr = document.createElement('tr');
+                const seccionId = curso.seccionId;
                 tr.innerHTML = `
                     <td>${curso.codigoSeccion || curso.codigoCurso || '-'}</td>
                     <td>${curso.nombreCurso || '-'}</td>
                     <td>${curso.creditos ?? '-'}</td>
-                    <td>${curso.docente || 'Por asignar'}</td>
                     <td>${curso.modalidad || '-'}</td>
+                    <td>${curso.docente || 'Por asignar'}</td>
+                    <td class="acciones-col"></td>
                 `;
+                const acciones = tr.querySelector('.acciones-col');
+                const btn = document.createElement('button');
+                btn.className = 'btn-outline btn-sm';
+                btn.type = 'button';
+                btn.textContent = 'Retirar';
+                btn.addEventListener('click', () => retirar(seccionId));
+                acciones.appendChild(btn);
                 tablaBody.appendChild(tr);
             });
         }
@@ -672,6 +730,7 @@ async function cargarDatosIniciales() {
         actualizarFichaAlumno();
         renderCursosInscritos();
         renderHorarioTablas();
+        await cargarPeriodos();
         await cargarCursosDisponibles();
     } catch (err) {
         // Errores ya manejados en fetchJson
@@ -680,9 +739,7 @@ async function cargarDatosIniciales() {
 
 document.addEventListener('DOMContentLoaded', () => {
     cargarDatosIniciales();
-    document.getElementById('btn-filtrar')?.addEventListener('click', cargarCursosDisponibles);
-    document.getElementById('btn-matricular')?.addEventListener('click', () => matricular(state.seccionSeleccionada));
-    document.getElementById('btn-retirar')?.addEventListener('click', () => retirar(state.seccionSeleccionada));
+    document.getElementById('btn-filtrar')?.addEventListener('click', () => cargarCursosDisponibles());
 
     const formFiltros = document.getElementById('form-filtros');
     formFiltros?.addEventListener('submit', (e) => {
