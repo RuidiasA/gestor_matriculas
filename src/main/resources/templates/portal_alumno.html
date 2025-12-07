@@ -55,104 +55,212 @@
      MAIN
 ============================================================ -->
 <main>
-    <div class="main__container">
+    <div class="main__container student-portal">
 
         <!-- ======================================================
              VISTA — MATRÍCULA
         ======================================================= -->
         <section id="vista-matricula" class="vista-matricula">
-            <div class="main__container-item">
-                <h1>MATRÍCULA EN LÍNEA</h1>
-            </div>
+            <header class="page-header">
+                <div>
+                    <p class="eyebrow">Portal del alumno</p>
+                    <h1>Gestión de matrícula</h1>
+                    <p class="muted">Administra tu carga académica con la misma experiencia del portal de docentes.</p>
+                </div>
+                <div class="page-actions">
+                    <button class="btn-secondary" id="btn-guardar-borrador" type="button">Guardar</button>
+                    <button class="btn-outline" id="btn-descargar-resumen" type="button">Descargar</button>
+                    <button class="btn-primary" id="btn-filtrar" type="button">Actualizar</button>
+                </div>
+            </header>
 
-            <div class="catalogo-filtros">
-                <div class="filtros-group">
-                    <label for="filtro-texto">Buscar</label>
-                    <input id="filtro-texto" type="text" placeholder="Nombre o código de curso">
-                </div>
-                <div class="filtros-group">
-                    <label for="filtro-modalidad">Modalidad</label>
-                    <select id="filtro-modalidad">
-                        <option value="">Todas</option>
-                        <option value="PRESENCIAL">Presencial</option>
-                        <option value="VIRTUAL">Virtual</option>
-                        <option value="HIBRIDO">Híbrido</option>
-                    </select>
-                </div>
-                <div class="filtros-group">
-                    <label for="filtro-ciclo">Periodo</label>
-                    <input id="filtro-ciclo" type="text" placeholder="Ej. 2024-I">
-                </div>
-                <button id="btn-filtrar" class="btn-primario">Actualizar cursos</button>
-            </div>
+            <div class="matricula-grid">
+                <div class="matricula-col">
+                    <article class="card filtros-card">
+                        <header class="card__header card__header--blue">
+                            <div>
+                                <p class="eyebrow">Búsqueda</p>
+                                <h2>Filtros de matrícula</h2>
+                                <p class="muted">Selecciona los criterios para encontrar cursos disponibles.</p>
+                            </div>
+                        </header>
+                        <form class="filters-form" id="form-filtros">
+                            <label class="form-field" for="filtro-texto">
+                                <span>Nombre o código de curso</span>
+                                <input id="filtro-texto" type="text" placeholder="Ej. Inteligencia Artificial o IA401">
+                            </label>
+                            <label class="form-field" for="filtro-ciclo">
+                                <span>Ciclo académico</span>
+                                <input id="filtro-ciclo" type="text" placeholder="Ej. 2024-I">
+                            </label>
+                            <label class="form-field" for="filtro-modalidad">
+                                <span>Modalidad</span>
+                                <select id="filtro-modalidad">
+                                    <option value="">Todas</option>
+                                    <option value="PRESENCIAL">Presencial</option>
+                                    <option value="VIRTUAL">Virtual</option>
+                                    <option value="HIBRIDO">Híbrido</option>
+                                </select>
+                            </label>
+                            <div class="form-actions">
+                                <button class="btn-primary" type="submit">Buscar cursos</button>
+                                <button class="btn-outline" type="button" id="btn-limpiar-filtros">Limpiar</button>
+                            </div>
+                        </form>
+                    </article>
 
-            <div id="catalogo-cursos" class="tabla-cursos-container">
-                <div class="tabla-cursos__header">
-                    <div>
-                        <h3>Cursos disponibles</h3>
-                        <p class="descripcion">Selecciona un curso para ver sus secciones y matricularte.</p>
-                    </div>
-                    <div class="acciones-rapidas">
-                        <button id="btn-matricular" class="btn-primario" type="button">Matricular</button>
-                        <button id="btn-retirar" class="btn-secundario" type="button">Retirar</button>
-                    </div>
+                    <article class="card tabla-cursos-card">
+                        <header class="card__header">
+                            <div>
+                                <p class="eyebrow">Oferta académica</p>
+                                <h2>Cursos disponibles</h2>
+                                <p class="muted">Selecciona un curso para desplegar sus secciones y matricularte.</p>
+                            </div>
+                            <div class="card__actions">
+                                <button id="btn-matricular" class="btn-primary" type="button">Matricular</button>
+                                <button id="btn-retirar" class="btn-secondary" type="button">Retirar</button>
+                            </div>
+                        </header>
+                        <div class="table-wrapper">
+                            <table class="admin-table alumno-table">
+                                <thead>
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Curso</th>
+                                    <th>Ciclo</th>
+                                    <th>Créditos</th>
+                                    <th>Modalidad</th>
+                                    <th>Cupos disponibles</th>
+                                    <th>Docente</th>
+                                    <th class="col-acciones">Acción</th>
+                                </tr>
+                                </thead>
+                                <tbody id="tabla-cursos-body">
+                                <tr class="fila-empty">
+                                    <td colspan="8" class="estado-vacio">Usa los filtros para cargar el catálogo de cursos disponibles.</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </article>
                 </div>
-                <table class="tabla-cursos-principal">
-                    <thead>
-                    <tr>
-                        <th class="col-expandir"></th>
-                        <th>Código</th>
-                        <th>Curso</th>
-                        <th>Créditos</th>
-                        <th>Horas</th>
-                        <th>Modalidad</th>
-                        <th>Turno</th>
-                        <th>Cupos</th>
-                        <th>Estado</th>
-                    </tr>
-                    </thead>
-                    <tbody id="tabla-cursos-body">
-                    <tr class="fila-empty">
-                        <td colspan="9" class="estado-vacio">Usa los filtros para cargar el catálogo de cursos disponibles.</td>
-                    </tr>
-                    </tbody>
-                </table>
+
+                <aside id="aside-derecho" class="panel-lateral">
+                    <article class="card student-card">
+                        <header class="card__header card__header--blue">
+                            <div>
+                                <p class="eyebrow">Perfil</p>
+                                <h2 id="alumno-nombre">Alumno</h2>
+                                <p class="muted">Información académica y financiera</p>
+                            </div>
+                            <div class="badge badge--pill" id="alumno-estado-financiero">Estado financiero</div>
+                        </header>
+                        <div class="student-info-grid">
+                            <div>
+                                <p class="label">Código</p>
+                                <p id="alumno-codigo" class="value">—</p>
+                            </div>
+                            <div>
+                                <p class="label">Carrera</p>
+                                <p id="alumno-carrera" class="value">—</p>
+                            </div>
+                            <div>
+                                <p class="label">Ciclo actual</p>
+                                <p id="alumno-ciclo" class="value">—</p>
+                            </div>
+                            <div>
+                                <p class="label">Orden de mérito</p>
+                                <p id="alumno-orden" class="value">—</p>
+                            </div>
+                        </div>
+                        <div class="student-stats">
+                            <div class="stat">
+                                <p class="label">Créditos matriculados</p>
+                                <p id="resumen-creditos" class="value">0</p>
+                            </div>
+                            <div class="stat">
+                                <p class="label">Créditos máximos</p>
+                                <p id="resumen-creditos-max" class="value">—</p>
+                            </div>
+                            <div class="stat">
+                                <p class="label">Cursos</p>
+                                <p id="resumen-cursos" class="value">0</p>
+                            </div>
+                            <div class="stat">
+                                <p class="label">Horas semanales</p>
+                                <p id="resumen-horas" class="value">—</p>
+                            </div>
+                        </div>
+                        <div class="student-meta">
+                            <p class="label">Fechas de matrícula</p>
+                            <div class="meta-dates" id="fechas-matricula">
+                                <span class="badge badge--soft">Inicio: —</span>
+                                <span class="badge badge--soft">Fin: —</span>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article class="card inscritos-card">
+                        <header class="card__header">
+                            <div>
+                                <p class="eyebrow">Carga actual</p>
+                                <h3>Cursos matriculados</h3>
+                                <p class="muted">Mantén tu avance sincronizado con el portal docente.</p>
+                            </div>
+                            <div class="card__actions">
+                                <button class="btn-outline btn-sm" type="button">Filtrar</button>
+                                <button class="btn-secondary btn-sm" type="button" id="btn-descargar">Descargar</button>
+                            </div>
+                        </header>
+                        <div class="table-wrapper table-wrapper--inscritos">
+                            <table class="admin-table alumno-table alumno-table--compact">
+                                <thead>
+                                <tr>
+                                    <th>Sección</th>
+                                    <th>Curso</th>
+                                    <th>Créditos</th>
+                                    <th>Docente</th>
+                                    <th>Modalidad</th>
+                                </tr>
+                                </thead>
+                                <tbody id="tabla-inscritos-body">
+                                <tr><td colspan="5" class="estado-vacio">Aún no tienes cursos matriculados.</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </article>
+
+                    <article class="card horario-card">
+                        <header class="card__header">
+                            <div>
+                                <p class="eyebrow">Disponibilidad</p>
+                                <h3>Horario semanal</h3>
+                            </div>
+                        </header>
+                        <div class="tabla-horario-completa">
+                            <table class="horario-completo">
+                                <thead>
+                                <tr>
+                                    <th>Hora</th>
+                                    <th>Lunes</th>
+                                    <th>Martes</th>
+                                    <th>Miércoles</th>
+                                    <th>Jueves</th>
+                                    <th>Viernes</th>
+                                    <th>Sábado</th>
+                                    <th>Domingo</th>
+                                </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </article>
+                </aside>
             </div>
 
             <div id="detalle-curso" class="hidden" aria-hidden="true"></div>
-
-            <div class="fecha__matricula">
-                <div class="main__container-item">
-                    <h3>Inicio de matrícula:</h3>
-                </div>
-                <div class="main__container-item">
-                    <h3>Fin de matrícula:</h3>
-                </div>
-            </div>
-
-            <div class="main__container-item">
-                <h2 class="horario__title">HORARIO</h2>
-
-                <div class="tabla-horario-completa">
-                    <table class="horario-completo">
-                        <thead>
-                        <tr>
-                            <th>Hora</th>
-                            <th>Lunes</th>
-                            <th>Martes</th>
-                            <th>Miércoles</th>
-                            <th>Jueves</th>
-                            <th>Viernes</th>
-                            <th>Sábado</th>
-                            <th>Domingo</th>
-                        </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-            </div>
-
         </section>
+
         <!-- ======================================================
             VISTA — HORARIO
        ======================================================= -->
@@ -321,79 +429,9 @@
                         <th>Vencimiento</th>
                         <th>Monto (S/)</th>
                         <th>Mora/Dscto</th>
-                        <th>Total (S/)</th>
+                        <th>Importe Final</th>
                         <th>Estado</th>
-                        <th>Recibo</th>
-                    </tr>
-                    </thead>
-
-                    <tbody>
-                    <tr>
-                        <td>Matrícula 2025-II</td>
-                        <td>15 Ago, 2025</td>
-                        <td>350.00</td>
-                        <td>0.00</td>
-                        <td>350.00</td>
-                        <td><span class="badge pagado">Pagado</span></td>
-                        <td class="action-cell">
-                            <ion-icon name="document-text-outline" class="icon-btn"></ion-icon>
-                        </td>
-                    </tr>
-
-                    <tr>
-                        <td>Pensión 1 (Agosto)</td>
-                        <td>30 Ago, 2025</td>
-                        <td>850.00</td>
-                        <td>-50.00 <small>(Pronto pago)</small></td>
-                        <td>800.00</td>
-                        <td><span class="badge pagado">Pagado</span></td>
-                        <td class="action-cell">
-                            <ion-icon name="document-text-outline" class="icon-btn"></ion-icon>
-                        </td>
-                    </tr>
-
-                    <tr class="fila-pendiente">
-                        <td>Pensión 2 (Septiembre)</td>
-                        <td>30 Sept, 2025</td>
-                        <td>850.00</td>
-                        <td>0.00</td>
-                        <td><strong>850.00</strong></td>
-                        <td><span class="badge pendiente">Pendiente</span></td>
-                        <td class="action-cell">
-                            <ion-icon name="ban-outline" class="icon-disabled"></ion-icon>
-                        </td>
-                    </tr>
-
-                    <tr>
-                        <td>Pensión 3 (Octubre)</td>
-                        <td>30 Oct, 2025</td>
-                        <td>850.00</td>
-                        <td>0.00</td>
-                        <td>850.00</td>
-                        <td><span class="badge futuro">Por vencer</span></td>
-                        <td class="action-cell">
-                            <ion-icon name="ban-outline" class="icon-disabled"></ion-icon>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- ======================================================
-             HISTORIAL DE PAGOS
-            ======================================================= -->
-            <div class="main__container-item historial-container">
-                <h2 class="historial-title">Historial de Pagos</h2>
-
-                <table class="tabla-historial">
-                    <thead>
-                    <tr>
-                        <th>Fecha</th>
-                        <th>Concepto</th>
-                        <th>Monto (S/)</th>
-                        <th>Método</th>
-                        <th>Estado</th>
-                        <th>Comprobante</th>
+                        <th>Acciones</th>
                     </tr>
                     </thead>
 
@@ -403,6 +441,7 @@
                         <td>Matrícula 2025-II</td>
                         <td>350.00</td>
                         <td>Tarjeta</td>
+                        <td>350.00</td>
                         <td><span class="badge pagado">Pagado</span></td>
                         <td class="action-cell">
                             <ion-icon name="document-text-outline" class="icon-btn"></ion-icon>
@@ -414,6 +453,7 @@
                         <td>Pensión 1 (Agosto)</td>
                         <td>800.00</td>
                         <td>Yape</td>
+                        <td>800.00</td>
                         <td><span class="badge pagado">Pagado</span></td>
                         <td class="action-cell">
                             <ion-icon name="document-text-outline" class="icon-btn"></ion-icon>
@@ -425,6 +465,7 @@
                         <td>Pensión 0 (Julio)</td>
                         <td>850.00</td>
                         <td>Depósito</td>
+                        <td>850.00</td>
                         <td><span class="badge pagado">Pagado</span></td>
                         <td class="action-cell">
                             <ion-icon name="document-text-outline" class="icon-btn"></ion-icon>
@@ -501,24 +542,6 @@
 
     </div>
 </main>
-
-<!-- ============================================================
-     ASIDE DERECHO — SOLO MATRÍCULA (panel resumen)
-============================================================ -->
-<aside id="aside-derecho" class="aside-right">
-    <div class="resumen">
-        <h4>RESUMEN DE MATRÍCULA</h4>
-        <div class="resumen__info">Cursos</div>
-        <div class="resumen__info">Horas semanales</div>
-        <div class="resumen__info">Créditos</div>
-        <div class="resumen__info">Monto</div>
-    </div>
-
-    <div class="adicional">
-        <h4 class="adicional__title">INFORMACIÓN ADICIONAL</h4>
-        <div class="adicional__info"></div>
-    </div>
-</aside>
 
 </body>
 </html>
