@@ -70,6 +70,11 @@ async function fetchJson(url, errorMessage, options = {}) {
     }
 }
 
+function setText(selector, value) {
+    const el = typeof selector === 'string' ? document.querySelector(selector) : selector;
+    if (el) el.textContent = value ?? '—';
+}
+
 function mostrarToast(mensaje, tipo = 'error') {
     const toast = document.createElement('div');
     toast.className = `toast-banner toast-${tipo}`;
@@ -107,6 +112,11 @@ function formatearHorario(horario) {
     return `${horario.dia || ''} ${horario.horaInicio || ''}-${horario.horaFin || ''}`.trim();
 }
 
+function limpiarSeleccionSeccion() {
+    state.seccionSeleccionada = null;
+    document.querySelectorAll('.tabla-secciones tr.selected').forEach(tr => tr.classList.remove('selected'));
+}
+
 /* ============================================================
    RENDER DE CURSOS Y SECCIONES
 ============================================================ */
@@ -131,11 +141,12 @@ function renderizarCursosTabla() {
     const tbody = document.getElementById('tabla-cursos-body');
     if (!tbody) return;
     tbody.innerHTML = '';
+    limpiarSeleccionSeccion();
 
     if (!state.cursosDisponibles.length) {
         const tr = document.createElement('tr');
         tr.classList.add('fila-empty');
-        tr.innerHTML = '<td colspan="9" class="estado-vacio">No se encontraron cursos disponibles para los filtros seleccionados.</td>';
+        tr.innerHTML = '<td colspan="8" class="estado-vacio">No se encontraron cursos disponibles para los filtros seleccionados.</td>';
         tbody.appendChild(tr);
         return;
     }
@@ -146,42 +157,34 @@ function renderizarCursosTabla() {
         const cursoId = curso.id ?? curso.cursoId ?? curso.seccionId ?? curso.codigoCurso;
         tr.dataset.cursoId = cursoId || '';
 
-        const expandCell = document.createElement('td');
-        expandCell.classList.add('col-expandir');
-        const expandBtn = document.createElement('button');
-        expandBtn.className = 'btn-expandir';
-        expandBtn.innerHTML = '<ion-icon name="chevron-down-outline"></ion-icon>';
-        expandBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            mostrarSecciones(curso, tr);
-        });
-        expandCell.appendChild(expandBtn);
-        tr.appendChild(expandCell);
-
-        const badgeEstado = document.createElement('span');
-        const matriculado = state.cursosMatriculados.some(c => (c.cursoId ?? c.id) === (curso.cursoId ?? curso.id));
-        badgeEstado.className = matriculado ? 'chip chip-primario' : 'chip chip-neutral';
-        badgeEstado.textContent = matriculado ? 'Matriculado' : (curso.estado || 'Disponible');
-
-        const campos = [
+        const datos = [
             curso.codigoCurso || curso.codigo || '—',
             curso.nombreCurso || curso.nombre || '—',
+            curso.ciclo || curso.cicloAcademico || '—',
             curso.creditos ?? '—',
-            curso.horasSemanales ?? curso.horas ?? '—',
             curso.modalidad || '—',
-            curso.turno || '—',
-            curso.cuposDisponibles ?? curso.cupos ?? '—'
+            curso.cuposDisponibles ?? curso.cupos ?? '—',
+            curso.docente || 'Por asignar'
         ];
 
-        campos.forEach(valor => {
+        datos.forEach(valor => {
             const td = document.createElement('td');
             td.textContent = valor;
             tr.appendChild(td);
         });
 
-        const estadoTd = document.createElement('td');
-        estadoTd.appendChild(badgeEstado);
-        tr.appendChild(estadoTd);
+        const acciones = document.createElement('td');
+        acciones.className = 'col-acciones';
+        const verBtn = document.createElement('button');
+        verBtn.type = 'button';
+        verBtn.className = 'btn-outline btn-sm';
+        verBtn.textContent = 'Ver secciones';
+        verBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            mostrarSecciones(curso, tr);
+        });
+        acciones.appendChild(verBtn);
+        tr.appendChild(acciones);
 
         tr.addEventListener('click', () => mostrarSecciones(curso, tr));
         tbody.appendChild(tr);
@@ -196,6 +199,7 @@ async function mostrarSecciones(curso, filaCurso) {
     if (abierto) {
         abierto.remove();
         filaCurso.classList.remove('abierto');
+        limpiarSeleccionSeccion();
         return;
     }
 
@@ -216,7 +220,7 @@ function renderizarSeccionesTabla(cursoId, secciones = [], filaCurso, cursoPadre
     detalleRow.dataset.curso = cursoId;
 
     const cell = document.createElement('td');
-    cell.colSpan = 9;
+    cell.colSpan = 8;
 
     const contenedor = document.createElement('div');
     contenedor.className = 'subtabla-contenedor';
@@ -227,16 +231,16 @@ function renderizarSeccionesTabla(cursoId, secciones = [], filaCurso, cursoPadre
     contenedor.appendChild(header);
 
     const tabla = document.createElement('table');
-    tabla.className = 'tabla-secciones';
+    tabla.className = 'tabla-secciones admin-table alumno-table alumno-table--compact';
     tabla.innerHTML = `
         <thead>
             <tr>
-                <th>Código de sección</th>
+                <th>Sección</th>
                 <th>Docente</th>
                 <th>Horario</th>
-                <th>Cupos disponibles</th>
                 <th>Modalidad</th>
                 <th>Turno</th>
+                <th>Cupos</th>
                 <th class="acciones-col">Acciones</th>
             </tr>
         </thead>
@@ -253,14 +257,15 @@ function renderizarSeccionesTabla(cursoId, secciones = [], filaCurso, cursoPadre
             const seccionId = seccion.id ?? seccion.seccionId ?? seccion.codigoSeccion;
             const matriculado = state.cursosMatriculados.some(c => String(c.seccionId ?? c.id ?? c.codigoSeccion) === String(seccionId));
             const tr = document.createElement('tr');
+            tr.dataset.seccionId = seccionId;
 
             tr.innerHTML = `
                 <td>${seccion.codigoSeccion || seccion.codigo || seccionId || '—'}</td>
                 <td>${seccion.docente || 'Por asignar'}</td>
                 <td>${formatearHorario(seccion.horario || seccion.horarios)}</td>
-                <td>${seccion.cuposDisponibles ?? seccion.cupos ?? '—'}</td>
                 <td>${seccion.modalidad || cursoPadre.modalidad || '—'}</td>
                 <td>${seccion.turno || cursoPadre.turno || '—'}</td>
+                <td>${seccion.cuposDisponibles ?? seccion.cupos ?? '—'}</td>
                 <td class="acciones-col"></td>
             `;
 
@@ -268,10 +273,10 @@ function renderizarSeccionesTabla(cursoId, secciones = [], filaCurso, cursoPadre
             const btn = document.createElement('button');
             btn.type = 'button';
             btn.textContent = matriculado ? 'Retirar' : 'Matricular';
-            btn.className = matriculado ? 'btn-secundario' : 'btn-primario';
+            btn.className = matriculado ? 'btn-secondary btn-sm' : 'btn-primary btn-sm';
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                state.seccionSeleccionada = seccionId;
+                seleccionarSeccion(seccionId, tr);
                 if (matriculado) {
                     retirar(seccionId);
                 } else {
@@ -280,6 +285,7 @@ function renderizarSeccionesTabla(cursoId, secciones = [], filaCurso, cursoPadre
             });
             acciones.appendChild(btn);
 
+            tr.addEventListener('click', () => seleccionarSeccion(seccionId, tr));
             body.appendChild(tr);
         });
     }
@@ -293,6 +299,12 @@ function renderizarSeccionesTabla(cursoId, secciones = [], filaCurso, cursoPadre
     } else {
         tbody.appendChild(detalleRow);
     }
+}
+
+function seleccionarSeccion(seccionId, fila) {
+    state.seccionSeleccionada = seccionId;
+    document.querySelectorAll('.tabla-secciones tbody tr').forEach(tr => tr.classList.remove('selected'));
+    fila?.classList.add('selected');
 }
 
 /* ============================================================
@@ -420,109 +432,102 @@ async function actualizarHorario() {
 }
 
 /* ============================================================
-   INICIALIZACIÓN
+   TARJETAS Y RESUMEN
 ============================================================ */
-async function refrescarEstadoMatricula() {
-    const [resumen, cursos] = await Promise.all([
-        fetchJson('/alumno/matricula/actual', 'No se pudo obtener la matrícula actual'),
-        fetchJson('/alumno/matricula/cursos', 'No se pudieron cargar los cursos')
-    ]);
-
-    state.resumen = resumen;
-    state.cursosMatriculados = Array.isArray(cursos) ? cursos : [];
-    actualizarResumenMatricula();
-    renderCursosInscritos();
-    await actualizarHorario();
-}
-
-async function cargarDatosIniciales() {
-    try {
-        const [perfil, resumen, cursos, horario, pagos] = await Promise.all([
-            fetchJson('/alumno/info', 'No se pudo obtener la información del alumno'),
-            fetchJson('/alumno/matricula/actual', 'No se pudo obtener la matrícula actual'),
-            fetchJson('/alumno/matricula/cursos', 'No se pudieron cargar los cursos'),
-            fetchJson('/alumno/horario', 'No se pudo cargar el horario'),
-            fetchJson('/alumno/pagos', 'No se pudieron cargar las pensiones')
-        ]);
-
-        state.perfil = perfil;
-        state.resumen = resumen;
-        state.cursosMatriculados = Array.isArray(cursos) ? cursos : [];
-        state.horario = Array.isArray(horario) ? horario : [];
-        state.pagos = Array.isArray(pagos) ? pagos : [];
-
-        actualizarResumenMatricula();
-        actualizarDatosPensiones();
-        actualizarInformacionAdicional();
-        renderCursosInscritos();
-        renderHorarioTablas();
-        await cargarCursosDisponibles();
-    } catch (err) {
-        // Errores ya manejados en fetchJson
-    }
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    cargarDatosIniciales();
-    document.getElementById('btn-filtrar')?.addEventListener('click', cargarCursosDisponibles);
-    document.getElementById('btn-matricular')?.addEventListener('click', () => matricular(state.seccionSeleccionada));
-    document.getElementById('btn-retirar')?.addEventListener('click', () => retirar(state.seccionSeleccionada));
-});
-
 function actualizarResumenMatricula() {
-    const contenedor = document.querySelector('#aside-derecho .resumen');
-    if (!contenedor) return;
-    const items = contenedor.querySelectorAll('.resumen__info');
     const resumen = state.resumen || {};
+    const creditos = resumen.totalCreditos ?? state.cursosMatriculados.reduce((acc, c) => acc + (c.creditos || 0), 0);
+    const horas = resumen.totalHoras ?? state.cursosMatriculados.reduce((acc, c) => acc + (c.horasSemanales || 0), 0);
+    const monto = Number(resumen.montoTotal || 0).toFixed(2);
 
-    if (items[0]) items[0].textContent = `Cursos: ${resumen.totalCursos ?? state.cursosMatriculados.length ?? 0}`;
-    if (items[1]) items[1].textContent = `Horas semanales: ${resumen.totalHoras ?? '-'}`;
-    if (items[2]) items[2].textContent = `Créditos: ${resumen.totalCreditos ?? '-'}`;
-    if (items[3]) items[3].textContent = `Monto: S/ ${Number(resumen.montoTotal || 0).toFixed(2)}`;
+    setText('#resumen-cursos', resumen.totalCursos ?? state.cursosMatriculados.length ?? 0);
+    setText('#resumen-horas', horas || '—');
+    setText('#resumen-creditos', creditos || '0');
+    setText('#resumen-creditos-max', resumen.creditosMaximos ?? resumen.creditosMax ?? '—');
+
+    const montoNodo = document.querySelector('#alumno-estado-financiero');
+    if (montoNodo) montoNodo.title = `Monto estimado: S/ ${monto}`;
 }
 
-function actualizarInformacionAdicional() {
-    const adicional = document.querySelector('.adicional__info');
-    if (!adicional || !state.perfil) return;
-    adicional.innerHTML = `
-        <strong>${state.perfil.nombres || ''} ${state.perfil.apellidos || ''}</strong><br>
-        Código: ${state.perfil.codigo || '-'}<br>
-        Carrera: ${state.perfil.carrera || '-'}<br>
-        Ciclo: ${state.perfil.cicloActual || '-'}
-    `;
+function actualizarFichaAlumno() {
+    const perfil = state.perfil || {};
+    const resumen = state.resumen || {};
+    const pendiente = state.pagos.filter(p => p.estado !== 'PAGADO');
+    const deudaTotal = pendiente.reduce((acc, p) => acc + (p.monto || 0), 0);
+    const estadoFinanciero = deudaTotal > 0 ? `Pendiente: S/ ${deudaTotal.toFixed(2)}` : 'Al día';
+
+    setText('#alumno-nombre', `${perfil.nombres || ''} ${perfil.apellidos || ''}`.trim() || 'Alumno');
+    setText('#alumno-codigo', perfil.codigo || '—');
+    setText('#alumno-carrera', perfil.carrera || '—');
+    setText('#alumno-ciclo', perfil.cicloActual || resumen.ciclo || '—');
+    setText('#alumno-orden', perfil.ordenMerito || perfil.orden || '—');
+
+    setText('#resumen-creditos', resumen.totalCreditos ?? '0');
+    setText('#resumen-creditos-max', resumen.creditosMaximos ?? resumen.creditosMax ?? '—');
+    setText('#resumen-cursos', resumen.totalCursos ?? state.cursosMatriculados.length ?? 0);
+    setText('#resumen-horas', resumen.totalHoras ?? '—');
+
+    setText('#alumno-estado-financiero', estadoFinanciero);
+
+    const fechas = document.getElementById('fechas-matricula');
+    if (fechas) {
+        const inicio = resumen.inicio || resumen.fechaInicio || '—';
+        const fin = resumen.fin || resumen.fechaFin || '—';
+        fechas.innerHTML = `<span class="badge badge--soft">Inicio: ${inicio}</span><span class="badge badge--soft">Fin: ${fin}</span>`;
+    }
 
     const contactoInfo = document.querySelector('.contact__info');
-    if (contactoInfo) {
-        contactoInfo.textContent = `Correo institucional: ${state.perfil.correoInstitucional || '-'}`;
+    if (contactoInfo && perfil.correoInstitucional) {
+        contactoInfo.textContent = `Correo institucional: ${perfil.correoInstitucional}`;
     }
 }
 
 function renderCursosInscritos() {
-    const contenedor = document.querySelector('.cursos-inscritos');
-    if (!contenedor) return;
-    contenedor.innerHTML = '';
-
-    if (!state.cursosMatriculados.length) {
-        contenedor.innerHTML = '<div class="estado-vacio">Aún no tienes cursos matriculados.</div>';
-        return;
+    const tablaBody = document.getElementById('tabla-inscritos-body');
+    if (tablaBody) {
+        tablaBody.innerHTML = '';
+        if (!state.cursosMatriculados.length) {
+            tablaBody.innerHTML = '<tr><td colspan="5" class="estado-vacio">Aún no tienes cursos matriculados.</td></tr>';
+        } else {
+            state.cursosMatriculados.forEach(curso => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${curso.codigoSeccion || curso.codigoCurso || '-'}</td>
+                    <td>${curso.nombreCurso || '-'}</td>
+                    <td>${curso.creditos ?? '-'}</td>
+                    <td>${curso.docente || 'Por asignar'}</td>
+                    <td>${curso.modalidad || '-'}</td>
+                `;
+                tablaBody.appendChild(tr);
+            });
+        }
     }
 
-    state.cursosMatriculados.forEach(curso => {
-        const card = document.createElement('div');
-        card.classList.add('curso-card');
-        card.innerHTML = `
-            <h3>${curso.codigoSeccion || curso.codigoCurso || ''} — ${curso.nombreCurso || ''}</h3>
-            <p class="descripcion">Docente: ${curso.docente || 'Por asignar'}</p>
-            <div class="curso-grid">
-                <span><strong>Sección:</strong> ${curso.codigoSeccion || '-'}</span>
-                <span><strong>Aula:</strong> ${curso.aula || '-'}</span>
-                <span><strong>Horas semanales:</strong> ${curso.horasSemanales ?? '-'}</span>
-                <span><strong>Créditos:</strong> ${curso.creditos ?? '-'}</span>
-                <span><strong>Modalidad:</strong> ${curso.modalidad || '-'}</span>
-            </div>
-        `;
-        contenedor.appendChild(card);
-    });
+    const contenedor = document.querySelector('.cursos-inscritos');
+    if (contenedor) {
+        contenedor.innerHTML = '';
+        if (!state.cursosMatriculados.length) {
+            contenedor.innerHTML = '<div class="estado-vacio">Aún no tienes cursos matriculados.</div>';
+            return;
+        }
+
+        state.cursosMatriculados.forEach(curso => {
+            const card = document.createElement('div');
+            card.classList.add('curso-card');
+            card.innerHTML = `
+                <h3>${curso.codigoSeccion || curso.codigoCurso || ''} — ${curso.nombreCurso || ''}</h3>
+                <p class="descripcion">Docente: ${curso.docente || 'Por asignar'}</p>
+                <div class="curso-grid">
+                    <span><strong>Sección:</strong> ${curso.codigoSeccion || '-'}</span>
+                    <span><strong>Aula:</strong> ${curso.aula || '-'}</span>
+                    <span><strong>Horas semanales:</strong> ${curso.horasSemanales ?? '-'}</span>
+                    <span><strong>Créditos:</strong> ${curso.creditos ?? '-'}</span>
+                    <span><strong>Modalidad:</strong> ${curso.modalidad || '-'}</span>
+                </div>
+            `;
+            contenedor.appendChild(card);
+        });
+    }
 }
 
 /* ============================================================
@@ -628,3 +633,67 @@ if (form) {
         form.reset();
     });
 }
+
+/* ============================================================
+   INICIALIZACIÓN
+============================================================ */
+async function refrescarEstadoMatricula() {
+    const [resumen, cursos] = await Promise.all([
+        fetchJson('/alumno/matricula/actual', 'No se pudo obtener la matrícula actual'),
+        fetchJson('/alumno/matricula/cursos', 'No se pudieron cargar los cursos')
+    ]);
+
+    state.resumen = resumen;
+    state.cursosMatriculados = Array.isArray(cursos) ? cursos : [];
+    actualizarResumenMatricula();
+    actualizarFichaAlumno();
+    renderCursosInscritos();
+    await actualizarHorario();
+}
+
+async function cargarDatosIniciales() {
+    try {
+        const [perfil, resumen, cursos, horario, pagos] = await Promise.all([
+            fetchJson('/alumno/info', 'No se pudo obtener la información del alumno'),
+            fetchJson('/alumno/matricula/actual', 'No se pudo obtener la matrícula actual'),
+            fetchJson('/alumno/matricula/cursos', 'No se pudieron cargar los cursos'),
+            fetchJson('/alumno/horario', 'No se pudo cargar el horario'),
+            fetchJson('/alumno/pagos', 'No se pudieron cargar las pensiones')
+        ]);
+
+        state.perfil = perfil;
+        state.resumen = resumen;
+        state.cursosMatriculados = Array.isArray(cursos) ? cursos : [];
+        state.horario = Array.isArray(horario) ? horario : [];
+        state.pagos = Array.isArray(pagos) ? pagos : [];
+
+        actualizarResumenMatricula();
+        actualizarDatosPensiones();
+        actualizarFichaAlumno();
+        renderCursosInscritos();
+        renderHorarioTablas();
+        await cargarCursosDisponibles();
+    } catch (err) {
+        // Errores ya manejados en fetchJson
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    cargarDatosIniciales();
+    document.getElementById('btn-filtrar')?.addEventListener('click', cargarCursosDisponibles);
+    document.getElementById('btn-matricular')?.addEventListener('click', () => matricular(state.seccionSeleccionada));
+    document.getElementById('btn-retirar')?.addEventListener('click', () => retirar(state.seccionSeleccionada));
+
+    const formFiltros = document.getElementById('form-filtros');
+    formFiltros?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        cargarCursosDisponibles();
+    });
+
+    document.getElementById('btn-limpiar-filtros')?.addEventListener('click', () => {
+        document.getElementById('filtro-texto').value = '';
+        document.getElementById('filtro-ciclo').value = '';
+        document.getElementById('filtro-modalidad').value = '';
+        cargarCursosDisponibles();
+    });
+});
