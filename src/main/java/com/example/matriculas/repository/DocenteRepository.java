@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -41,4 +42,7 @@ public interface DocenteRepository extends JpaRepository<Docente, Long> {
                          Pageable pageable);
 
     Optional<Docente> findByUsuario_CorreoInstitucional(String correo);
+
+    @Query("SELECT d FROM Docente d WHERE d.estado = com.example.matriculas.model.enums.EstadoDocente.ACTIVO ORDER BY d.apellidos, d.nombres")
+    List<Docente> findDocentesDisponibles();
 }

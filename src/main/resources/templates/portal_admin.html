@@ -248,9 +248,10 @@
                 <div class="secciones-col secciones-col--left">
                     <article class="card">
                         <!-- BUSQUEDA -->
-                            <header class="card__header">
+                            <div class="card-header-between">
                                 <h3>Búsqueda de secciones</h3>
-                            </header>
+                                <button type="button" class="btn-primary" id="btnNuevaSeccion">Nueva sección</button>
+                            </div>
 
                             <form id="formBusquedaSecciones" class="form-busqueda-secciones">
 
@@ -533,6 +534,65 @@
                         </div>
                     </article>
                 </aside>
+
+                <div class="modal" id="modalNuevaSeccion" hidden>
+                    <div class="modal__dialog modal__dialog--wide">
+                        <header class="modal__header">
+                            <h4>Nueva sección</h4>
+                            <button type="button" class="modal__close" data-close="modalNuevaSeccion">×</button>
+                        </header>
+                        <form id="formNuevaSeccion" class="modal__form">
+                            <div class="form-grid form-grid--compact">
+                                <label>Curso
+                                    <select id="selectCursoNuevaSeccion" required>
+                                        <option value="">Selecciona curso</option>
+                                    </select>
+                                </label>
+                                <label>Código de sección
+                                    <input type="text" id="inputCodigoNuevaSeccion" maxlength="10" required>
+                                </label>
+                                <label>Docente
+                                    <select id="selectDocenteNuevaSeccion" required>
+                                        <option value="">Selecciona docente</option>
+                                    </select>
+                                </label>
+                                <label>Periodo académico
+                                    <input type="text" id="inputPeriodoNuevaSeccion" placeholder="2024-I" required>
+                                </label>
+                                <label>Modalidad
+                                    <select id="selectModalidadNuevaSeccion" required>
+                                        <option value="">Selecciona</option>
+                                    </select>
+                                </label>
+                                <label>Turno
+                                    <select id="selectTurnoNuevaSeccion" required>
+                                        <option value="">Selecciona</option>
+                                        <option value="DIURNO">Diurno</option>
+                                        <option value="NOCTURNO">Nocturno</option>
+                                    </select>
+                                </label>
+                                <label>Capacidad
+                                    <input type="number" id="inputCapacidadNuevaSeccion" min="1" max="200" required>
+                                </label>
+                                <label>Aula
+                                    <input type="text" id="inputAulaNuevaSeccion" maxlength="20" required>
+                                </label>
+                            </div>
+
+                            <div class="panel-divider"></div>
+                            <h4>Horarios</h4>
+                            <div id="contenedorHorariosNuevaSeccion" class="horarios-container"></div>
+                            <div class="horarios-actions">
+                                <button type="button" class="btn-secondary" id="btnAgregarHorarioNuevaSeccion">+ Añadir horario</button>
+                            </div>
+
+                            <div class="modal__actions">
+                                <button type="button" class="btn-secondary" data-close="modalNuevaSeccion">Cancelar</button>
+                                <button type="submit" class="btn-primary">Registrar sección</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
 
             </div>
         </section>
