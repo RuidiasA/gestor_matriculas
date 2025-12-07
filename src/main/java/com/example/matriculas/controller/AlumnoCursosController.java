@@ -1,7 +1,6 @@
 package com.example.matriculas.controller;
 
 import com.example.matriculas.dto.*;
-import com.example.matriculas.model.SolicitudSeccion;
 import com.example.matriculas.service.AlumnoPortalService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -60,7 +59,12 @@ public class AlumnoCursosController {
     }
 
     @PostMapping("/solicitudes")
-    public void registrarSolicitud(@RequestBody SolicitudSeccion solicitud) {
+    public void registrarSolicitud(@RequestBody SolicitudSeccionCrearDTO solicitud) {
         alumnoPortalService.registrarSolicitud(solicitud);
+    }
+
+    @GetMapping("/solicitudes")
+    public List<SolicitudSeccionAlumnoDTO> listarSolicitudes() {
+        return alumnoPortalService.listarSolicitudesAlumno();
     }
 }

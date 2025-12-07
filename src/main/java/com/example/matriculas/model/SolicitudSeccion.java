@@ -1,5 +1,6 @@
 package com.example.matriculas.model;
 
+import com.example.matriculas.model.enums.EstadoSolicitud;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -25,6 +26,11 @@ public class SolicitudSeccion {
     private Curso curso;
 
     private LocalDateTime fechaSolicitud;
+    private String cicloAcademico;
+
+    @Enumerated(EnumType.STRING)
+    private EstadoSolicitud estado;
+
     private String modalidad;
     private String turno;
     private String telefono;
@@ -32,6 +38,9 @@ public class SolicitudSeccion {
 
     @Column(columnDefinition = "TEXT")
     private String motivo;
+
+    @Column(columnDefinition = "TEXT")
+    private String respuesta;
 
     private String evidenciaNombreArchivo;
 

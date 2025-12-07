@@ -4,6 +4,7 @@ const state = {
     cursosMatriculados: [],
     horario: [],
     pagos: [],
+    solicitudes: [],
     cursosDisponibles: [],
     seccionesPorCurso: {},
     seccionSeleccionada: null
@@ -178,6 +179,7 @@ async function cargarCursosDisponibles() {
             : 'Sin resultados con los filtros actuales';
     }
     renderizarCursosTabla();
+    poblarCursosSolicitud();
 }
 
 async function obtenerSeccionesCurso(cursoId) {
@@ -666,54 +668,82 @@ const form = document.querySelector('.solicitud-container');
 const historialVacio = document.querySelector('.historial-vacio');
 const historialLista = document.querySelector('.historial-lista');
 
-if (form) {
-    form.addEventListener('submit', function(e){
-        e.preventDefault();
+async function cargarSolicitudesAlumno() {
+    try {
+        const solicitudes = await fetchJson('/alumno/solicitudes', 'No se pudieron cargar tus solicitudes');
+        state.solicitudes = solicitudes || [];
+        renderHistorialSolicitudes();
+    } catch (err) {
+        console.error(err);
+    }
+}
 
-        const curso = document.getElementById('curso').value;
-        const turno = document.getElementById('turno').value;
-        const modalidad = document.getElementById('modalidad').value;
-        const correo = document.getElementById('correo').value;
-        const telefono = document.getElementById('telefono').value;
-        const motivo = document.getElementById('motivo').value;
-        const evidencia = document.getElementById('evidencia').files[0];
+function renderHistorialSolicitudes() {
+    if (!historialLista) return;
+    historialLista.innerHTML = '';
 
-        const fecha = new Date().toLocaleDateString('es-PE', {
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric'
-        });
+    if (!state.solicitudes || !state.solicitudes.length) {
+        if (historialVacio) historialVacio.style.display = 'block';
+        return;
+    }
+    if (historialVacio) historialVacio.style.display = 'none';
 
-        if (historialVacio) historialVacio.style.display = 'none';
-
+    state.solicitudes.forEach(s => {
         const card = document.createElement('div');
         card.classList.add('solicitud-card');
 
+        const fecha = s.fechaSolicitud ? new Date(s.fechaSolicitud).toLocaleDateString('es-PE') : '—';
         card.innerHTML = `
-            <div class="curso-titulo">${curso}</div>
-            <strong>Turno:</strong> ${turno}<br>
-            <strong>Modalidad:</strong> ${modalidad}<br>
-            <strong>Correo:</strong> ${correo}<br>
-            <strong>Teléfono:</strong> ${telefono}<br>
-            <strong>Motivo:</strong> ${motivo}<br>
-            <strong>Fecha de solicitud:</strong> ${fecha}<br>
+            <div class="curso-titulo">${s.curso || 'Curso'}</div>
+            <p class="muted">${s.codigoCurso || ''}</p>
+            <div class="chip chip-${(s.estado || 'PENDIENTE').toLowerCase()}">${s.estado || 'PENDIENTE'}</div>
+            <dl>
+                <div><dt>Turno</dt><dd>${s.turno || '—'}</dd></div>
+                <div><dt>Modalidad</dt><dd>${s.modalidad || '—'}</dd></div>
+                <div><dt>Ciclo</dt><dd>${s.ciclo || 'Actual'}</dd></div>
+                <div><dt>Fecha</dt><dd>${fecha}</dd></div>
+                ${s.respuesta ? `<div><dt>Respuesta</dt><dd>${s.respuesta}</dd></div>` : ''}
+            </dl>
         `;
 
-        if (evidencia) {
-            const link = document.createElement('a');
-            link.classList.add('btn-descargar');
-            link.textContent = `Descargar evidencia (${evidencia.name})`;
-
-            const url = URL.createObjectURL(evidencia);
-            link.href = url;
-            link.download = evidencia.name;
-
-            card.appendChild(link);
-        }
-
         historialLista.appendChild(card);
-        form.reset();
     });
+}
+
+async function registrarSolicitudSeccion(e) {
+    e.preventDefault();
+    const cursoId = document.getElementById('curso')?.value;
+    const turno = document.getElementById('turno')?.value;
+    const modalidad = document.getElementById('modalidad')?.value;
+    const correo = document.getElementById('correo')?.value;
+    const telefono = document.getElementById('telefono')?.value;
+    const motivo = document.getElementById('motivo')?.value;
+
+    if (!cursoId || !motivo || !turno) {
+        mostrarMensajeError('Completa los campos obligatorios');
+        return;
+    }
+
+    await fetchJson('/alumno/solicitudes', 'No se pudo registrar la solicitud', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cursoId, turno, modalidad, correo, telefono, motivo })
+    });
+
+    mostrarMensajeExito('Solicitud registrada');
+    form.reset();
+    await cargarSolicitudesAlumno();
+}
+
+function poblarCursosSolicitud() {
+    const select = document.getElementById('curso');
+    if (!select || !state.cursosDisponibles?.length) return;
+    select.innerHTML = '<option value="" disabled selected>Seleccione un curso</option>' +
+        state.cursosDisponibles.map(c => `<option value="${c.cursoId}">${c.nombreCurso} (${c.codigoCurso})</option>`).join('');
+}
+
+if (form) {
+    form.addEventListener('submit', registrarSolicitudSeccion);
 }
 
 /* ============================================================
@@ -754,6 +784,8 @@ async function cargarDatosIniciales() {
         actualizarFichaAlumno();
         renderCursosInscritos();
         renderHorarioTablas();
+        poblarCursosSolicitud();
+        await cargarSolicitudesAlumno();
         await cargarPeriodos();
         await cargarCursosDisponibles();
     } catch (err) {

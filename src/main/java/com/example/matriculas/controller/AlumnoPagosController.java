@@ -18,13 +18,13 @@ public class AlumnoPagosController {
     private final AlumnoPortalService alumnoPortalService;
 
     @GetMapping
-    public List<PagoDTO> listarPagos() {
-        return alumnoPortalService.obtenerPagos(false);
+    public List<PagoDTO> listarPagos(@RequestParam(value = "periodo", required = false) String periodo) {
+        return alumnoPortalService.obtenerPagos(false, periodo);
     }
 
     @GetMapping("/pendientes")
-    public List<PagoDTO> listarPendientes() {
-        return alumnoPortalService.obtenerPagos(true);
+    public List<PagoDTO> listarPendientes(@RequestParam(value = "periodo", required = false) String periodo) {
+        return alumnoPortalService.obtenerPagos(true, periodo);
     }
 
     @PutMapping("/{id}/pagar")
