@@ -40,5 +40,12 @@ public interface DetalleMatriculaRepository extends JpaRepository<DetalleMatricu
             ORDER BY m.fechaMatricula DESC
             """)
     List<DetalleMatricula> findHistorialBySeccion(@Param("seccionId") Long seccionId);
-    List<DetalleMatricula> findByMatriculaId(Long matriculaId);
+
+    @Query("""
+            SELECT DISTINCT dm FROM DetalleMatricula dm
+            LEFT JOIN FETCH dm.seccion s
+            LEFT JOIN FETCH s.curso
+            WHERE dm.matricula.id = :matriculaId
+            """)
+    List<DetalleMatricula> findByMatriculaId(@Param("matriculaId") Long matriculaId);
 }
