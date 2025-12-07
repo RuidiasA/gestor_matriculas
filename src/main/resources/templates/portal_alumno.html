@@ -83,19 +83,43 @@
                     <label for="filtro-ciclo">Periodo</label>
                     <input id="filtro-ciclo" type="text" placeholder="Ej. 2024-I">
                 </div>
-                <button id="btn-filtrar" class="btn-primario">Actualizar catálogo</button>
+                <button id="btn-filtrar" class="btn-primario">Actualizar cursos</button>
             </div>
 
-            <div class="catalogo-grid" id="catalogo-cursos"></div>
-
-            <div id="detalle-curso" class="detalle-curso hidden">
-                <h3>Detalle de curso</h3>
-                <div class="detalle-body"></div>
-                <div class="detalle-acciones">
-                    <button id="btn-matricular" class="btn-primario">Matricular</button>
-                    <button id="btn-retirar" class="btn-secundario">Retirar</button>
+            <div id="catalogo-cursos" class="tabla-cursos-container">
+                <div class="tabla-cursos__header">
+                    <div>
+                        <h3>Cursos disponibles</h3>
+                        <p class="descripcion">Selecciona un curso para ver sus secciones y matricularte.</p>
+                    </div>
+                    <div class="acciones-rapidas">
+                        <button id="btn-matricular" class="btn-primario" type="button">Matricular</button>
+                        <button id="btn-retirar" class="btn-secundario" type="button">Retirar</button>
+                    </div>
                 </div>
+                <table class="tabla-cursos-principal">
+                    <thead>
+                    <tr>
+                        <th class="col-expandir"></th>
+                        <th>Código</th>
+                        <th>Curso</th>
+                        <th>Créditos</th>
+                        <th>Horas</th>
+                        <th>Modalidad</th>
+                        <th>Turno</th>
+                        <th>Cupos</th>
+                        <th>Estado</th>
+                    </tr>
+                    </thead>
+                    <tbody id="tabla-cursos-body">
+                    <tr class="fila-empty">
+                        <td colspan="9" class="estado-vacio">Usa los filtros para cargar el catálogo de cursos disponibles.</td>
+                    </tr>
+                    </tbody>
+                </table>
             </div>
+
+            <div id="detalle-curso" class="hidden" aria-hidden="true"></div>
 
             <div class="fecha__matricula">
                 <div class="main__container-item">
@@ -106,149 +130,29 @@
                 </div>
             </div>
 
-            <!-- TABLA PRINCIPAL -->
-            <div class="main__container-item-table">
-                <table>
-                    <thead>
-                    <tr>
-                        <th></th>
-                        <th><h5>Código</h5></th>
-                        <th><h5>Curso</h5></th>
-                        <th><h5>Horas semanales</h5></th>
-                        <th><h5>Créditos</h5></th>
-                        <th><h5>Ciclo</h5></th>
-                        <th><h5>Disponibilidad</h5></th>
-                        <th><h5>Tipo</h5></th>
-                        <th><h5>Modalidad</h5></th>
-                        <th></th>
-                    </tr>
-                    </thead>
-
-                    <tbody>
-                    <tr>
-                        <td class="checkbox__container"><input type="checkbox"></td>
-                        <td>IA401</td>
-                        <td>Inteligencia Artificial</td>
-                        <td>4</td>
-                        <td>4</td>
-                        <td>09</td>
-                        <td>Activo</td>
-                        <td>Electivo</td>
-                        <td>Virtual</td>
-                        <td class="menu">⋮</td>
-                    </tr>
-
-                    <tr>
-                        <td><input type="checkbox"></td>
-                        <td>ML402</td>
-                        <td>Machine Learning</td>
-                        <td>4</td>
-                        <td>4</td>
-                        <td>08</td>
-                        <td>Activo</td>
-                        <td>Obligatorio</td>
-                        <td>Presencial</td>
-                        <td class="menu">⋮</td>
-                    </tr>
-                    </tbody>
-                </table>
-
-                <!-- TOOLBAR -->
-                <div class="table__toolbar">
-
-                    <div class="table__info">
-                        <div class="table__info__item nombre">
-                            <h4 class="table__info__item-nombre">Alejandro Ruidias Luyo</h4>
-                        </div>
-                        <div class="table__info__item table__info__item__carrera">
-                            Ingeniería de Software
-                        </div>
-                        <div class="table__info__item ciclo">7mo ciclo</div>
-                        <div class="table__info__item dia">Sept 05, 2025</div>
-                        <div class="table__info__item hora">03:00 PM</div>
-                    </div>
-
-                    <div class="table-actions">
-                        <button class="delete">
-                            <ion-icon name="trash-outline"></ion-icon>Eliminar
-                        </button>
-                        <button>
-                            <ion-icon name="filter-sharp"></ion-icon>Filtros
-                        </button>
-                        <button>
-                            <ion-icon name="cloud-download-outline"></ion-icon>Descarga
-                        </button>
-                        <button>
-                            <ion-icon name="bookmark-outline"></ion-icon>Guardar
-                        </button>
-                    </div>
-
-                </div>
-            </div>
-
-            <!-- HORARIO -->
             <div class="main__container-item">
                 <h2 class="horario__title">HORARIO</h2>
 
-                <table class="horario">
-                    <thead>
-                    <tr>
-                        <th>Hora</th>
-                        <th>Lunes</th>
-                        <th>Martes</th>
-                        <th>Miércoles</th>
-                        <th>Jueves</th>
-                        <th>Viernes</th>
-                        <th>Sábado</th>
-                        <th>Domingo</th>
-                    </tr>
-                    </thead>
-
-                    <tbody>
-                    <tr>
-                        <td>08:00 AM - 09:00 AM</td>
-                        <td></td>
-                        <td></td>
-                        <td>
-                            <div class="curso curso--azul">
-                                IA401<br>Inteligencia Artificial
-                            </div>
-                        </td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                    </tr>
-                    <tr><td>09:00 AM - 10:00 AM</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-                    <tr><td>10:00 AM - 11:00 AM</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-                    <tr><td>11:00 AM - 12:00 PM</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-                    <tr><td>12:00 PM - 01:00 PM</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-                    <tr><td>01:00 PM - 02:00 PM</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-                    <tr><td>02:00 PM - 03:00 PM</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-                    <tr><td>03:00 PM - 04:00 PM</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-                    <tr><td>04:00 PM - 05:00 PM</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-                    <tr>
-                        <td>05:00 PM - 06:00 PM</td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td><div class="curso curso--rojo">
-                            ML402<br>Machine Learning
-                        </div></td>
-                        <td></td>
-                    </tr>
-                    <tr><td>06:00 PM - 07:00 PM</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-                    <tr><td>07:00 PM - 08:00 PM</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-                    <tr><td>08:00 PM - 09:00 PM</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-                    <tr><td>09:00 PM - 10:00 PM</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-                    </tbody>
-                </table>
-
+                <div class="tabla-horario-completa">
+                    <table class="horario-completo">
+                        <thead>
+                        <tr>
+                            <th>Hora</th>
+                            <th>Lunes</th>
+                            <th>Martes</th>
+                            <th>Miércoles</th>
+                            <th>Jueves</th>
+                            <th>Viernes</th>
+                            <th>Sábado</th>
+                            <th>Domingo</th>
+                        </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
             </div>
-        </section>
 
+        </section>
         <!-- ======================================================
             VISTA — HORARIO
        ======================================================= -->

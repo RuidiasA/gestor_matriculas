@@ -25,235 +25,9 @@
     margin-bottom: 10px;
 }
 
-/* Tablas contenedoras con sombra */
-.main__container-item-table,
-.horario {
-    border-radius: 10px;
-    box-shadow: 0 4px 16px rgba(27, 59, 111, 0.4);
-}
-
 /* ============================= */
-/*            TABLA              */
+/*            CATÁLOGO           */
 /* ============================= */
-table {
-    border-collapse: separate;
-    border-spacing: 0;
-    width: 100%;
-    background-color: #fff;
-    border-radius: 10px 10px 0 0;
-    overflow: hidden;
-    color: #22223B;
-}
-
-th {
-    background-color: #1B3B6F;
-    color: #E3F6FF;
-    padding: 8px;
-    font-weight: bold;
-    font-size: 0.9rem;
-}
-
-td {
-    padding: 12px 0;
-    background-color: #F4F6FB;
-    border-bottom: 1px solid #E0E4EF;
-    font-size: 0.95rem;
-    text-align: center;
-}
-
-tr:nth-child(even) {
-    background-color: #FFFFFF;
-}
-
-.checkbox__container,
-.menu {
-    width: 30px;
-}
-
-/* ============================= */
-/*         TOOLBAR INFERIOR      */
-/* ============================= */
-.table__toolbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-
-    background-color: #1B3B6F;
-    color: #E3F6FF;
-    padding: 10px 20px;
-    border-radius: 0 0 10px 10px;
-}
-
-/* Info alumno */
-.table__info {
-    text-align: center;
-    display: grid;
-    gap: 10px;
-    grid-template-areas:
-        "nombre dia hora"
-        "carrera ciclo vacio";
-}
-
-.table__info__item-nombre {
-    grid-area: nombre;
-    font-size: 1.5rem;
-    color: #E3F6FF;
-}
-
-.table__info__item__carrera {
-    grid-area: carrera;
-    font-size: 1.2rem;
-}
-
-.table__info .ciclo {
-    grid-area: ciclo;
-}
-.table__info .dia {
-    grid-area: dia;
-}
-.table__info .hora {
-    grid-area: hora;
-}
-
-.dia,
-.hora,
-.ciclo {
-    align-content: center;
-    background-color: #E3F6FF;
-    color: #1B3B6F;
-    border-radius: 10px;
-    padding: 2px 10px;
-    font-size: 0.85rem;
-    font-weight: 600;
-}
-
-/* Botones toolbar */
-.table-actions {
-    height: 60px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.table-actions button {
-    width: 100px;
-    padding: 6px;
-    font-weight: bold;
-    border: none;
-    border-radius: 10px;
-    background-color: #E3F6FF;
-    color: #22223B;
-
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 6px;
-    cursor: pointer;
-    transition: background 0.2s, color 0.2s, border 0.2s;
-}
-
-.table-actions button:hover {
-    background-color: #1B3B6F;
-    color: #E3F6FF;
-    border: 1px solid #E3F6FF;
-}
-
-.table-actions .delete {
-    background-color: #B22222;
-    color: #E3F6FF;
-}
-
-.table-actions .delete:hover {
-    background-color: #7F1D1D;
-    border: none;
-}
-
-ion-icon {
-    font-size: 20px;
-}
-
-/* ============================= */
-/*            HORARIO            */
-/* ============================= */
-.horario__title {
-    font-size: 40px;
-    margin: 20px 0 5px;
-}
-
-.curso__prueba1,
-.curso__prueba2,
-.curso__prueba3 {
-    padding: 0;
-    background-color: #ddd;
-}
-
-.curso__prueba1 { border-radius: 5px 5px 0 0; }
-.curso__prueba3 { border-radius: 0 0 5px 5px; }
-
-/* ============================= */
-/*    PANEL RESUMEN (ASIDE DER)  */
-/*    Solo se usa en MATRÍCULA   */
-/* ============================= */
-
-.aside-right {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    bottom: 20px;
-
-    width: 260px;
-    background-color: #FFFFFF;
-    border-radius: 16px;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.18);
-
-    padding: 18px 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    z-index: 20;
-}
-
-/* Bloque de resumen */
-.resumen h4 {
-    margin-bottom: 10px;
-    color: #1B3B6F;
-}
-
-.resumen__info {
-    background-color: #E3F6FF;
-    color: #1B3B6F;
-    height: 40px;
-    border-radius: 10px;
-    margin: 8px 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-weight: 600;
-    font-size: 0.9rem;
-}
-
-/* Bloque adicional */
-.adicional {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-}
-
-.adicional__title {
-    margin-bottom: 8px;
-    color: #1B3B6F;
-}
-
-.adicional__info {
-    background-color: #E3F6FF;
-    border-radius: 10px;
-    flex: 1;
-    min-height: 80px;
-}
-
-
-
-
 .catalogo-filtros {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -280,61 +54,175 @@ ion-icon {
     border-radius: 8px;
 }
 
-.catalogo-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 16px;
-    margin-bottom: 20px;
-}
-
-.catalogo-card {
-    background: #fff;
-    padding: 16px;
+.tabla-cursos-container {
+    background: #ffffff;
     border-radius: 12px;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.08);
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
+    box-shadow: 0 6px 20px rgba(27, 59, 111, 0.15);
+    padding: 12px 12px 0;
+    border: 1px solid #e3e8f4;
 }
 
-.catalogo-card h4 {
+.tabla-cursos__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 4px 12px;
+    gap: 12px;
+}
+
+.tabla-cursos__header h3 {
     margin: 0;
-    color: #1b3b6f;
+    color: #1B3B6F;
 }
 
-.catalogo-card .meta {
+.tabla-cursos__header .descripcion {
+    margin: 2px 0 0;
+    color: #4a5568;
+}
+
+.acciones-rapidas {
     display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    font-size: 0.9rem;
-    color: #555;
+    gap: 10px;
 }
 
-.badge-soft {
+.table-wrapper {
+    overflow: hidden;
+}
+
+.tabla-cursos-principal,
+.tabla-secciones,
+.horario-completo {
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+    background-color: #fff;
+    border-radius: 10px 10px 0 0;
+    overflow: hidden;
+    color: #1b1d29;
+}
+
+.tabla-cursos-principal thead th,
+.tabla-secciones thead th {
+    background-color: #1B3B6F;
+    color: #E3F6FF;
+    padding: 12px;
+    font-weight: 700;
+    font-size: 0.92rem;
+    text-align: left;
+}
+
+.tabla-cursos-principal td,
+.tabla-secciones td {
+    padding: 12px;
+    border-bottom: 1px solid #E0E4EF;
+    font-size: 0.95rem;
+}
+
+.tabla-cursos-principal tbody tr:hover,
+.tabla-secciones tbody tr:hover {
+    background: #f6f8fd;
+}
+
+.col-expandir {
+    width: 48px;
+    text-align: center;
+}
+
+.btn-expandir {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    border: 1px solid #d7deea;
+    background: #f8fbff;
+    color: #1B3B6F;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-expandir:hover {
+    background: #1B3B6F;
+    color: #E3F6FF;
+}
+
+.fila-curso {
+    cursor: pointer;
+}
+
+.fila-curso.abierto {
+    background: #f3f6ff;
+}
+
+.chip {
     display: inline-flex;
     align-items: center;
-    padding: 4px 8px;
+    padding: 4px 10px;
     border-radius: 999px;
-    background: #eef4ff;
-    color: #1b3b6f;
-    font-weight: 600;
-    font-size: 0.85rem;
+    font-weight: 700;
+    font-size: 0.8rem;
 }
 
-.detalle-curso {
-    background: #fff;
-    padding: 16px;
+.chip-primario {
+    background: #e2e8ff;
+    color: #1B3B6F;
+}
+
+.chip-neutral {
+    background: #f3f4f6;
+    color: #1f2937;
+}
+
+.estado-vacio {
+    text-align: center;
+    color: #4b5563;
+    padding: 18px;
+}
+
+.fila-subtabla > td {
+    background: #f7f9ff;
+    border-bottom: none;
+}
+
+.subtabla-contenedor {
+    border: 1px solid #d7deea;
     border-radius: 12px;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.08);
-    margin-bottom: 20px;
+    padding: 12px;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
 }
 
-.detalle-acciones {
+.subtabla-titulo {
     display: flex;
-    gap: 12px;
-    margin-top: 12px;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 8px;
 }
 
+.subtabla-titulo h4 {
+    margin: 0;
+    color: #1B3B6F;
+}
+
+.subtabla-titulo p {
+    margin: 0;
+    color: #6b7280;
+}
+
+.tabla-secciones thead th {
+    text-align: left;
+}
+
+.tabla-secciones .acciones-col {
+    text-align: right;
+    min-width: 160px;
+}
+
+.tabla-secciones button {
+    padding: 8px 12px;
+}
+
+/* ============================= */
+/*     BOTONES Y MENSAJES        */
+/* ============================= */
 .btn-primario {
     background: #1b3b6f;
     color: #fff;
@@ -342,6 +230,12 @@ ion-icon {
     padding: 10px 16px;
     border-radius: 8px;
     cursor: pointer;
+    font-weight: 700;
+    transition: background 0.2s ease;
+}
+
+.btn-primario:hover {
+    background: #142c52;
 }
 
 .btn-secundario {
@@ -351,4 +245,110 @@ ion-icon {
     padding: 10px 16px;
     border-radius: 8px;
     cursor: pointer;
+    font-weight: 700;
+    transition: all 0.2s ease;
+}
+
+.btn-secundario:hover {
+    background: #e0e7ff;
+}
+
+.toast-banner {
+    position: fixed;
+    top: 18px;
+    right: 18px;
+    background: #1b3b6f;
+    color: #e3f6ff;
+    padding: 12px 16px;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    z-index: 1000;
+    border: 1px solid rgba(255,255,255,0.15);
+}
+
+.toast-success {
+    background: #126a35;
+    color: #e8f7ee;
+}
+
+.toast-error {
+    background: #b91c1c;
+    color: #fee2e2;
+}
+
+/* ============================= */
+/*            HORARIO            */
+/* ============================= */
+.horario__title {
+    font-size: 36px;
+    margin: 20px 0 10px;
+    color: #1B3B6F;
+}
+
+.horario-completo td.empty {
+    background: #f9fbff;
+}
+
+.horario-completo td:not(.empty) {
+    background: #e2e8ff;
+    color: #1b3b6f;
+    font-weight: 700;
+    border-radius: 6px;
+}
+
+/* ============================= */
+/*    PANEL RESUMEN (ASIDE DER)  */
+/* ============================= */
+.aside-right {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    bottom: 20px;
+    width: 260px;
+    background-color: #FFFFFF;
+    border-radius: 16px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+    padding: 18px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    z-index: 20;
+}
+
+.resumen h4 {
+    margin-bottom: 10px;
+    color: #1B3B6F;
+}
+
+.resumen__info {
+    background-color: #E3F6FF;
+    color: #1B3B6F;
+    height: 40px;
+    border-radius: 10px;
+    margin: 8px 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.adicional {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.adicional__title {
+    margin-bottom: 8px;
+    color: #1B3B6F;
+}
+
+.adicional__info {
+    background-color: #E3F6FF;
+    border-radius: 10px;
+    flex: 1;
+    min-height: 80px;
+    padding: 10px;
+    color: #1B3B6F;
 }
