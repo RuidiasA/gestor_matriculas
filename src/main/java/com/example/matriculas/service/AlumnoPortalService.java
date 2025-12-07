@@ -20,6 +20,7 @@ import org.springframework.web.server.ResponseStatusException;
 import com.example.matriculas.security.CustomUserDetails;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -27,6 +28,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.springframework.util.StringUtils;
 
 @Service
 @RequiredArgsConstructor
@@ -39,6 +41,7 @@ public class AlumnoPortalService {
     private final SeccionRepository seccionRepository;
     private final DetalleMatriculaRepository detalleMatriculaRepository;
     private final SolicitudSeccionRepository solicitudSeccionRepository;
+
 
     @Transactional(readOnly = true)
     public AlumnoPerfilDTO obtenerPerfil() {
@@ -363,14 +366,21 @@ public class AlumnoPortalService {
 
     @Transactional
     public void registrarSolicitud(SolicitudSeccion solicitud) {
-        if (solicitud == null || !StringUtils.hasText(solicitud.getCurso())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La solicitud está incompleta");
+
+        if (solicitud == null
+                || solicitud.getCurso() == null
+                || solicitud.getCurso().getId() == null) {
+
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La solicitud está incompleta: curso inválido");
         }
+
         Alumno alumno = obtenerAlumnoActual();
         solicitud.setAlumno(alumno);
-        solicitud.setFechaSolicitud(java.time.LocalDateTime.now());
+        solicitud.setFechaSolicitud(LocalDateTime.now());
+
         solicitudSeccionRepository.save(solicitud);
     }
+
 
     private int calcularCuposDisponibles(Seccion seccion) {
         Integer capacidad = seccion.getCapacidad();
@@ -428,7 +438,7 @@ public class AlumnoPortalService {
         matricula.setAlumno(alumno);
         matricula.setCicloAcademico(ciclo);
         matricula.setFechaMatricula(LocalDate.now().atStartOfDay());
-        matricula.setEstado(EstadoMatricula.ACTIVA);
+        matricula.setEstado(EstadoMatricula.GENERADA);
         return matriculaRepository.save(matricula);
     }
 
