@@ -32,7 +32,7 @@ html::-webkit-scrollbar{ display: none}
 /* =============================================================
    SECCIÓN CURSOS
    ============================================================= */
-.admin-panel { display: grid; grid-template-columns: 1.8fr 1fr; gap: var(--space-5); }
+.admin-panel { display: grid; grid-template-columns: 1.8fr 1fr; gap: var(--space-4); }
 .panel-izquierdo, .panel-derecho { display: flex; flex-direction: column; gap: var(--space-4); }
 .card--buscar-cursos .card__actions { gap: var(--space-2); }
 .cursos-form { display: flex; flex-direction: column; gap: var(--space-4); }

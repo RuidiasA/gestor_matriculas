@@ -8,6 +8,6 @@ public class AlumnoController {
 
     @GetMapping("/matricula")
     public String matricula() {
-        return "matricula"; // archivo matricula.html
+        return "portal_alumno"; // archivo portal_alumno.html
     }
 }
