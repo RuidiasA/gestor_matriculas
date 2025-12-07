@@ -2,8 +2,18 @@ package com.example.matriculas.service;
 
 import com.example.matriculas.dto.*;
 import com.example.matriculas.model.*;
+import com.example.matriculas.model.enums.EstadoDetalleMatricula;
 import com.example.matriculas.model.enums.EstadoMatricula;
 import com.example.matriculas.model.enums.EstadoPago;
+import com.lowagie.text.Document;
+import com.lowagie.text.DocumentException;
+import com.lowagie.text.Font;
+import com.lowagie.text.FontFactory;
+import com.lowagie.text.Paragraph;
+import com.lowagie.text.Phrase;
+import com.lowagie.text.pdf.PdfPCell;
+import com.lowagie.text.pdf.PdfPTable;
+import com.lowagie.text.pdf.PdfWriter;
 import com.example.matriculas.repository.AlumnoRepository;
 import com.example.matriculas.repository.DetalleMatriculaRepository;
 import com.example.matriculas.repository.MatriculaRepository;
@@ -19,6 +29,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import com.example.matriculas.security.CustomUserDetails;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -143,6 +157,68 @@ public class AlumnoPortalService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
+    public Path guardarHorarioActual() {
+        Alumno alumno = obtenerAlumnoActual();
+        List<HorarioDTO> horario = obtenerHorarioActual();
+        if (horario.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No hay horario para guardar");
+        }
+        try {
+            Path archivo = Files.createTempFile("horario-" + alumno.getCodigoAlumno(), ".json");
+            String contenido = horario.stream()
+                    .map(Object::toString)
+                    .collect(Collectors.joining("\n"));
+            Files.writeString(archivo, contenido);
+            return archivo;
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "No se pudo guardar el horario", e);
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public byte[] generarHorarioPdf() {
+        Alumno alumno = obtenerAlumnoActual();
+        List<HorarioDTO> horario = obtenerHorarioActual();
+        if (horario.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No hay cursos matriculados para generar PDF");
+        }
+
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+            Document document = new Document();
+            PdfWriter.getInstance(document, baos);
+            document.open();
+
+            Font titulo = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 14);
+            document.add(new Paragraph("Horario del alumno", titulo));
+            document.add(new Paragraph((alumno.getNombres() + " " + alumno.getApellidos()).trim()));
+            document.add(new Paragraph("Ciclo actual: " + Optional.ofNullable(alumno.getCicloActual()).map(Object::toString).orElse("—")));
+            document.add(new Paragraph(" "));
+
+            PdfPTable tabla = new PdfPTable(5);
+            tabla.setWidthPercentage(100);
+            agregarCeldaCabecera(tabla, "Curso");
+            agregarCeldaCabecera(tabla, "Día");
+            agregarCeldaCabecera(tabla, "Inicio");
+            agregarCeldaCabecera(tabla, "Fin");
+            agregarCeldaCabecera(tabla, "Docente");
+
+            horario.forEach(h -> {
+                tabla.addCell(valorCelda(h.getCurso()));
+                tabla.addCell(valorCelda(h.getDia()));
+                tabla.addCell(valorCelda(h.getHoraInicio()));
+                tabla.addCell(valorCelda(h.getHoraFin()));
+                tabla.addCell(valorCelda(h.getDocente()));
+            });
+
+            document.add(tabla);
+            document.close();
+            return baos.toByteArray();
+        } catch (DocumentException | IOException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "No se pudo generar el PDF", e);
+        }
+    }
+
     @Transactional(readOnly = true)
     public List<PagoDTO> obtenerPagos(boolean soloPendientes) {
         Alumno alumno = obtenerAlumnoActual();
@@ -171,23 +247,35 @@ public class AlumnoPortalService {
     @Transactional(readOnly = true)
     public List<CursoDisponibleDTO> buscarCursosDisponibles(String cicloFiltro, String modalidadFiltro, String texto) {
         Alumno alumno = obtenerAlumnoActual();
-        String ciclo = cicloFiltro != null ? cicloFiltro : obtenerCicloActual(alumno);
+        Integer cicloFiltroNumero = parsearCicloNumerico(cicloFiltro);
+        Integer cicloMinimo = alumno.getCicloActual();
+
+        Set<Long> cursosAprobados = obtenerCursosAprobados(alumno);
+        Set<Long> cursosMatriculadosActualmente = obtenerCursosMatriculados(alumno);
+
         List<Seccion> secciones = seccionRepository.findAll()
                 .stream()
-                .filter(sec -> ciclo == null || ciclo.equalsIgnoreCase(sec.getPeriodoAcademico()))
+                .filter(sec -> sec.getCurso() != null)
+                .filter(sec -> sec.getCurso().getCarrera() != null
+                        && alumno.getCarrera() != null
+                        && Objects.equals(sec.getCurso().getCarrera().getId(), alumno.getCarrera().getId()))
+                .filter(sec -> cicloFiltroNumero == null || Objects.equals(sec.getCurso().getCiclo(), cicloFiltroNumero))
+                .filter(sec -> cicloMinimo == null || (sec.getCurso().getCiclo() != null && sec.getCurso().getCiclo() >= cicloMinimo))
                 .filter(sec -> !StringUtils.hasText(modalidadFiltro)
                         || (sec.getModalidad() != null && sec.getModalidad().name().equalsIgnoreCase(modalidadFiltro)))
                 .filter(sec -> {
                     if (!StringUtils.hasText(texto)) return true;
                     String normalizado = texto.toLowerCase();
-                    return (sec.getCurso() != null && sec.getCurso().getNombre().toLowerCase().contains(normalizado))
-                            || (sec.getCurso() != null && sec.getCurso().getCodigo().toLowerCase().contains(normalizado))
+                    return (sec.getCurso().getNombre().toLowerCase().contains(normalizado))
+                            || (sec.getCurso().getCodigo().toLowerCase().contains(normalizado))
                             || (sec.getCodigo() != null && sec.getCodigo().toLowerCase().contains(normalizado));
                 })
+                .filter(sec -> sec.getCurso().getId() != null
+                        && !cursosAprobados.contains(sec.getCurso().getId())
+                        && !cursosMatriculadosActualmente.contains(sec.getCurso().getId()))
                 .toList();
 
         return secciones.stream()
-                .filter(sec -> sec.getCurso() != null)
                 .collect(Collectors.groupingBy(sec -> sec.getCurso().getId()))
                 .values()
                 .stream()
@@ -211,7 +299,7 @@ public class AlumnoPortalService {
                             .nombreCurso(principal.getCurso().getNombre())
                             .creditos(principal.getCurso().getCreditos())
                             .horasSemanales(principal.getCurso().getHorasSemanales())
-                            .ciclo(principal.getPeriodoAcademico())
+                            .ciclo(principal.getCurso().getCiclo() != null ? principal.getCurso().getCiclo().toString() : null)
                             .docente(docente)
                             .modalidad(resumenModalidad(lista))
                             .cuposDisponibles(cupos)
@@ -298,6 +386,14 @@ public class AlumnoPortalService {
         Matricula matricula = matriculaRepository.findWithDetallesAndHorarioByAlumnoAndCiclo(alumno.getId(), ciclo)
                 .orElseGet(() -> crearMatricula(alumno, ciclo));
 
+        boolean yaInscrito = Optional.ofNullable(matricula.getDetalles())
+                .orElse(List.of())
+                .stream()
+                .anyMatch(det -> det.getSeccion() != null && Objects.equals(det.getSeccion().getId(), seccionId));
+        if (yaInscrito) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "El curso ya está en tu matrícula");
+        }
+
         DetalleMatricula detalle = new DetalleMatricula();
         detalle.setMatricula(matricula);
         detalle.setSeccion(seccion);
@@ -327,16 +423,19 @@ public class AlumnoPortalService {
     @Transactional
     public void retirar(Long seccionId) {
         Alumno alumno = obtenerAlumnoActual();
-        Matricula matricula = matriculaRepository.findWithDetallesAndHorarioByAlumnoAndCiclo(alumno.getId(), obtenerCicloActual(alumno))
+        String cicloActual = obtenerCicloActual(alumno);
+        Matricula matricula = matriculaRepository.findWithDetallesAndHorarioByAlumnoAndCiclo(alumno.getId(), cicloActual)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontró matrícula activa"));
 
-        DetalleMatricula detalle = detalleMatriculaRepository.findByMatriculaId(matricula.getId())
+        DetalleMatricula detalle = Optional.ofNullable(matricula.getDetalles())
+                .orElse(List.of())
                 .stream()
                 .filter(d -> d.getSeccion() != null && seccionId.equals(d.getSeccion().getId()))
                 .findFirst()
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "El curso no está inscrito"));
 
         detalleMatriculaRepository.delete(detalle);
+        Optional.ofNullable(matricula.getDetalles()).ifPresent(lista -> lista.remove(detalle));
         actualizarTotales(matricula);
     }
 
@@ -493,6 +592,51 @@ public class AlumnoPortalService {
         return actuales + creditos <= 24; // límite simple
     }
 
+    private Set<Long> obtenerCursosMatriculados(Alumno alumno) {
+        String ciclo = obtenerCicloActual(alumno);
+        if (ciclo == null) {
+            return Set.of();
+        }
+        return matriculaRepository.findWithDetallesByAlumnoAndCiclo(alumno.getId(), ciclo)
+                .map(Matricula::getDetalles)
+                .orElse(List.of())
+                .stream()
+                .map(DetalleMatricula::getSeccion)
+                .filter(Objects::nonNull)
+                .map(Seccion::getCurso)
+                .filter(Objects::nonNull)
+                .map(Curso::getId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+    }
+
+    private Set<Long> obtenerCursosAprobados(Alumno alumno) {
+        return matriculaRepository.findByAlumnoId(alumno.getId())
+                .stream()
+                .filter(m -> m.getEstado() != EstadoMatricula.ANULADA)
+                .flatMap(m -> Optional.ofNullable(m.getDetalles()).orElse(List.of()).stream())
+                .filter(det -> det.getSeccion() != null && det.getSeccion().getCurso() != null)
+                .filter(det -> alumnoYaAproboCurso(det))
+                .map(det -> det.getSeccion().getCurso().getId())
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+    }
+
+    private boolean alumnoYaAproboCurso(DetalleMatricula detalle) {
+        if (detalle.getNotaFinal() != null && detalle.getNotaFinal() >= 11) {
+            return true;
+        }
+        return detalle.getEstadoDetalle() != null && detalle.getEstadoDetalle() == EstadoDetalleMatricula.CONVALIDADO;
+    }
+
+    private Integer parsearCicloNumerico(String cicloFiltro) {
+        try {
+            return StringUtils.hasText(cicloFiltro) ? Integer.parseInt(cicloFiltro.trim()) : null;
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
     private Matricula crearMatricula(Alumno alumno, String ciclo) {
         Matricula matricula = new Matricula();
         matricula.setAlumno(alumno);
@@ -522,6 +666,15 @@ public class AlumnoPortalService {
                 .estado(p.getEstado() != null ? p.getEstado().name() : null)
                 .fechaPago(p.getFechaPago())
                 .build();
+    }
+
+    private void agregarCeldaCabecera(PdfPTable tabla, String texto) {
+        PdfPCell celda = new PdfPCell(new Phrase(texto, FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10)));
+        tabla.addCell(celda);
+    }
+
+    private Phrase valorCelda(String texto) {
+        return new Phrase(Optional.ofNullable(texto).orElse("—"));
     }
 
     private Alumno obtenerAlumnoActual() {

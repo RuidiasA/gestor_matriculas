@@ -157,16 +157,11 @@ function limpiarSeleccionSeccion() {
 async function cargarPeriodos() {
     const select = document.getElementById('filtro-ciclo');
     if (!select) return;
-    try {
-        const periodos = await fetchJson('/alumno/cursos/periodos', 'No se pudieron cargar los periodos') || [];
-        const opciones = new Set(periodos.filter(Boolean));
-        if (state.perfil?.cicloActual) opciones.add(state.perfil.cicloActual);
-
-        select.innerHTML = '<option value="">Todos</option>' + Array.from(opciones)
-            .map(p => `<option value="${p}">${p}</option>`).join('');
-    } catch (err) {
-        // silencioso
-    }
+    const opciones = Array.from({ length: 10 }, (_, idx) => idx + 1);
+    const actual = state.perfil?.cicloActual;
+    select.innerHTML = '<option value="">Todos</option>' + opciones
+        .map(num => `<option value="${num}" ${num === actual ? 'selected' : ''}>${num}</option>`)
+        .join('');
 }
 
 /* ============================================================
@@ -246,6 +241,9 @@ async function mostrarSecciones(curso, filaCurso) {
         limpiarSeleccionSeccion();
         return;
     }
+
+    document.querySelectorAll('.fila-subtabla').forEach(fila => fila.remove());
+    document.querySelectorAll('.fila-curso.abierto').forEach(fila => fila.classList.remove('abierto'));
 
     const secciones = await obtenerSeccionesCurso(cursoId);
     renderizarSeccionesTabla(cursoId, secciones, filaCurso, curso);
@@ -394,6 +392,32 @@ async function retirar(seccionId) {
         mostrarMensajeExito('Se retiró la sección de tu matrícula');
     } catch (err) {
         mostrarMensajeError(err.message || 'No se pudo retirar la sección');
+    }
+}
+
+async function guardarHorario() {
+    try {
+        const resp = await fetchJson('/alumno/horario/guardar', 'No se pudo guardar tu horario', { method: 'POST' });
+        mostrarMensajeExito(resp?.mensaje || 'Horario guardado');
+    } catch (err) {
+        // manejo centralizado
+    }
+}
+
+async function descargarHorarioPdf() {
+    try {
+        const resp = await fetch('/alumno/horario/pdf');
+        if (!resp.ok) throw new Error('No se pudo generar el PDF');
+        const blob = await resp.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'horario.pdf';
+        a.click();
+        window.URL.revokeObjectURL(url);
+        mostrarMensajeExito('Descarga iniciada');
+    } catch (err) {
+        mostrarMensajeError(err.message || 'No se pudo descargar el PDF');
     }
 }
 
@@ -753,4 +777,12 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('filtro-modalidad').value = '';
         cargarCursosDisponibles();
     });
+
+    document.getElementById('btn-guardar-borrador')?.addEventListener('click', guardarHorario);
+    const btnPdf = document.getElementById('btn-descargar-resumen');
+    if (btnPdf) {
+        btnPdf.disabled = false;
+        btnPdf.title = '';
+        btnPdf.addEventListener('click', descargarHorarioPdf);
+    }
 });
