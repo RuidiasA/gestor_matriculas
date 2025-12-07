@@ -46,10 +46,24 @@ export function createSeccionesModule(tools, alumnosModule) {
     const btnEditarSeccion = document.getElementById('btnEditarSeccion');
     const btnGestionarHorarios = document.getElementById('btnGestionarHorarios');
     const btnAnularSeccion = document.getElementById('btnAnularSeccion');
+    const btnNuevaSeccion = document.getElementById('btnNuevaSeccion');
+
+    const modalNuevaSeccion = document.getElementById('modalNuevaSeccion');
+    const formNuevaSeccion = document.getElementById('formNuevaSeccion');
+    const selectCursoNuevaSeccion = document.getElementById('selectCursoNuevaSeccion');
+    const inputCodigoNuevaSeccion = document.getElementById('inputCodigoNuevaSeccion');
+    const selectDocenteNuevaSeccion = document.getElementById('selectDocenteNuevaSeccion');
+    const inputPeriodoNuevaSeccion = document.getElementById('inputPeriodoNuevaSeccion');
+    const selectModalidadNuevaSeccion = document.getElementById('selectModalidadNuevaSeccion');
+    const selectTurnoNuevaSeccion = document.getElementById('selectTurnoNuevaSeccion');
+    const inputCapacidadNuevaSeccion = document.getElementById('inputCapacidadNuevaSeccion');
+    const inputAulaNuevaSeccion = document.getElementById('inputAulaNuevaSeccion');
+    const contenedorHorariosNuevaSeccion = document.getElementById('contenedorHorariosNuevaSeccion');
+    const btnAgregarHorarioNuevaSeccion = document.getElementById('btnAgregarHorarioNuevaSeccion');
 
     let seccionSeleccionada = null;
     let detalleSeccionActual = null;
-    const catalogosSeccion = { docentes: [], modalidades: [] };
+    const catalogosSeccion = { docentes: [], modalidades: [], cursos: [] };
 
     function init() {
         cargarCatalogos();
@@ -67,6 +81,15 @@ export function createSeccionesModule(tools, alumnosModule) {
             btnLimpiarSecciones.addEventListener('click', limpiarFiltrosSecciones);
         }
 
+        if (btnNuevaSeccion) btnNuevaSeccion.addEventListener('click', openNuevaSeccionModal);
+        if (btnAgregarHorarioNuevaSeccion) btnAgregarHorarioNuevaSeccion.addEventListener('click', () => agregarFilaHorario());
+        if (formNuevaSeccion) {
+            formNuevaSeccion.addEventListener('submit', e => {
+                e.preventDefault();
+                submitNuevaSeccion();
+            });
+        }
+
         if (btnEditarSeccion) btnEditarSeccion.onclick = () => abrirModalEdicionSeccion();
         if (btnGestionarHorarios) btnGestionarHorarios.onclick = () => abrirModalGestionHorarios();
         if (btnAnularSeccion) btnAnularSeccion.onclick = () => anularSeccion(seccionSeleccionada);
@@ -80,6 +103,160 @@ export function createSeccionesModule(tools, alumnosModule) {
                 document.getElementById(objetivo)?.classList.add('active');
             });
         });
+
+        if (modalNuevaSeccion) {
+            modalNuevaSeccion.addEventListener('click', evt => {
+                if (evt.target === modalNuevaSeccion) cerrarModalNuevaSeccion();
+            });
+            modalNuevaSeccion.querySelectorAll('[data-close]').forEach(btn => {
+                btn.addEventListener('click', cerrarModalNuevaSeccion);
+            });
+        }
+    }
+
+    function openNuevaSeccionModal() {
+        if (!modalNuevaSeccion) return;
+        formNuevaSeccion?.reset();
+        inputCapacidadNuevaSeccion.value = 30;
+        renderHorariosNuevaSeccion([{ dia: 'LUNES', horaInicio: '08:00', horaFin: '10:00' }]);
+        cargarCatalogosModal();
+        modalNuevaSeccion.hidden = false;
+    }
+
+    function cerrarModalNuevaSeccion() {
+        if (!modalNuevaSeccion) return;
+        modalNuevaSeccion.hidden = true;
+    }
+
+    function cargarCatalogosModal() {
+        if (catalogosSeccion?.cursos?.length) {
+            tools.fillSelect(selectCursoNuevaSeccion, catalogosSeccion.cursos, 'Selecciona curso', c => c.idCurso, c => `${c.codigo} - ${c.nombre}`);
+        }
+        if (catalogosSeccion?.docentes?.length) {
+            tools.fillSelect(selectDocenteNuevaSeccion, catalogosSeccion.docentes, 'Selecciona docente', d => d.idDocente, d => d.nombreCompleto);
+        }
+        if (catalogosSeccion?.modalidades?.length) {
+            tools.fillSelect(selectModalidadNuevaSeccion, catalogosSeccion.modalidades, 'Selecciona', m => m, m => m);
+        }
+    }
+
+    function renderHorariosNuevaSeccion(horarios = []) {
+        if (!contenedorHorariosNuevaSeccion) return;
+        contenedorHorariosNuevaSeccion.innerHTML = '';
+        const lista = horarios.length ? horarios : [{ dia: 'LUNES', horaInicio: '', horaFin: '' }];
+        lista.forEach(h => agregarFilaHorario(h));
+    }
+
+    function agregarFilaHorario(horario = { dia: 'LUNES', horaInicio: '', horaFin: '' }) {
+        if (!contenedorHorariosNuevaSeccion) return;
+        const row = document.createElement('div');
+        row.className = 'horario-row';
+        row.innerHTML = `
+            <div class="horario-field">
+                <label>Día</label>
+                <select class="horario-dia">
+                    ${['LUNES','MARTES','MIERCOLES','JUEVES','VIERNES','SABADO','DOMINGO'].map(d => `<option value="${d}" ${d === (horario.dia || 'LUNES') ? 'selected' : ''}>${d.charAt(0)}${d.slice(1).toLowerCase()}</option>`).join('')}
+                </select>
+            </div>
+            <div class="horario-field">
+                <label>Inicio</label>
+                <input type="time" class="horario-inicio" value="${horario.horaInicio || ''}" />
+            </div>
+            <div class="horario-field">
+                <label>Fin</label>
+                <input type="time" class="horario-fin" value="${horario.horaFin || ''}" />
+            </div>
+            <div class="horario-actions-inline">
+                <button type="button" class="btn-link btn-remove-horario">Quitar</button>
+            </div>
+        `;
+        row.querySelector('.btn-remove-horario')?.addEventListener('click', () => eliminarFilaHorario(row));
+        contenedorHorariosNuevaSeccion.appendChild(row);
+    }
+
+    function eliminarFilaHorario(row) {
+        if (!contenedorHorariosNuevaSeccion) return;
+        if (contenedorHorariosNuevaSeccion.children.length <= 1) {
+            tools.showToast('Debe existir al menos un horario', 'info');
+            return;
+        }
+        row.remove();
+    }
+
+    async function submitNuevaSeccion() {
+        try {
+            const dto = construirNuevaSeccionDTO();
+            const resp = await fetch('/admin/secciones', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dto)
+            });
+
+            if (!resp.ok) {
+                const mensaje = await resp.text();
+                throw new Error(mensaje || 'No se pudo registrar la sección');
+            }
+
+            const data = await resp.json();
+            tools.showToast('Sección registrada correctamente', 'success');
+            cerrarModalNuevaSeccion();
+            seccionSeleccionada = data.idSeccion || data.id || null;
+            await buscarSecciones(true);
+            if (seccionSeleccionada) {
+                cargarFichaSeccion(seccionSeleccionada);
+            }
+        } catch (err) {
+            tools.showToast(err.message || 'No se pudo registrar la sección', 'error');
+        }
+    }
+
+    function construirNuevaSeccionDTO() {
+        const cursoId = selectCursoNuevaSeccion?.value;
+        const docenteId = selectDocenteNuevaSeccion?.value;
+        const modalidad = selectModalidadNuevaSeccion?.value;
+        const turno = selectTurnoNuevaSeccion?.value;
+        const codigo = (inputCodigoNuevaSeccion?.value || '').trim();
+        const periodo = (inputPeriodoNuevaSeccion?.value || '').trim();
+        const capacidad = Number(inputCapacidadNuevaSeccion?.value || 0);
+        const aula = (inputAulaNuevaSeccion?.value || '').trim();
+        const horarios = Array.from(contenedorHorariosNuevaSeccion?.querySelectorAll('.horario-row') || []).map(row => ({
+            dia: row.querySelector('.horario-dia')?.value,
+            horaInicio: row.querySelector('.horario-inicio')?.value,
+            horaFin: row.querySelector('.horario-fin')?.value,
+        })).filter(h => h.dia || h.horaInicio || h.horaFin);
+
+        if (!cursoId || !docenteId || !modalidad || !turno || !codigo || !periodo || !aula) {
+            throw new Error('Completa los campos obligatorios');
+        }
+
+        if (capacidad < 1) {
+            throw new Error('La capacidad debe ser mayor a cero');
+        }
+
+        if (!horarios.length) {
+            throw new Error('Agrega al menos un horario');
+        }
+
+        for (const h of horarios) {
+            if (!h.dia || !h.horaInicio || !h.horaFin) {
+                throw new Error('Completa todos los campos de horario');
+            }
+            if (h.horaFin <= h.horaInicio) {
+                throw new Error('La hora fin debe ser mayor a la hora inicio');
+            }
+        }
+
+        return {
+            idCurso: Number(cursoId),
+            codigoSeccion: codigo,
+            docenteId: Number(docenteId),
+            periodoAcademico: periodo,
+            modalidad,
+            turno,
+            capacidad,
+            aula,
+            horarios,
+        };
     }
 
     function resetFicha() {
@@ -89,12 +266,14 @@ export function createSeccionesModule(tools, alumnosModule) {
     async function cargarCatalogos() {
         try {
             const data = await fetchJson('/admin/secciones/catalogos', 'No se pudo cargar los catálogos');
+            catalogosSeccion.cursos = data.cursos || [];
             catalogosSeccion.docentes = data.docentes || [];
             catalogosSeccion.modalidades = data.modalidades || [];
             tools.fillSelect(filtroCursoSeccion, data.cursos, 'Curso...', item => item.idCurso, item => `${item.codigo} - ${item.nombre}`);
             tools.fillSelect(filtroPeriodoSeccion, data.periodos, 'Seleccione', item => item, item => item);
             tools.fillSelect(filtroDocenteSeccion, data.docentes, 'Seleccione', item => item.idDocente, item => item.nombreCompleto);
             tools.fillSelect(filtroModalidadSeccion, data.modalidades, 'Todas', item => item, item => item);
+            cargarCatalogosModal();
         } catch (e) {
             tools.showToast(e.message, 'error');
         }

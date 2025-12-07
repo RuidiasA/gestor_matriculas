@@ -6,9 +6,11 @@ import com.example.matriculas.model.enums.DiaSemana;
 import com.example.matriculas.model.enums.EstadoMatricula;
 import com.example.matriculas.model.enums.EstadoSeccion;
 import com.example.matriculas.model.enums.Modalidad;
+import com.example.matriculas.model.enums.Turno;
 import com.example.matriculas.repository.CursoRepository;
 import com.example.matriculas.repository.DetalleMatriculaRepository;
 import com.example.matriculas.repository.DocenteRepository;
+import com.example.matriculas.repository.SeccionHorarioRepository;
 import com.example.matriculas.repository.SeccionRepository;
 import com.example.matriculas.repository.SeccionCambioRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +24,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.text.Normalizer;
 import java.time.LocalTime;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -35,6 +38,48 @@ public class SeccionService {
     private final DocenteRepository docenteRepository;
     private final DetalleMatriculaRepository detalleMatriculaRepository;
     private final SeccionCambioRepository seccionCambioLogRepository;
+    private final SeccionHorarioRepository seccionHorarioRepository;
+
+    @Transactional
+    public SeccionDetalleDTO registrarSeccion(SeccionCrearDTO dto) {
+        Curso curso = cursoRepository.findById(dto.getIdCurso())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Curso no encontrado"));
+
+        Docente docente = docenteRepository.findById(dto.getDocenteId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Docente no encontrado"));
+
+        if (seccionRepository.existsByCodigo(dto.getCodigoSeccion().trim())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "El código de sección ya existe");
+        }
+
+        if (dto.getCapacidad() == null || dto.getCapacidad() < 1) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La capacidad debe ser mayor a cero");
+        }
+
+        Modalidad modalidad = parsearModalidad(dto.getModalidad());
+        Turno turno = parsearTurno(dto.getTurno());
+
+        Seccion seccion = new Seccion();
+        seccion.setCurso(curso);
+        seccion.setDocente(docente);
+        seccion.setCodigo(dto.getCodigoSeccion().trim());
+        seccion.setPeriodoAcademico(dto.getPeriodoAcademico().trim());
+        seccion.setModalidad(modalidad);
+        seccion.setTurno(turno);
+        seccion.setAula(dto.getAula().trim());
+        seccion.setCapacidad(dto.getCapacidad());
+        seccion.setMatriculadosActuales(0);
+        seccion.setEstado(EstadoSeccion.ACTIVA);
+        seccion.setFechaCreacion(LocalDateTime.now());
+
+        seccionRepository.save(seccion);
+
+        List<SeccionHorario> horarios = construirHorariosDesdeCrear(dto.getHorarios(), seccion);
+        seccionHorarioRepository.saveAll(horarios);
+        seccion.setHorarios(horarios);
+
+        return mapearDetalle(seccion, 0);
+    }
 
     @Transactional(readOnly = true)
     public SeccionCatalogoDTO obtenerCatalogos() {
@@ -423,6 +468,32 @@ public class SeccionService {
                 .build();
     }
 
+    private List<SeccionHorario> construirHorariosDesdeCrear(List<SeccionCrearDTO.HorarioCrearDTO> horariosDto, Seccion seccion) {
+        if (horariosDto == null || horariosDto.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Debes registrar al menos un horario");
+        }
+
+        List<SeccionHorario> horarios = horariosDto.stream()
+                .map(horarioDTO -> {
+                    DiaSemana dia = parsearDia(horarioDTO.getDia());
+                    String horaInicio = validarHora(horarioDTO.getHoraInicio());
+                    String horaFin = validarHora(horarioDTO.getHoraFin());
+
+                    validarRangoHorario(horaInicio, horaFin, dia);
+
+                    return SeccionHorario.builder()
+                            .dia(dia)
+                            .horaInicio(LocalTime.parse(horaInicio))
+                            .horaFin(LocalTime.parse(horaFin))
+                            .seccion(seccion)
+                            .build();
+                })
+                .toList();
+
+        validarCruceHorarios(horarios);
+        return horarios;
+    }
+
     private List<SeccionHorario> construirHorarios(List<SeccionActualizarDTO.HorarioEdicionDTO> horariosDto, Seccion seccion) {
         if (horariosDto == null || horariosDto.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Debes registrar al menos un horario");
@@ -549,6 +620,17 @@ public class SeccionService {
             case "HIBRIDO", "HÍBRIDO", "SEMIPRESENCIAL" -> Modalidad.SEMIPRESENCIAL;
             default -> throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Modalidad no soportada: " + modalidad);
         };
+    }
+
+    private Turno parsearTurno(String turno) {
+        if (!StringUtils.hasText(turno)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Turno inválido");
+        }
+        try {
+            return Turno.valueOf(turno.trim().toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Turno no soportado: " + turno);
+        }
     }
 
     private DiaSemana parsearDia(String dia) {

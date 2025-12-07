@@ -3,6 +3,8 @@ package com.example.matriculas.repository;
 import com.example.matriculas.model.Curso;
 import com.example.matriculas.model.Carrera;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -18,4 +20,7 @@ public interface CursoRepository extends JpaRepository<Curso, Long> {
     List<Curso> findByCiclo(int ciclo);
 
     List<Curso> findByNombreContainingIgnoreCase(String nombre);
+
+    @Query("SELECT c FROM Curso c WHERE c.carrera.id = :carreraId")
+    List<Curso> findCursosPorCarrera(@Param("carreraId") Long carreraId);
 }

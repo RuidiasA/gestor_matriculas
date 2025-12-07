@@ -3,6 +3,7 @@ package com.example.matriculas.controller;
 import com.example.matriculas.dto.EstudianteSeccionDTO;
 import com.example.matriculas.dto.SeccionActualizarDTO;
 import com.example.matriculas.dto.SeccionCatalogoDTO;
+import com.example.matriculas.dto.SeccionCrearDTO;
 import com.example.matriculas.dto.SeccionDetalleDTO;
 import com.example.matriculas.dto.SeccionHistorialDTO;
 import com.example.matriculas.dto.SeccionHistorialCompletoDTO;
@@ -86,6 +87,12 @@ public class AdminSeccionController {
     public ResponseEntity<Void> actualizar(@PathVariable Long id, @Valid @RequestBody SeccionActualizarDTO dto) {
         seccionService.actualizar(id, dto);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping
+    public ResponseEntity<SeccionDetalleDTO> registrar(@Valid @RequestBody SeccionCrearDTO dto) {
+        SeccionDetalleDTO creada = seccionService.registrarSeccion(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(creada);
     }
 
     @PutMapping("/{id}/horarios")
