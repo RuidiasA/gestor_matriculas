@@ -2,6 +2,7 @@ package com.example.matriculas.service;
 
 import com.example.matriculas.dto.*;
 import com.example.matriculas.model.*;
+import com.example.matriculas.model.enums.EstadoSolicitud;
 import com.example.matriculas.model.enums.EstadoDetalleMatricula;
 import com.example.matriculas.model.enums.EstadoMatricula;
 import com.example.matriculas.model.enums.EstadoPago;
@@ -220,9 +221,9 @@ public class AlumnoPortalService {
     }
 
     @Transactional(readOnly = true)
-    public List<PagoDTO> obtenerPagos(boolean soloPendientes) {
+    public List<PagoDTO> obtenerPagos(boolean soloPendientes, String periodo) {
         Alumno alumno = obtenerAlumnoActual();
-        String ciclo = obtenerCicloActual(alumno);
+        String ciclo = StringUtils.hasText(periodo) ? periodo : obtenerCicloActual(alumno);
         if (ciclo == null) {
             return List.of();
         }
@@ -469,20 +470,61 @@ public class AlumnoPortalService {
     }
 
     @Transactional
-    public void registrarSolicitud(SolicitudSeccion solicitud) {
-
-        if (solicitud == null
-                || solicitud.getCurso() == null
-                || solicitud.getCurso().getId() == null) {
-
+    public void registrarSolicitud(SolicitudSeccionCrearDTO solicitudDto) {
+        if (solicitudDto == null || solicitudDto.getCursoId() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La solicitud está incompleta: curso inválido");
         }
 
+        if (!StringUtils.hasText(solicitudDto.getMotivo())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El motivo es obligatorio");
+        }
+
         Alumno alumno = obtenerAlumnoActual();
+        String cicloActual = obtenerCicloActual(alumno);
+
+        boolean yaExiste = solicitudSeccionRepository.existsByAlumnoIdAndCursoIdAndCicloAcademico(
+                alumno.getId(), solicitudDto.getCursoId(), cicloActual);
+        if (yaExiste) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Ya registraste una solicitud para este curso en el ciclo actual");
+        }
+
+        Curso curso = cursoRepository.findById(solicitudDto.getCursoId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Curso no encontrado"));
+
+        SolicitudSeccion solicitud = new SolicitudSeccion();
         solicitud.setAlumno(alumno);
+        solicitud.setCurso(curso);
+        solicitud.setCicloAcademico(cicloActual);
+        solicitud.setModalidad(StringUtils.hasText(solicitudDto.getModalidad()) ? solicitudDto.getModalidad() : null);
+        solicitud.setTurno(solicitudDto.getTurno());
+        solicitud.setCorreo(solicitudDto.getCorreo());
+        solicitud.setTelefono(solicitudDto.getTelefono());
+        solicitud.setMotivo(solicitudDto.getMotivo());
+        solicitud.setEvidenciaNombreArchivo(solicitudDto.getEvidenciaNombreArchivo());
         solicitud.setFechaSolicitud(LocalDateTime.now());
+        solicitud.setEstado(EstadoSolicitud.PENDIENTE);
 
         solicitudSeccionRepository.save(solicitud);
+    }
+
+    @Transactional(readOnly = true)
+    public List<SolicitudSeccionAlumnoDTO> listarSolicitudesAlumno() {
+        Alumno alumno = obtenerAlumnoActual();
+        return solicitudSeccionRepository.findByAlumnoId(alumno.getId())
+                .stream()
+                .sorted(Comparator.comparing(SolicitudSeccion::getFechaSolicitud, Comparator.nullsLast(Comparator.naturalOrder())).reversed())
+                .map(s -> SolicitudSeccionAlumnoDTO.builder()
+                        .id(s.getId())
+                        .curso(Optional.ofNullable(s.getCurso()).map(Curso::getNombre).orElse(null))
+                        .codigoCurso(Optional.ofNullable(s.getCurso()).map(Curso::getCodigo).orElse(null))
+                        .modalidad(s.getModalidad())
+                        .turno(s.getTurno())
+                        .ciclo(s.getCicloAcademico())
+                        .estado(s.getEstado() != null ? s.getEstado().name() : null)
+                        .respuesta(s.getRespuesta())
+                        .fechaSolicitud(s.getFechaSolicitud())
+                        .build())
+                .toList();
     }
 
 
