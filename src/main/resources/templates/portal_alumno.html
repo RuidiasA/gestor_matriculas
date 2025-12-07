@@ -65,6 +65,38 @@
                 <h1>MATRÍCULA EN LÍNEA</h1>
             </div>
 
+            <div class="catalogo-filtros">
+                <div class="filtros-group">
+                    <label for="filtro-texto">Buscar</label>
+                    <input id="filtro-texto" type="text" placeholder="Nombre o código de curso">
+                </div>
+                <div class="filtros-group">
+                    <label for="filtro-modalidad">Modalidad</label>
+                    <select id="filtro-modalidad">
+                        <option value="">Todas</option>
+                        <option value="PRESENCIAL">Presencial</option>
+                        <option value="VIRTUAL">Virtual</option>
+                        <option value="HIBRIDO">Híbrido</option>
+                    </select>
+                </div>
+                <div class="filtros-group">
+                    <label for="filtro-ciclo">Periodo</label>
+                    <input id="filtro-ciclo" type="text" placeholder="Ej. 2024-I">
+                </div>
+                <button id="btn-filtrar" class="btn-primario">Actualizar catálogo</button>
+            </div>
+
+            <div class="catalogo-grid" id="catalogo-cursos"></div>
+
+            <div id="detalle-curso" class="detalle-curso hidden">
+                <h3>Detalle de curso</h3>
+                <div class="detalle-body"></div>
+                <div class="detalle-acciones">
+                    <button id="btn-matricular" class="btn-primario">Matricular</button>
+                    <button id="btn-retirar" class="btn-secundario">Retirar</button>
+                </div>
+            </div>
+
             <div class="fecha__matricula">
                 <div class="main__container-item">
                     <h3>Inicio de matrícula:</h3>
