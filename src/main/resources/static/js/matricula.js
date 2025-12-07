@@ -3,7 +3,9 @@ const state = {
     resumen: null,
     cursos: [],
     horario: [],
-    pagos: []
+    pagos: [],
+    catalogo: [],
+    detalleActual: null
 };
 
 function mostrarVista(vista, event) {
@@ -57,9 +59,9 @@ function mostrarVista(vista, event) {
 /* ============================================================
    UTILIDADES
 ============================================================ */
-async function fetchJson(url, errorMessage) {
+async function fetchJson(url, errorMessage, options = {}) {
     try {
-        const resp = await fetch(url);
+        const resp = await fetch(url, options);
         if (!resp.ok) throw new Error(errorMessage || 'Error de servidor');
         return await resp.json();
     } catch (err) {
@@ -75,6 +77,83 @@ function mostrarMensajeError(msg) {
     banner.textContent = msg || 'Ocurrió un error inesperado';
     document.body.appendChild(banner);
     setTimeout(() => banner.remove(), 4000);
+}
+
+async function cargarCatalogo() {
+    const ciclo = document.getElementById('filtro-ciclo')?.value || '';
+    const modalidad = document.getElementById('filtro-modalidad')?.value || '';
+    const texto = document.getElementById('filtro-texto')?.value || '';
+    const params = new URLSearchParams();
+    if (ciclo) params.append('ciclo', ciclo);
+    if (modalidad) params.append('modalidad', modalidad);
+    if (texto) params.append('q', texto);
+
+    const url = `/alumno/cursos/disponibles${params.toString() ? '?' + params.toString() : ''}`;
+    state.catalogo = await fetchJson(url, 'No se pudo cargar el catálogo');
+    renderCatalogo();
+}
+
+function renderCatalogo() {
+    const contenedor = document.getElementById('catalogo-cursos');
+    if (!contenedor) return;
+    contenedor.innerHTML = '';
+
+    if (!state.catalogo.length) {
+        contenedor.innerHTML = '<div class="catalogo-empty">No se encontraron cursos disponibles.</div>';
+        return;
+    }
+
+    state.catalogo.forEach(item => {
+        const card = document.createElement('div');
+        card.classList.add('catalogo-card');
+        card.innerHTML = `
+            <h4>${item.codigoCurso || ''} — ${item.nombreCurso || ''}</h4>
+            <div class="meta">
+                <span class="badge-soft">${item.modalidad || 'Sin modalidad'}</span>
+                <span>Cupos: ${item.cuposDisponibles ?? 0}</span>
+                <span>Créditos: ${item.creditos ?? '-'}</span>
+            </div>
+            <small>${item.docente || 'Docente por confirmar'}</small>
+        `;
+        card.addEventListener('click', () => cargarDetalleCurso(item.seccionId));
+        contenedor.appendChild(card);
+    });
+}
+
+async function cargarDetalleCurso(seccionId) {
+    const detalleContainer = document.querySelector('#detalle-curso');
+    const body = detalleContainer?.querySelector('.detalle-body');
+    if (!detalleContainer || !body) return;
+    const detalle = await fetchJson(`/alumno/cursos/${seccionId}/detalle`, 'No se pudo cargar el detalle');
+    state.detalleActual = detalle;
+    detalleContainer.classList.remove('hidden');
+    body.innerHTML = `
+        <p><strong>Curso:</strong> ${detalle.nombreCurso || ''} (${detalle.codigoCurso || ''})</p>
+        <p><strong>Docente:</strong> ${detalle.docente || 'Por asignar'}</p>
+        <p><strong>Modalidad:</strong> ${detalle.modalidad || '-'}</p>
+        <p><strong>Cupos:</strong> ${detalle.cuposDisponibles ?? 0}</p>
+        <p><strong>Prerrequisitos:</strong> ${(detalle.prerrequisitos || []).join(', ') || 'Ninguno'}</p>
+    `;
+}
+
+async function intentarMatricular() {
+    if (!state.detalleActual?.seccionId) return;
+    try {
+        await fetchJson(`/alumno/matricula/${state.detalleActual.seccionId}`, 'No se pudo completar la matrícula', { method: 'POST' });
+        await cargarDatosIniciales();
+    } catch (err) {
+        // manejo centralizado
+    }
+}
+
+async function intentarRetirar() {
+    if (!state.detalleActual?.seccionId) return;
+    try {
+        await fetch(`/alumno/matricula/${state.detalleActual.seccionId}`, { method: 'DELETE' });
+        await cargarDatosIniciales();
+    } catch (err) {
+        mostrarMensajeError('No se pudo retirar el curso');
+    }
 }
 
 /* ============================================================
@@ -232,12 +311,18 @@ async function cargarDatosIniciales() {
         generarTarjetasCursos();
         renderTablaCursos();
         inicializarHorario();
+        await cargarCatalogo();
     } catch (err) {
         // Errores ya manejados en fetchJson
     }
 }
 
-document.addEventListener('DOMContentLoaded', cargarDatosIniciales);
+document.addEventListener('DOMContentLoaded', () => {
+    cargarDatosIniciales();
+    document.getElementById('btn-filtrar')?.addEventListener('click', cargarCatalogo);
+    document.getElementById('btn-matricular')?.addEventListener('click', intentarMatricular);
+    document.getElementById('btn-retirar')?.addEventListener('click', intentarRetirar);
+});
 
 function actualizarResumenMatricula() {
     const contenedor = document.querySelector('#aside-derecho .resumen');

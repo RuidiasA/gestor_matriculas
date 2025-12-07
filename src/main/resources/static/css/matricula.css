@@ -253,3 +253,102 @@ ion-icon {
 
 
 
+
+.catalogo-filtros {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    background: #fff;
+    padding: 16px;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    margin: 12px 0 20px 0;
+}
+
+.catalogo-filtros label {
+    display: block;
+    font-size: 0.9rem;
+    margin-bottom: 6px;
+    color: #444;
+}
+
+.catalogo-filtros input,
+.catalogo-filtros select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+}
+
+.catalogo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.catalogo-card {
+    background: #fff;
+    padding: 16px;
+    border-radius: 12px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.catalogo-card h4 {
+    margin: 0;
+    color: #1b3b6f;
+}
+
+.catalogo-card .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 0.9rem;
+    color: #555;
+}
+
+.badge-soft {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: #eef4ff;
+    color: #1b3b6f;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.detalle-curso {
+    background: #fff;
+    padding: 16px;
+    border-radius: 12px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+    margin-bottom: 20px;
+}
+
+.detalle-acciones {
+    display: flex;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.btn-primario {
+    background: #1b3b6f;
+    color: #fff;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.btn-secundario {
+    background: #f2f4f8;
+    color: #1b3b6f;
+    border: 1px solid #d7deea;
+    padding: 10px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+}
