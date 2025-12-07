@@ -172,11 +172,11 @@ public class AlumnoPortalService {
     public List<CursoDisponibleDTO> buscarCursosDisponibles(String cicloFiltro, String modalidadFiltro, String texto) {
         Alumno alumno = obtenerAlumnoActual();
         String ciclo = cicloFiltro != null ? cicloFiltro : obtenerCicloActual(alumno);
-
-        return seccionRepository.findAll()
+        List<Seccion> secciones = seccionRepository.findAll()
                 .stream()
                 .filter(sec -> ciclo == null || ciclo.equalsIgnoreCase(sec.getPeriodoAcademico()))
-                .filter(sec -> modalidadFiltro == null || sec.getModalidad() == null || sec.getModalidad().name().equalsIgnoreCase(modalidadFiltro))
+                .filter(sec -> !StringUtils.hasText(modalidadFiltro)
+                        || (sec.getModalidad() != null && sec.getModalidad().name().equalsIgnoreCase(modalidadFiltro)))
                 .filter(sec -> {
                     if (!StringUtils.hasText(texto)) return true;
                     String normalizado = texto.toLowerCase();
@@ -184,19 +184,41 @@ public class AlumnoPortalService {
                             || (sec.getCurso() != null && sec.getCurso().getCodigo().toLowerCase().contains(normalizado))
                             || (sec.getCodigo() != null && sec.getCodigo().toLowerCase().contains(normalizado));
                 })
-                .map(sec -> CursoDisponibleDTO.builder()
-                        .seccionId(sec.getId())
-                        .codigoCurso(sec.getCurso() != null ? sec.getCurso().getCodigo() : null)
-                        .nombreCurso(sec.getCurso() != null ? sec.getCurso().getNombre() : null)
-                        .creditos(sec.getCurso() != null ? sec.getCurso().getCreditos() : null)
-                        .horasSemanales(sec.getCurso() != null ? sec.getCurso().getHorasSemanales() : null)
-                        .ciclo(sec.getPeriodoAcademico())
-                        .docente(sec.getDocente() != null ? (sec.getDocente().getNombres() + " " + sec.getDocente().getApellidos()).trim() : null)
-                        .modalidad(sec.getModalidad() != null ? sec.getModalidad().name() : null)
-                        .cuposDisponibles(calcularCuposDisponibles(sec))
-                        .matriculados(sec.getMatriculadosActuales())
-                        .turno(sec.getTurno() != null ? sec.getTurno().name() : null)
-                        .build())
+                .toList();
+
+        return secciones.stream()
+                .filter(sec -> sec.getCurso() != null)
+                .collect(Collectors.groupingBy(sec -> sec.getCurso().getId()))
+                .values()
+                .stream()
+                .map(lista -> {
+                    Seccion principal = lista.get(0);
+                    int cupos = lista.stream().mapToInt(this::calcularCuposDisponibles).sum();
+                    int matriculados = lista.stream()
+                            .mapToInt(sec -> Optional.ofNullable(sec.getMatriculadosActuales()).orElse(0))
+                            .sum();
+                    String docente = lista.stream()
+                            .map(sec -> sec.getDocente() != null
+                                    ? (sec.getDocente().getNombres() + " " + sec.getDocente().getApellidos()).trim()
+                                    : null)
+                            .filter(StringUtils::hasText)
+                            .findFirst()
+                            .orElse(null);
+
+                    return CursoDisponibleDTO.builder()
+                            .cursoId(principal.getCurso().getId())
+                            .codigoCurso(principal.getCurso().getCodigo())
+                            .nombreCurso(principal.getCurso().getNombre())
+                            .creditos(principal.getCurso().getCreditos())
+                            .horasSemanales(principal.getCurso().getHorasSemanales())
+                            .ciclo(principal.getPeriodoAcademico())
+                            .docente(docente)
+                            .modalidad(resumenModalidad(lista))
+                            .cuposDisponibles(cupos)
+                            .matriculados(matriculados)
+                            .turno(principal.getTurno() != null ? principal.getTurno().name() : null)
+                            .build();
+                })
                 .sorted(Comparator.comparing(CursoDisponibleDTO::getNombreCurso, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)))
                 .toList();
     }
@@ -206,43 +228,24 @@ public class AlumnoPortalService {
         Seccion seccion = seccionRepository.findDetalleById(seccionId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Sección no encontrada"));
 
-        List<String> prerrequisitos = Optional.ofNullable(seccion.getCurso())
-                .map(Curso::getPrerrequisitos)
-                .orElseGet(Set::of)
-                .stream()
-                .map(Curso::getNombre)
-                .toList();
+        return mapearDetalleSeccion(seccion);
+    }
 
-        List<HorarioDTO> horarios = Optional.ofNullable(seccion.getHorarios())
-                .orElse(List.of())
-                .stream()
-                .map(h -> HorarioDTO.builder()
-                        .dia(h.getDia() != null ? h.getDia().name() : null)
-                        .horaInicio(h.getHoraInicio() != null ? h.getHoraInicio().toString() : null)
-                        .horaFin(h.getHoraFin() != null ? h.getHoraFin().toString() : null)
-                        .curso(seccion.getCurso() != null ? seccion.getCurso().getNombre() : null)
-                        .docente(seccion.getDocente() != null ? (seccion.getDocente().getNombres() + " " + seccion.getDocente().getApellidos()).trim() : null)
-                        .aula(seccion.getAula())
-                        .build())
+    @Transactional(readOnly = true)
+    public List<CursoDetalleAlumnoDTO> listarSeccionesPorCurso(Long cursoId) {
+        List<Seccion> secciones = seccionRepository.findByCursoId(cursoId);
+        if (secciones.isEmpty()) {
+            return List.of();
+        }
+        return secciones.stream()
+                .map(this::mapearDetalleSeccion)
+                .sorted(Comparator.comparing(CursoDetalleAlumnoDTO::getCodigoSeccion, Comparator.nullsLast(String::compareToIgnoreCase)))
                 .toList();
+    }
 
-        return CursoDetalleAlumnoDTO.builder()
-                .seccionId(seccion.getId())
-                .codigoSeccion(seccion.getCodigo())
-                .codigoCurso(seccion.getCurso() != null ? seccion.getCurso().getCodigo() : null)
-                .nombreCurso(seccion.getCurso() != null ? seccion.getCurso().getNombre() : null)
-                .descripcion(seccion.getCurso() != null ? seccion.getCurso().getDescripcion() : null)
-                .creditos(seccion.getCurso() != null ? seccion.getCurso().getCreditos() : null)
-                .horasSemanales(seccion.getCurso() != null ? seccion.getCurso().getHorasSemanales() : null)
-                .docente(seccion.getDocente() != null ? (seccion.getDocente().getNombres() + " " + seccion.getDocente().getApellidos()).trim() : null)
-                .aula(seccion.getAula())
-                .turno(seccion.getTurno() != null ? seccion.getTurno().name() : null)
-                .modalidad(seccion.getModalidad() != null ? seccion.getModalidad().name() : null)
-                .cuposDisponibles(calcularCuposDisponibles(seccion))
-                .matriculados(seccion.getMatriculadosActuales())
-                .prerrequisitos(prerrequisitos)
-                .horarios(horarios)
-                .build();
+    @Transactional(readOnly = true)
+    public List<String> obtenerPeriodosDisponibles() {
+        return seccionRepository.findDistinctPeriodos();
     }
 
     @Transactional(readOnly = true)
@@ -310,6 +313,7 @@ public class AlumnoPortalService {
         actualizarTotales(matricula);
 
         return CursoMatriculadoDTO.builder()
+                .seccionId(seccion.getId())
                 .codigoSeccion(seccion.getCodigo())
                 .nombreCurso(seccion.getCurso() != null ? seccion.getCurso().getNombre() : null)
                 .docente(seccion.getDocente() != null ? (seccion.getDocente().getNombres() + " " + seccion.getDocente().getApellidos()).trim() : null)
@@ -351,6 +355,7 @@ public class AlumnoPortalService {
                                 .orElse(List.of())
                                 .stream()
                                 .map(det -> CursoMatriculadoDTO.builder()
+                                        .seccionId(det.getSeccion() != null ? det.getSeccion().getId() : null)
                                         .codigoSeccion(det.getSeccion() != null ? det.getSeccion().getCodigo() : null)
                                         .nombreCurso(det.getSeccion() != null && det.getSeccion().getCurso() != null ? det.getSeccion().getCurso().getNombre() : null)
                                         .docente(det.getSeccion() != null && det.getSeccion().getDocente() != null ? (det.getSeccion().getDocente().getNombres() + " " + det.getSeccion().getDocente().getApellidos()).trim() : null)
@@ -379,6 +384,61 @@ public class AlumnoPortalService {
         solicitud.setFechaSolicitud(LocalDateTime.now());
 
         solicitudSeccionRepository.save(solicitud);
+    }
+
+
+    private String resumenModalidad(List<Seccion> secciones) {
+        Set<String> modalidades = secciones.stream()
+                .map(sec -> sec.getModalidad() != null ? sec.getModalidad().name() : null)
+                .filter(StringUtils::hasText)
+                .collect(Collectors.toSet());
+        if (modalidades.isEmpty()) {
+            return null;
+        }
+        if (modalidades.size() == 1) {
+            return modalidades.iterator().next();
+        }
+        return "VARIAS";
+    }
+
+    private CursoDetalleAlumnoDTO mapearDetalleSeccion(Seccion seccion) {
+        List<String> prerrequisitos = Optional.ofNullable(seccion.getCurso())
+                .map(Curso::getPrerrequisitos)
+                .orElseGet(Set::of)
+                .stream()
+                .map(Curso::getNombre)
+                .toList();
+
+        List<HorarioDTO> horarios = Optional.ofNullable(seccion.getHorarios())
+                .orElse(List.of())
+                .stream()
+                .map(h -> HorarioDTO.builder()
+                        .dia(h.getDia() != null ? h.getDia().name() : null)
+                        .horaInicio(h.getHoraInicio() != null ? h.getHoraInicio().toString() : null)
+                        .horaFin(h.getHoraFin() != null ? h.getHoraFin().toString() : null)
+                        .curso(seccion.getCurso() != null ? seccion.getCurso().getNombre() : null)
+                        .docente(seccion.getDocente() != null ? (seccion.getDocente().getNombres() + " " + seccion.getDocente().getApellidos()).trim() : null)
+                        .aula(seccion.getAula())
+                        .build())
+                .toList();
+
+        return CursoDetalleAlumnoDTO.builder()
+                .seccionId(seccion.getId())
+                .codigoSeccion(seccion.getCodigo())
+                .codigoCurso(seccion.getCurso() != null ? seccion.getCurso().getCodigo() : null)
+                .nombreCurso(seccion.getCurso() != null ? seccion.getCurso().getNombre() : null)
+                .descripcion(seccion.getCurso() != null ? seccion.getCurso().getDescripcion() : null)
+                .creditos(seccion.getCurso() != null ? seccion.getCurso().getCreditos() : null)
+                .horasSemanales(seccion.getCurso() != null ? seccion.getCurso().getHorasSemanales() : null)
+                .docente(seccion.getDocente() != null ? (seccion.getDocente().getNombres() + " " + seccion.getDocente().getApellidos()).trim() : null)
+                .aula(seccion.getAula())
+                .turno(seccion.getTurno() != null ? seccion.getTurno().name() : null)
+                .modalidad(seccion.getModalidad() != null ? seccion.getModalidad().name() : null)
+                .cuposDisponibles(calcularCuposDisponibles(seccion))
+                .matriculados(seccion.getMatriculadosActuales())
+                .prerrequisitos(prerrequisitos)
+                .horarios(horarios)
+                .build();
     }
 
 

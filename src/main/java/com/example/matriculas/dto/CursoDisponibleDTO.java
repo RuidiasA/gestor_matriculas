@@ -6,7 +6,7 @@ import lombok.Data;
 @Data
 @Builder
 public class CursoDisponibleDTO {
-    private Long seccionId;
+    private Long cursoId;
     private String codigoCurso;
     private String nombreCurso;
     private Integer creditos;

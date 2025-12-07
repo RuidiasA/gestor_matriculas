@@ -335,6 +335,7 @@ public class AlumnoService {
 
     private CursoMatriculadoDTO mapearCurso(DetalleMatricula detalle) {
         return CursoMatriculadoDTO.builder()
+                .seccionId(detalle.getSeccion() != null ? detalle.getSeccion().getId() : null)
                 .codigoSeccion(detalle.getSeccion() != null ? detalle.getSeccion().getCodigo() : null)
                 .nombreCurso(detalle.getSeccion() != null && detalle.getSeccion().getCurso() != null ?
                         detalle.getSeccion().getCurso().getNombre() : null)

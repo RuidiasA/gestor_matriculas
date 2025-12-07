@@ -17,11 +17,21 @@ public class AlumnoCursosController {
 
     private final AlumnoPortalService alumnoPortalService;
 
+    @GetMapping("/cursos/periodos")
+    public List<String> periodosDisponibles() {
+        return alumnoPortalService.obtenerPeriodosDisponibles();
+    }
+
     @GetMapping("/cursos/disponibles")
     public List<CursoDisponibleDTO> cursosDisponibles(@RequestParam(required = false) String ciclo,
                                                       @RequestParam(required = false) String modalidad,
                                                       @RequestParam(required = false, name = "q") String texto) {
         return alumnoPortalService.buscarCursosDisponibles(ciclo, modalidad, texto);
+    }
+
+    @GetMapping("/cursos/{id}/secciones")
+    public List<CursoDetalleAlumnoDTO> seccionesPorCurso(@PathVariable("id") Long cursoId) {
+        return alumnoPortalService.listarSeccionesPorCurso(cursoId);
     }
 
     @GetMapping("/cursos/{id}/detalle")
@@ -32,6 +42,11 @@ public class AlumnoCursosController {
     @PostMapping("/matricula/{idSeccion}")
     public CursoMatriculadoDTO matricular(@PathVariable Long idSeccion) {
         return alumnoPortalService.matricular(idSeccion);
+    }
+
+    @GetMapping("/matricula/validar/{idSeccion}")
+    public ValidacionMatriculaDTO validar(@PathVariable Long idSeccion) {
+        return alumnoPortalService.validarMatricula(idSeccion);
     }
 
     @DeleteMapping("/matricula/{idSeccion}")
