@@ -818,14 +818,22 @@
 
                                 <!-- HISTORIAL -->
                                 <div class="secciones-historial">
-                                    <article class="card-historial-alumnos">
-                                        <header class="card__header">
-                                            <h3>Historial de matrículas</h3>
-                                            <span class="muted" id="subtituloHistorial">-</span>
+                                    <article class="card-historial-alumnos ficha-alumno__historial-card">
+                                        <header class="card__header ficha-alumno__historial-header">
+                                            <div class="ficha-alumno__historial-titles">
+                                                <h3>Historial de matrículas</h3>
+                                                <span class="muted" id="subtituloHistorial">-</span>
+                                            </div>
+                                            <button type="button" class="ficha-alumno__historial-toggle" id="btnToggleHistorial" aria-expanded="false">
+                                                <span class="ficha-alumno__historial-toggle-icon" aria-hidden="true"></span>
+                                                <span class="ficha-alumno__historial-toggle-text">Ver detalle</span>
+                                            </button>
                                         </header>
 
-                                        <div id="contenedorHistorial" class="historial__items historial__items--accordion">
-                                            <p class="muted">Sin registros</p>
+                                        <div class="ficha-alumno__historial-panel" aria-hidden="true">
+                                            <div id="contenedorHistorial" class="historial__items historial__items--accordion ficha-alumno__historial-body">
+                                                <p class="muted">Sin registros</p>
+                                            </div>
                                         </div>
                                     </article>
                                 </div>

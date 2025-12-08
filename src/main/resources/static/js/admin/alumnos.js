@@ -38,11 +38,14 @@ export function createAlumnosModule(tools) {
     const montoTotal = document.getElementById('montoTotal');
     const contenedorHistorial = document.getElementById('contenedorHistorial');
     const subtituloHistorial = document.getElementById('subtituloHistorial');
+    const historialPanel = document.querySelector('.ficha-alumno__historial-panel');
+    const btnToggleHistorial = document.getElementById('btnToggleHistorial');
 
     let alumnoSeleccionado = null;
     let historialMatriculasCache = [];
     let cursosPorCicloCache = {};
     let ultimoListadoAlumnos = [];
+    let historialVisible = false;
 
     function init() {
         if (formBusqueda) {
@@ -89,7 +92,47 @@ export function createAlumnosModule(tools) {
             });
         }
 
+        configurarToggleHistorial();
         buscarAlumnos();
+    }
+
+    function configurarToggleHistorial() {
+        if (!btnToggleHistorial || !historialPanel) return;
+
+        btnToggleHistorial.addEventListener('click', () => {
+            setHistorialVisibility(!historialVisible);
+        });
+
+        window.addEventListener('resize', () => {
+            if (historialVisible) {
+                setHistorialVisibility(true);
+            }
+        });
+
+        setHistorialVisibility(false);
+    }
+
+    function setHistorialVisibility(visible) {
+        if (!historialPanel || !btnToggleHistorial) return;
+
+        historialVisible = Boolean(visible);
+        historialPanel.classList.toggle('is-open', historialVisible);
+        btnToggleHistorial.classList.toggle('is-open', historialVisible);
+        btnToggleHistorial.setAttribute('aria-expanded', historialVisible ? 'true' : 'false');
+        historialPanel.setAttribute('aria-hidden', historialVisible ? 'false' : 'true');
+
+        const toggleText = btnToggleHistorial.querySelector('.ficha-alumno__historial-toggle-text');
+        if (toggleText) {
+            toggleText.textContent = historialVisible ? 'Ocultar detalle' : 'Ver detalle';
+        }
+
+        if (historialVisible) {
+            historialPanel.style.maxHeight = `${historialPanel.scrollHeight}px`;
+            historialPanel.style.opacity = '1';
+        } else {
+            historialPanel.style.maxHeight = '0px';
+            historialPanel.style.opacity = '0';
+        }
     }
 
     async function buscarAlumnos() {
@@ -264,6 +307,10 @@ export function createAlumnosModule(tools) {
         const filtrados = cicloActual
             ? registros.filter(h => h.ciclo !== cicloActual)
             : registros;
+
+        if (btnToggleHistorial && historialPanel) {
+            setHistorialVisibility(false);
+        }
 
         filtrados.sort((a, b) => (b.ciclo || '').localeCompare(a.ciclo || ''));
 
