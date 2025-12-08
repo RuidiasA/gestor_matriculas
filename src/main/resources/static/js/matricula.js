@@ -161,7 +161,7 @@ async function cargarPeriodos() {
     const opciones = Array.from({ length: 10 }, (_, idx) => idx + 1);
     const actual = state.perfil?.cicloActual;
     select.innerHTML = '<option value="">Todos</option>' + opciones
-        .map(num => `<option value="${num}" ${num === actual ? 'selected' : ''}>${num}</option>`)
+        .map(num => `<option value="${num}">${num}</option>`)
         .join('');
 }
 
