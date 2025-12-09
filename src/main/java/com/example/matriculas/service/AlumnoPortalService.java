@@ -480,6 +480,10 @@ public class AlumnoPortalService {
         }
 
         Alumno alumno = obtenerAlumnoActual();
+        Carrera carreraAlumno = alumno.getCarrera();
+        if (carreraAlumno == null || carreraAlumno.getId() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No tienes una carrera asignada");
+        }
         String cicloActual = obtenerCicloActual(alumno);
 
         boolean pendiente = solicitudSeccionRepository.existsByAlumnoIdAndCursoIdAndEstado(
@@ -490,6 +494,10 @@ public class AlumnoPortalService {
 
         Curso curso = cursoRepository.findById(solicitudDto.getCursoId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Curso no encontrado"));
+
+        if (curso.getCarrera() == null || !Objects.equals(curso.getCarrera().getId(), carreraAlumno.getId())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No puedes solicitar cursos fuera de tu carrera");
+        }
 
         boolean tieneSeccionDisponible = seccionRepository.findByCursoId(curso.getId())
                 .stream()
@@ -572,6 +580,14 @@ public class AlumnoPortalService {
     @Transactional(readOnly = true)
     public List<CursoSolicitudAlumnoDTO> listarCursosSolicitables(Long carreraId, Integer ciclo) {
         Alumno alumno = obtenerAlumnoActual();
+        Carrera carreraAlumno = alumno.getCarrera();
+        if (carreraAlumno == null || carreraAlumno.getId() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No tienes una carrera asignada");
+        }
+
+        if (carreraId != null && !Objects.equals(carreraId, carreraAlumno.getId())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No puedes solicitar cursos de otra carrera");
+        }
 
         Set<Long> pendientes = solicitudSeccionRepository.findByAlumnoId(alumno.getId())
                 .stream()
@@ -580,9 +596,12 @@ public class AlumnoPortalService {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 
-        return cursoService.listarTodos()
+        return cursoService.listarPorCarreraId(carreraAlumno.getId())
                 .stream()
-                .filter(c -> carreraId == null || (c.getCarrera() != null && carreraId.equals(c.getCarrera().getId())))
+                .filter(c -> c.getCarrera() != null && Objects.equals(c.getCarrera().getId(), carreraAlumno.getId()))
+                .filter(c -> StringUtils.hasText(c.getNombre()))
+                .filter(c -> StringUtils.hasText(c.getCodigo()))
+                .filter(c -> c.getCiclo() != null)
                 .filter(c -> ciclo == null || (c.getCiclo() != null && Objects.equals(c.getCiclo(), ciclo)))
                 .map(c -> CursoSolicitudAlumnoDTO.builder()
                         .id(c.getId())

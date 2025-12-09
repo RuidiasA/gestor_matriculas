@@ -117,6 +117,16 @@ public class CursoService {
     }
 
     // ===============================================================
+    // 7.1. Listar cursos de una carrera por ID (sin caché obsoleta)
+    // ===============================================================
+    @Transactional(readOnly = true)
+    public List<Curso> listarPorCarreraId(Long carreraId) {
+        entityManager.flush();
+        entityManager.clear();
+        return cursoRepository.findCursosPorCarrera(carreraId);
+    }
+
+    // ===============================================================
     // 8. Listar cursos por ciclo
     // ===============================================================
     @Transactional(readOnly = true)
