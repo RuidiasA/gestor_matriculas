@@ -23,7 +23,6 @@ export function createDocentesModule(tools) {
     const modalDatosDocente = document.getElementById('modalDatosDocente');
     const modalContactoDocente = document.getElementById('modalContactoDocente');
     const btnLimpiarDocentes = document.getElementById('btnLimpiarDocentes');
-    const columnaDocentesDerecha = document.querySelector('.docentes-col--right');
 
     const inputsDocente = {
         codigo: document.getElementById('docCodigo'),
@@ -239,14 +238,11 @@ export function createDocentesModule(tools) {
     }
 
     function asegurarPosicionModales() {
-        const destinoModales = columnaDocentesDerecha || document.body;
         [modalDatosDocente, modalContactoDocente].forEach(modal => {
             if (!modal) return;
-            if (modal.parentElement !== destinoModales) {
-                destinoModales.appendChild(modal);
-                return;
+            if (modal.parentElement !== document.body) {
+                document.body.appendChild(modal);
             }
-            destinoModales.appendChild(modal);
         });
     }
 
