@@ -122,3 +122,180 @@ html::-webkit-scrollbar{ display: none}
   .agregar-curso, .ficha-acciones { flex-direction: column; }
 }
 .label { color: var(--color-texto); }
+
+/* =============================================================
+   HISTORIAL DE MATRÍCULA — ACORDEÓN (Optimizado)
+   ============================================================= */
+
+.historial-item {
+    background: var(--color-superficie);
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4);
+    box-shadow: var(--shadow-sm);
+    transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.historial-item:hover {
+    border-color: rgba(255,255,255,0.12);
+}
+
+.historial-item__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-3);
+}
+
+.historial-item__ciclo {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--color-texto);
+}
+
+.historial-item__toggle {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--color-borde);
+    padding: 8px 14px;
+    border-radius: var(--radius-md);
+    color: var(--color-texto-suave);
+    font-size: 14px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.historial-item__toggle:hover {
+    background: rgba(255,255,255,0.08);
+    color: var(--color-primario);
+}
+
+.historial-item__toggle-icon {
+    transition: transform var(--transition-fast);
+}
+
+.historial-item--open .historial-item__toggle-icon {
+    transform: rotate(180deg);
+}
+
+.historial-badges {
+    display: flex;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+    margin-bottom: var(--space-3);
+}
+
+.historial-badge {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--color-borde);
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: var(--radius-md);
+    color: var(--color-texto-suave);
+}
+
+/* Body desplegable */
+.historial-item__body {
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    transition: max-height .25s ease, opacity .22s ease;
+}
+
+.historial-item--open .historial-item__body {
+    opacity: 1;
+}
+
+/* =============================================================
+   TABLA INTERNA DEL HISTORIAL
+   ============================================================= */
+
+.historial-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    margin-top: var(--space-3);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-borde);
+    background: rgba(255,255,255,0.03);
+    box-shadow: var(--shadow-soft-1);
+}
+
+.historial-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    color: var(--color-texto);
+}
+
+.historial-table thead th {
+    text-align: left;
+    padding: 10px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    white-space: nowrap;
+    background: rgba(255,255,255,0.05);
+    border-bottom: 1px solid var(--color-borde);
+    color: var(--color-texto-suave);
+}
+
+.historial-table tbody tr {
+    transition: background .2s ease;
+}
+
+.historial-table tbody tr:hover {
+    background: rgba(255,255,255,0.05);
+}
+
+.historial-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--color-borde);
+    vertical-align: middle;
+}
+
+/* Última fila sin borde */
+.historial-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+
+/* Créditos y horas (centrados + destacados) */
+.historial-table td:nth-child(4),
+.historial-table td:nth-child(5) {
+    text-align: center;
+}
+
+/* =============================================================
+   CARDS DE PAGOS DEL HISTORIAL
+   ============================================================= */
+
+.historial-pagos {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: var(--space-3);
+    margin-top: var(--space-3);
+}
+
+.historial-pago__card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--color-borde);
+    padding: var(--space-3);
+    border-radius: var(--radius-md);
+    text-align: center;
+}
+
+.historial-pago__label {
+    font-size: 12px;
+    color: var(--color-texto-suave);
+    font-weight: 600;
+}
+
+.historial-pago__card strong {
+    font-size: 18px;
+    color: var(--color-texto);
+}

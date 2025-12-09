@@ -267,6 +267,7 @@ export function createAlumnosModule(tools) {
 
         filtrados.sort((a, b) => (b.ciclo || '').localeCompare(a.ciclo || ''));
 
+        // Sin historial
         if (!filtrados.length) {
             contenedorHistorial.innerHTML = '<p class="muted">Sin historial</p>';
             subtituloHistorial.textContent = 'Historial de matrícula';
@@ -276,45 +277,62 @@ export function createAlumnosModule(tools) {
         }
 
         contenedorHistorial.innerHTML = '';
-        filtrados.forEach((h, index) => {
+
+        filtrados.forEach((h) => {
             const card = document.createElement('article');
-            card.className = 'historial-item';
+            card.className = 'historial-item'; // ahora usa el nuevo diseño CSS
+
             card.innerHTML = `
-                <div class="historial-item__header">
-                    <div class="meta">
-                        <p class="historial-item__ciclo">${h.ciclo || '-'}</p>
-                        <span class="badge">${h.estado || '-'}</span>
-                    </div>
-                    <button type="button" class="historial-item__toggle">${index === 0 ? 'Ocultar' : 'Ver detalle'}</button>
+            <div class="historial-item__header">
+                <div class="meta">
+                    <p class="historial-item__ciclo">${h.ciclo || '-'}</p>
+                    <span class="badge">${h.estado || '-'}</span>
                 </div>
-                <div class="historial-badges">
-                    <span class="historial-badge">Cursos: ${h.totalCursos ?? 0}</span>
-                    <span class="historial-badge">Créditos: ${h.totalCreditos ?? 0}</span>
-                    <span class="historial-badge">Horas: ${h.totalHoras ?? 0}</span>
+
+                <button type="button" class="historial-item__toggle">
+                    Ver detalle
+                    <span class="historial-item__toggle-icon">⌄</span>
+                </button>
+            </div>
+
+            <div class="historial-badges">
+                <span class="historial-badge">Cursos: ${h.totalCursos ?? 0}</span>
+                <span class="historial-badge">Créditos: ${h.totalCreditos ?? 0}</span>
+                <span class="historial-badge">Horas: ${h.totalHoras ?? 0}</span>
+                <span class="historial-badge">Total: ${formatoMoneda(h.montoTotal)}</span>
+            </div>
+
+            <div class="historial-item__body">
+                ${crearTablaCursosHTML(h.cursos)}
+                <div class="historial-pagos">
+                    ${crearPagoCard('Matrícula', h.matricula)}
+                    ${crearPagoCard('Pensión', h.pension)}
+                    ${crearPagoCard('Mora', h.mora)}
+                    ${crearPagoCard('Descuentos', h.descuentos)}
                 </div>
-                <div class="historial-item__body">
-                    ${crearTablaCursosHTML(h.cursos)}
-                    <div class="historial-pagos">
-                        ${crearPagoCard('Matrícula', h.matricula)}
-                        ${crearPagoCard('Pensión', h.pension)}
-                        ${crearPagoCard('Mora', h.mora)}
-                        ${crearPagoCard('Descuentos', h.descuentos)}
-                        ${crearPagoCard('Total', h.montoTotal)}
-                    </div>
-                </div>
-            `;
+            </div>
+        `;
 
             const toggle = card.querySelector('.historial-item__toggle');
-            const cuerpo = card.querySelector('.historial-item__body');
-            if (index === 0) {
-                card.classList.add('open');
-                cuerpo.style.display = 'block';
-            }
+            const body = card.querySelector('.historial-item__body');
+
+            // SIEMPRE iniciar cerrado — NADIE se abre por defecto
+            body.style.maxHeight = '0';
+            body.style.opacity = '0';
 
             toggle.addEventListener('click', () => {
-                const abierto = card.classList.toggle('open');
-                cuerpo.style.display = abierto ? 'block' : 'none';
-                toggle.textContent = abierto ? 'Ocultar' : 'Ver detalle';
+                const isOpen = card.classList.toggle('historial-item--open');
+
+                // Animación usando max-height + opacity
+                if (isOpen) {
+                    body.style.maxHeight = body.scrollHeight + "px";
+                    body.style.opacity = "1";
+                    toggle.innerHTML = `Ocultar <span class="historial-item__toggle-icon">⌄</span>`;
+                } else {
+                    body.style.maxHeight = "0";
+                    body.style.opacity = "0";
+                    toggle.innerHTML = `Ver detalle <span class="historial-item__toggle-icon">⌄</span>`;
+                }
             });
 
             contenedorHistorial.appendChild(card);
@@ -322,10 +340,12 @@ export function createAlumnosModule(tools) {
 
         subtituloHistorial.textContent = `Historial de matrícula (${filtrados.length})`;
         historialMatriculasCache = filtrados;
+
         if (alumnoId) {
             cursosPorCicloCache[alumnoId] = filtrados;
         }
     }
+
 
     function crearTablaCursosHTML(cursos) {
         if (!cursos || !cursos.length) {
@@ -484,4 +504,17 @@ export function createAlumnosModule(tools) {
     }
 
     return { init, enfocarAlumnoPorCodigo };
+
+    /* ============================================================
+       HISTORIAL DE MATRÍCULAS - ACORDEÓN
+    ============================================================ */
+    document.addEventListener("click", (e) => {
+        const toggle = e.target.closest(".historial-item__toggle");
+        if (!toggle) return;
+
+        const item = toggle.closest(".historial-item");
+        if (!item) return;
+
+        item.classList.toggle("historial-item--open");
+    });
 }

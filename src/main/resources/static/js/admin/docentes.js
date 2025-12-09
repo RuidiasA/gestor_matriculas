@@ -131,6 +131,8 @@ export function createDocentesModule(tools) {
         } catch (e) {
             tools.showToast('No se pudo cargar el catálogo de cursos', 'error');
         }
+        console.log("Cursos:", cursos);
+
     }
 
     function limpiarBusquedaDocentes() {
