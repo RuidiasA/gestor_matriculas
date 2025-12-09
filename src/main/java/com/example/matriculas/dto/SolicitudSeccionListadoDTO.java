@@ -19,4 +19,9 @@ public class SolicitudSeccionListadoDTO {
     private LocalDateTime fechaActualizacion;
     private String mensajeAdmin;
     private String alumno;
+    private String diaSolicitado;
+    private String horaInicioSolicitada;
+    private String horaFinSolicitada;
+    private String modalidadSolicitada;
+    private String turnoSolicitado;
 }

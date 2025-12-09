@@ -151,6 +151,11 @@ public class SolicitudSeccionService {
                 .fechaActualizacion(solicitud.getFechaActualizacion())
                 .mensajeAdmin(solicitud.getMensajeAdmin())
                 .motivo(solicitud.getMotivo())
+                .diaSolicitado(solicitud.getDiaSolicitado())
+                .horaInicioSolicitada(solicitud.getHoraInicioSolicitada() != null ? solicitud.getHoraInicioSolicitada().toString() : null)
+                .horaFinSolicitada(solicitud.getHoraFinSolicitada() != null ? solicitud.getHoraFinSolicitada().toString() : null)
+                .modalidadSolicitada(solicitud.getModalidadSolicitada())
+                .turnoSolicitado(solicitud.getTurnoSolicitado())
                 .evidenciaNombreArchivo(solicitud.getEvidenciaNombreArchivo())
                 .evidenciaContentType(solicitud.getEvidenciaContentType())
                 .evidenciaBase64(solicitud.getEvidenciaContenido() != null
@@ -215,6 +220,11 @@ public class SolicitudSeccionService {
                 .fechaActualizacion(s.getFechaActualizacion())
                 .mensajeAdmin(s.getMensajeAdmin())
                 .alumno(Optional.ofNullable(s.getAlumno()).map(a -> (a.getNombres() + " " + a.getApellidos()).trim()).orElse(null))
+                .diaSolicitado(s.getDiaSolicitado())
+                .horaInicioSolicitada(Optional.ofNullable(s.getHoraInicioSolicitada()).map(Object::toString).orElse(null))
+                .horaFinSolicitada(Optional.ofNullable(s.getHoraFinSolicitada()).map(Object::toString).orElse(null))
+                .modalidadSolicitada(s.getModalidadSolicitada())
+                .turnoSolicitado(s.getTurnoSolicitado())
                 .build();
     }
 }

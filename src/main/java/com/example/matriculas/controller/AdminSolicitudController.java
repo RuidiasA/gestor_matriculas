@@ -97,7 +97,7 @@ public class AdminSolicitudController {
                               @RequestParam(value = "desde", required = false) String desde,
                               @RequestParam(value = "hasta", required = false) String hasta) {
         List<SolicitudSeccionListadoDTO> solicitudes = listarTodas(estado, cursoId, carreraId, ciclo, desde, hasta);
-        String encabezado = "Alumno,Curso,Código,Carrera,Ciclo,Estado,Fecha,Solicitantes";
+        String encabezado = "Alumno,Curso,Código,Carrera,Ciclo,Día solicitado,Hora inicio,Hora fin,Modalidad solicitada,Turno solicitado,Estado,Fecha,Solicitantes";
         String cuerpo = solicitudes.stream()
                 .map(s -> String.join(",",
                         wrap(s.getAlumno()),
@@ -105,6 +105,11 @@ public class AdminSolicitudController {
                         wrap(s.getCodigoCurso()),
                         wrap(s.getCarrera()),
                         wrap(s.getCiclo()),
+                        wrap(s.getDiaSolicitado()),
+                        wrap(s.getHoraInicioSolicitada()),
+                        wrap(s.getHoraFinSolicitada()),
+                        wrap(s.getModalidadSolicitada()),
+                        wrap(s.getTurnoSolicitado()),
                         wrap(s.getEstado()),
                         wrap(s.getFechaSolicitud() != null ? s.getFechaSolicitud().toString() : ""),
                         Optional.ofNullable(s.getSolicitantes()).map(Object::toString).orElse("0")))

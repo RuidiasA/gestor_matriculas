@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @Entity
 @Table(name = "solicitudes_seccion")
@@ -55,6 +56,21 @@ public class SolicitudSeccion {
     @Lob
     @Column(name = "evidencia_contenido")
     private byte[] evidenciaContenido;
+
+    @Column(name = "dia_solicitado", length = 25)
+    private String diaSolicitado;
+
+    @Column(name = "hora_inicio_solicitada")
+    private LocalTime horaInicioSolicitada;
+
+    @Column(name = "hora_fin_solicitada")
+    private LocalTime horaFinSolicitada;
+
+    @Column(name = "modalidad_solicitada", length = 50)
+    private String modalidadSolicitada;
+
+    @Column(name = "turno_solicitado", length = 50)
+    private String turnoSolicitado;
 
     public SolicitudSeccion() {}
 }

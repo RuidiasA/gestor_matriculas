@@ -16,6 +16,11 @@ public class SolicitudSeccionAlumnoDTO {
     private String motivo;
     private String modalidad;
     private String turno;
+    private String diaSolicitado;
+    private String horaInicioSolicitada;
+    private String horaFinSolicitada;
+    private String modalidadSolicitada;
+    private String turnoSolicitado;
     private String estado;
     private String mensajeAdmin;
     private LocalDateTime fechaSolicitud;

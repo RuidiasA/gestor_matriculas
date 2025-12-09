@@ -460,13 +460,14 @@
             <div class="solicitud-grid">
 
                 <!-- FORMULARIO -->
-                <article class="card solicitud-card-wrapper">
-                    <header class="card__header">
-                        <div>
-                            <h2>Solicitar nueva sección</h2>
-                            <p class="muted">El administrador recibirá tus datos y podrás seguir el estado en tiempo real.</p>
-                        </div>
-                    </header>
+                    <article class="card solicitud-card-wrapper">
+                        <header class="card__header">
+                            <div>
+                                <h2>Solicitar nueva sección</h2>
+                                <p class="muted">El administrador recibirá tus datos y podrás seguir el estado en tiempo real.</p>
+                            </div>
+                            <div class="pill pill-info">Estado: <span id="solicitud-estado-actual">Pendiente de envío</span></div>
+                        </header>
 
                     <form class="solicitud-container">
                         <div class="form-grid solicitud-form-grid">
@@ -477,22 +478,45 @@
                                 </select>
                             </label>
 
-                            <label for="turno" class="form-field">
-                                <span>Turno</span>
-                                <select id="turno" name="turno" required>
-                                    <option value="" disabled selected>Seleccione un turno</option>
-                                    <option>Diurno</option>
-                                    <option>Nocturno</option>
+                            <label for="diaSolicitado" class="form-field">
+                                <span>Día preferido</span>
+                                <select id="diaSolicitado" name="diaSolicitado" required>
+                                    <option value="" disabled selected>Seleccione un día</option>
+                                    <option value="LUNES">Lunes</option>
+                                    <option value="MARTES">Martes</option>
+                                    <option value="MIERCOLES">Miércoles</option>
+                                    <option value="JUEVES">Jueves</option>
+                                    <option value="VIERNES">Viernes</option>
+                                    <option value="SABADO">Sábado</option>
                                 </select>
                             </label>
 
-                            <label for="modalidad" class="form-field">
+                            <label for="turnoSolicitado" class="form-field">
+                                <span>Turno</span>
+                                <select id="turnoSolicitado" name="turnoSolicitado" required>
+                                    <option value="" disabled selected>Seleccione un turno</option>
+                                    <option value="DIURNO">Diurno</option>
+                                    <option value="NOCTURNO">Nocturno</option>
+                                </select>
+                            </label>
+
+                            <label for="horaInicioSolicitada" class="form-field">
+                                <span>Hora inicio</span>
+                                <input type="time" id="horaInicioSolicitada" name="horaInicioSolicitada" required>
+                            </label>
+
+                            <label for="horaFinSolicitada" class="form-field">
+                                <span>Hora fin</span>
+                                <input type="time" id="horaFinSolicitada" name="horaFinSolicitada" required>
+                            </label>
+
+                            <label for="modalidadSolicitada" class="form-field">
                                 <span>Modalidad</span>
-                                <select id="modalidad" name="modalidad" required>
+                                <select id="modalidadSolicitada" name="modalidadSolicitada" required>
                                     <option value="" disabled selected>Seleccione una modalidad</option>
-                                    <option>Presencial</option>
-                                    <option>Virtual</option>
-                                    <option>Online</option>
+                                    <option value="PRESENCIAL">Presencial</option>
+                                    <option value="VIRTUAL">Virtual</option>
+                                    <option value="SEMIPRESENCIAL">Semipresencial</option>
                                 </select>
                             </label>
 

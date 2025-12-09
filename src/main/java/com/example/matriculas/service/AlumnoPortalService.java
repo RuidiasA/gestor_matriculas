@@ -32,6 +32,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Base64;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -499,12 +500,15 @@ public class AlumnoPortalService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No puedes solicitar cursos fuera de tu carrera");
         }
 
-        boolean tieneSeccionDisponible = seccionRepository.findByCursoId(curso.getId())
-                .stream()
-                .filter(sec -> sec.getEstado() != EstadoSeccion.ANULADA)
-                .anyMatch(sec -> calcularCuposDisponibles(sec) > 0);
-        if (tieneSeccionDisponible) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "El curso ya tiene secciones disponibles");
+        LocalTime horaInicio = parseHora(solicitudDto.getHoraInicioSolicitada());
+        LocalTime horaFin = parseHora(solicitudDto.getHoraFinSolicitada());
+        if (horaInicio != null && horaFin != null && !horaInicio.isBefore(horaFin)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La hora de inicio debe ser menor a la de fin");
+        }
+
+        boolean existeSeccionViable = existeSeccionViableParaAlumno(curso, alumno, solicitudDto);
+        if (existeSeccionViable) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Ya existe una sección disponible y compatible para este curso");
         }
 
         SolicitudSeccion solicitud = new SolicitudSeccion();
@@ -516,6 +520,11 @@ public class AlumnoPortalService {
         solicitud.setCorreo(solicitudDto.getCorreo());
         solicitud.setTelefono(solicitudDto.getTelefono());
         solicitud.setMotivo(solicitudDto.getMotivo().trim());
+        solicitud.setDiaSolicitado(StringUtils.hasText(solicitudDto.getDiaSolicitado()) ? solicitudDto.getDiaSolicitado().trim() : null);
+        solicitud.setHoraInicioSolicitada(horaInicio);
+        solicitud.setHoraFinSolicitada(horaFin);
+        solicitud.setModalidadSolicitada(StringUtils.hasText(solicitudDto.getModalidadSolicitada()) ? solicitudDto.getModalidadSolicitada().trim() : solicitudDto.getModalidad());
+        solicitud.setTurnoSolicitado(StringUtils.hasText(solicitudDto.getTurnoSolicitado()) ? solicitudDto.getTurnoSolicitado().trim() : solicitudDto.getTurno());
         solicitud.setEvidenciaNombreArchivo(StringUtils.hasText(solicitudDto.getEvidenciaNombreArchivo())
                 ? solicitudDto.getEvidenciaNombreArchivo().trim()
                 : null);
@@ -561,6 +570,11 @@ public class AlumnoPortalService {
                             .motivo(s.getMotivo())
                             .modalidad(s.getModalidad())
                             .turno(s.getTurno())
+                            .diaSolicitado(s.getDiaSolicitado())
+                            .horaInicioSolicitada(s.getHoraInicioSolicitada() != null ? s.getHoraInicioSolicitada().toString() : null)
+                            .horaFinSolicitada(s.getHoraFinSolicitada() != null ? s.getHoraFinSolicitada().toString() : null)
+                            .modalidadSolicitada(s.getModalidadSolicitada())
+                            .turnoSolicitado(s.getTurnoSolicitado())
                             .ciclo(s.getCicloAcademico())
                             .estado(s.getEstado() != null ? s.getEstado().name() : null)
                             .mensajeAdmin(s.getMensajeAdmin())
@@ -678,6 +692,41 @@ public class AlumnoPortalService {
         if (capacidad == null) return 0;
         Long matriculados = detalleMatriculaRepository.contarMatriculadosActivosPorSeccion(seccion.getId());
         return Math.max(0, capacidad - (matriculados != null ? matriculados.intValue() : 0));
+    }
+
+    private boolean existeSeccionViableParaAlumno(Curso curso, Alumno alumno, SolicitudSeccionCreateDTO dto) {
+        if (curso == null || curso.getId() == null) {
+            return false;
+        }
+
+        String modalidadPreferida = StringUtils.hasText(dto.getModalidadSolicitada())
+                ? dto.getModalidadSolicitada()
+                : dto.getModalidad();
+        String turnoPreferido = StringUtils.hasText(dto.getTurnoSolicitado())
+                ? dto.getTurnoSolicitado()
+                : dto.getTurno();
+
+        return seccionRepository.findByCursoId(curso.getId())
+                .stream()
+                .filter(sec -> sec.getEstado() != EstadoSeccion.ANULADA)
+                .filter(sec -> StringUtils.hasText(modalidadPreferida)
+                        ? sec.getModalidad() != null && modalidadPreferida.equalsIgnoreCase(sec.getModalidad().name())
+                        : true)
+                .filter(sec -> StringUtils.hasText(turnoPreferido)
+                        ? sec.getTurno() != null && turnoPreferido.equalsIgnoreCase(sec.getTurno().name())
+                        : true)
+                .anyMatch(sec -> calcularCuposDisponibles(sec) > 0 && validarCruceHorario(alumno, sec));
+    }
+
+    private LocalTime parseHora(String horaTexto) {
+        if (!StringUtils.hasText(horaTexto)) {
+            return null;
+        }
+        try {
+            return LocalTime.parse(horaTexto);
+        } catch (Exception ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La hora indicada no es válida");
+        }
     }
 
     private boolean validarCruceHorario(Alumno alumno, Seccion nuevaSeccion) {

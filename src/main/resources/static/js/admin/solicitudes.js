@@ -22,6 +22,10 @@ export function createSolicitudesModule(tools) {
         carrera: document.getElementById('solicitudCarrera'),
         ciclo: document.getElementById('solicitudCiclo'),
         fecha: document.getElementById('solicitudFecha'),
+        dia: document.getElementById('solicitudDia'),
+        horario: document.getElementById('solicitudHorario'),
+        modalidad: document.getElementById('solicitudModalidad'),
+        turno: document.getElementById('solicitudTurno'),
         motivo: document.getElementById('solicitudMotivo'),
         mensajeAdmin: document.getElementById('solicitudMensajeAdmin'),
         relacionados: document.getElementById('solicitudRelacionados'),
@@ -68,7 +72,7 @@ export function createSolicitudesModule(tools) {
 
     async function cargarSolicitudes() {
         if (!tablaSolicitudes) return;
-        tools.renderEmptyRow(tablaSolicitudes, 6, 'Cargando solicitudes...');
+        tools.renderEmptyRow(tablaSolicitudes, 9, 'Cargando solicitudes...');
         const params = new URLSearchParams();
         if (selectCurso?.value) params.append('cursoId', selectCurso.value);
         if (selectCarrera?.value) params.append('carreraId', selectCarrera.value);
@@ -83,7 +87,7 @@ export function createSolicitudesModule(tools) {
             renderTabla();
             actualizarBadge();
         } catch (e) {
-            tools.renderEmptyRow(tablaSolicitudes, 6, e.message || 'No se pudo cargar');
+            tools.renderEmptyRow(tablaSolicitudes, 9, e.message || 'No se pudo cargar');
         }
     }
 
@@ -91,7 +95,7 @@ export function createSolicitudesModule(tools) {
         if (!tablaSolicitudes) return;
         tablaSolicitudes.innerHTML = '';
         if (!solicitudes?.length) {
-            tools.renderEmptyRow(tablaSolicitudes, 6, 'No hay solicitudes con los filtros aplicados');
+            tools.renderEmptyRow(tablaSolicitudes, 9, 'No hay solicitudes con los filtros aplicados');
             limpiarDetalle();
             return;
         }
@@ -101,6 +105,10 @@ export function createSolicitudesModule(tools) {
                 <td>${s.curso || '-'}</td>
                 <td>${s.carrera || '-'}</td>
                 <td>${s.ciclo || '-'}</td>
+                <td>${s.diaSolicitado || '-'}</td>
+                <td>${formatearHorario(s.horaInicioSolicitada, s.horaFinSolicitada)}</td>
+                <td>${s.modalidadSolicitada || '-'}</td>
+                <td>${s.turnoSolicitado || '-'}</td>
                 <td>${s.solicitantes ?? 1}</td>
                 <td><span class="chip ${chipClass(s.estado)}">${s.estado || ''}</span></td>
                 <td>${formatearFecha(s.fechaSolicitud)}</td>
@@ -142,6 +150,10 @@ export function createSolicitudesModule(tools) {
         detalleCampos.carrera.textContent = detalle.carrera || '—';
         detalleCampos.ciclo.textContent = detalle.ciclo || '—';
         detalleCampos.fecha.textContent = formatearFecha(detalle.fechaSolicitud);
+        detalleCampos.dia.textContent = detalle.diaSolicitado || '—';
+        detalleCampos.horario.textContent = formatearHorario(detalle.horaInicioSolicitada, detalle.horaFinSolicitada);
+        detalleCampos.modalidad.textContent = detalle.modalidadSolicitada || detalle.modalidad || '—';
+        detalleCampos.turno.textContent = detalle.turnoSolicitado || detalle.turno || '—';
         detalleCampos.motivo.textContent = detalle.motivo || '—';
         detalleCampos.mensajeAdmin.value = detalle.mensajeAdmin || '';
 
@@ -218,6 +230,10 @@ export function createSolicitudesModule(tools) {
             detalleCampos.carrera.textContent = '—';
             detalleCampos.ciclo.textContent = '—';
             detalleCampos.fecha.textContent = '—';
+            detalleCampos.dia.textContent = '—';
+            detalleCampos.horario.textContent = '—';
+            detalleCampos.modalidad.textContent = '—';
+            detalleCampos.turno.textContent = '—';
             detalleCampos.motivo.textContent = '—';
             detalleCampos.mensajeAdmin.value = '';
             detalleCampos.relacionados.innerHTML = '';
@@ -239,6 +255,12 @@ export function createSolicitudesModule(tools) {
         if (!fecha) return '—';
         const d = new Date(fecha);
         return d.toLocaleDateString('es-PE');
+    }
+
+    function formatearHorario(inicio, fin) {
+        if (!inicio && !fin) return '—';
+        if (!inicio || !fin) return inicio || fin;
+        return `${inicio} - ${fin}`;
     }
 
     async function actualizarBadge() {

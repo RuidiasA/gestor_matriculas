@@ -121,6 +121,12 @@ function formatearFechaCorta(fecha) {
     return date.toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
+function formatearHorarioSolicitud(inicio, fin) {
+    if (!inicio && !fin) return '';
+    if (inicio && fin) return `${inicio} - ${fin}`;
+    return inicio || fin || '';
+}
+
 async function confirmarAccion(titulo, texto, confirmText = 'Confirmar') {
     if (window.Swal) {
         const resp = await Swal.fire({
@@ -841,6 +847,7 @@ function renderHistorialSolicitudes() {
         const estadoClass = estadoChipClass(s.estado);
         const fechaSolicitud = formatearFechaCorta(s.fechaSolicitud);
         const fechaActualizacion = formatearFechaCorta(s.fechaActualizacion || s.fechaSolicitud);
+        const horarioPreferido = formatearHorarioSolicitud(s.horaInicioSolicitada, s.horaFinSolicitada);
 
         card.innerHTML = `
             <div class="solicitud-item__header">
@@ -852,14 +859,18 @@ function renderHistorialSolicitudes() {
             </div>
             <div class="solicitud-meta">
                 ${s.ciclo ? `<span class="badge-light">Ciclo ${s.ciclo}</span>` : ''}
-                ${s.modalidad ? `<span class="meta-tag"><strong>Modalidad:</strong> ${s.modalidad}</span>` : ''}
-                ${s.turno ? `<span class="meta-tag"><strong>Turno:</strong> ${s.turno}</span>` : ''}
+                ${s.modalidadSolicitada || s.modalidad ? `<span class="meta-tag"><strong>Modalidad:</strong> ${s.modalidadSolicitada || s.modalidad}</span>` : ''}
+                ${s.turnoSolicitado || s.turno ? `<span class="meta-tag"><strong>Turno:</strong> ${s.turnoSolicitado || s.turno}</span>` : ''}
                 ${typeof s.solicitantes === 'number' ? `<span class="meta-tag"><strong>Solicitudes:</strong> ${s.solicitantes}</span>` : ''}
             </div>
             <div class="solicitud-body">
                 <div>
                     <p class="label">Motivo</p>
                     <p>${s.motivo || '—'}</p>
+                </div>
+                <div>
+                    <p class="label">Día y horario preferido</p>
+                    <p>${s.diaSolicitado || '—'} ${horarioPreferido ? '· ' + horarioPreferido : ''}</p>
                 </div>
                 <div>
                     <p class="label">Mensaje del administrador</p>
@@ -906,20 +917,28 @@ async function archivoABase64(file) {
 async function registrarSolicitudSeccion(e) {
     e.preventDefault();
     const cursoId = document.getElementById('curso')?.value;
-    const turno = document.getElementById('turno')?.value;
-    const modalidad = document.getElementById('modalidad')?.value;
+    const diaSolicitado = document.getElementById('diaSolicitado')?.value;
+    const turnoSolicitado = document.getElementById('turnoSolicitado')?.value;
+    const modalidadSolicitada = document.getElementById('modalidadSolicitada')?.value;
+    const horaInicioSolicitada = document.getElementById('horaInicioSolicitada')?.value;
+    const horaFinSolicitada = document.getElementById('horaFinSolicitada')?.value;
     const correo = document.getElementById('correo')?.value;
     const telefono = document.getElementById('telefono')?.value;
     const motivo = document.getElementById('motivo')?.value?.trim();
     const evidenciaInput = document.getElementById('evidencia');
 
-    if (!cursoId || !motivo || !turno) {
+    if (!cursoId || !motivo || !turnoSolicitado || !diaSolicitado || !horaInicioSolicitada || !horaFinSolicitada) {
         mostrarMensajeError('Completa los campos obligatorios');
         return;
     }
 
     if (motivo.length < 8) {
         mostrarMensajeError('Describe mejor el motivo de tu solicitud');
+        return;
+    }
+
+    if (horaInicioSolicitada >= horaFinSolicitada) {
+        mostrarMensajeError('La hora de inicio debe ser menor a la hora fin');
         return;
     }
 
@@ -948,8 +967,13 @@ async function registrarSolicitudSeccion(e) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
             cursoId,
-            turno,
-            modalidad,
+            turno: turnoSolicitado,
+            modalidad: modalidadSolicitada,
+            diaSolicitado,
+            horaInicioSolicitada,
+            horaFinSolicitada,
+            modalidadSolicitada,
+            turnoSolicitado,
             correo,
             telefono,
             motivo,
