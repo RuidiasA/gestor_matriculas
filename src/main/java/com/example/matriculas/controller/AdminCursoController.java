@@ -48,18 +48,7 @@ public class AdminCursoController {
                 .filter(c -> ciclo == null || Objects.equals(c.getCiclo(), ciclo))
                 .filter(c -> tipoCurso == null || c.getTipo() == tipoCurso)
                 .filter(c -> modalidadCurso == null || c.getModalidad() == modalidadCurso)
-                .map(c -> CursoListadoDTO.builder()
-                        .id(c.getId())
-                        .idCurso(c.getId())
-                        .codigo(c.getCodigo())
-                        .nombre(c.getNombre())
-                        .carrera(c.getCarrera().getNombre())
-                        .ciclo(c.getCiclo())
-                        .creditos(c.getCreditos())
-                        .tipo(c.getTipo() != null ? c.getTipo().name() : null)
-                        .horasSemanales(c.getHorasSemanales())
-                        .modalidad(c.getModalidad() != null ? c.getModalidad().name() : null)
-                        .build())
+                .map(this::mapearCursoListado)
                 .toList();
     }
 
@@ -78,15 +67,7 @@ public class AdminCursoController {
 
         var cursos = cursoService.listarTodos()
                 .stream()
-                .map(c -> CursoListadoDTO.builder()
-                        .id(c.getId())
-                        .idCurso(c.getId())
-                        .codigo(c.getCodigo())
-                        .nombre(c.getNombre())
-                        .carrera(c.getCarrera().getNombre())
-                        .ciclo(c.getCiclo())
-                        .creditos(c.getCreditos())
-                        .build())
+                .map(this::mapearCursoListado)
                 .toList();
 
         List<Integer> ciclos = cursos.stream()
@@ -308,6 +289,22 @@ public class AdminCursoController {
         } catch (IllegalArgumentException ex) {
             return null;
         }
+    }
+
+    private CursoListadoDTO mapearCursoListado(Curso curso) {
+        return CursoListadoDTO.builder()
+                .id(curso.getId())
+                .idCurso(curso.getId())
+                .codigo(curso.getCodigo())
+                .nombre(curso.getNombre())
+                .carreraId(curso.getCarrera() != null ? curso.getCarrera().getId() : null)
+                .carrera(curso.getCarrera() != null ? curso.getCarrera().getNombre() : null)
+                .ciclo(curso.getCiclo())
+                .creditos(curso.getCreditos())
+                .horasSemanales(curso.getHorasSemanales())
+                .modalidad(curso.getModalidad() != null ? curso.getModalidad().name() : null)
+                .tipo(curso.getTipo() != null ? curso.getTipo().name() : null)
+                .build();
     }
 
 }
