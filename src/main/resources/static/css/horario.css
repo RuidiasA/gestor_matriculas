@@ -60,9 +60,11 @@
 
 :root {
     --slot-height: 18px;
-    --col-hora-width: 96px;
-    --color-grid: #E3E7EF;
-    --color-evento-fondo: #E2E8FF;
+    --hora-col-width: 96px;
+    --color-grid-strong: rgba(0, 0, 0, 0.08);
+    --color-grid-soft: rgba(0, 0, 0, 0.04);
+    --color-grid-vertical: rgba(0, 0, 0, 0.1);
+    --color-evento-fondo: #e9efff;
 }
 
 .horario-completo {
@@ -78,7 +80,7 @@
 
 .horario-header-grid {
     display: grid;
-    grid-template-columns: var(--col-hora-width) repeat(6, 1fr);
+    grid-template-columns: var(--hora-col-width) repeat(6, 1fr);
     background: #1B3B6F;
     color: white;
     position: sticky;
@@ -102,24 +104,24 @@
 .horario-grid {
     position: relative;
     display: grid;
-    grid-template-columns: var(--col-hora-width) repeat(6, 1fr);
+    grid-template-columns: var(--hora-col-width) repeat(6, 1fr);
     grid-template-rows: repeat(60, var(--slot-height));
     background-color: #fff;
     background-image:
-        repeating-linear-gradient(to bottom, var(--color-grid) 0 1px, transparent 1px var(--slot-height)),
-        linear-gradient(to right, #fff 0, #fff 0),
-        linear-gradient(to right, var(--color-grid) 1px, transparent 1px);
+        repeating-linear-gradient(to bottom, var(--color-grid-strong) 0 1px, transparent 1px calc(var(--slot-height) * 4)),
+        repeating-linear-gradient(to bottom, var(--color-grid-soft) 0 1px, transparent 1px var(--slot-height)),
+        linear-gradient(to right, var(--color-grid-vertical) 1px, transparent 1px);
     background-size:
+        100% calc(var(--slot-height) * 4),
         100% var(--slot-height),
-        var(--col-hora-width) 100%,
-        calc(100% / 6) 100%;
+        calc((100% - var(--hora-col-width)) / 6) 100%;
     background-position:
         0 0,
         0 0,
-        var(--col-hora-width) 0;
+        var(--hora-col-width) 0;
     background-repeat:
         repeat,
-        no-repeat,
+        repeat,
         repeat;
 }
 
@@ -128,12 +130,12 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 4px 6px;
+    padding: 6px 8px;
     font-weight: 700;
     color: #1B3B6F;
     background: #f7f9ff;
-    border-right: 1px solid var(--color-grid);
-    border-bottom: 1px solid var(--color-grid);
+    border-right: 1px solid var(--color-grid-vertical);
+    border-bottom: 1px solid var(--color-grid-strong);
     box-sizing: border-box;
 }
 
@@ -142,14 +144,15 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
-    padding: 6px 8px;
-    margin: 2px 4px;
-    border-radius: 6px;
+    gap: 2px;
+    padding: 10px 12px;
+    margin: 3px 6px;
+    border-radius: 10px;
     background: var(--color-evento-fondo);
     color: #1B3B6F;
-    font-size: 0.8rem;
-    line-height: 1.3;
-    box-shadow: 0 4px 12px rgba(27, 59, 111, 0.12);
+    font-size: 0.85rem;
+    line-height: 1.35;
+    box-shadow: 0 6px 16px rgba(27, 59, 111, 0.12);
     border: 1px solid rgba(27, 59, 111, 0.08);
     overflow: hidden;
 }
