@@ -555,10 +555,11 @@ function mergearBloquesHorario(horarios = []) {
                 return;
             }
 
-            const sonContiguos = actual.fin === item.inicio && actual.metaKey === item.metaKey;
-            if (sonContiguos) {
-                actual.fin = item.fin;
-                actual.finClamped = Math.min(item.fin, HORARIO_CONFIG.horaFin * 60);
+            const mismoCurso = actual.metaKey === item.metaKey;
+            const seTocanOSeTraslapan = item.inicio <= actual.fin;
+            if (mismoCurso && seTocanOSeTraslapan) {
+                actual.fin = Math.max(actual.fin, item.fin);
+                actual.finClamped = Math.min(actual.fin, HORARIO_CONFIG.horaFin * 60);
                 actual.horaFin = item.horaFin || actual.horaFin;
             } else {
                 resultado.push(actual);
@@ -605,8 +606,8 @@ function renderHorarioGrid(horarios = [], contenedor) {
         const fin = Math.min(b.fin, HORARIO_CONFIG.horaFin * 60);
         if (!b.columna || fin <= inicio) return;
 
-        const slotInicio = Math.round((inicio - base) / HORARIO_CONFIG.intervaloMinutos);
-        const slotFin = Math.round((fin - base) / HORARIO_CONFIG.intervaloMinutos);
+        const slotInicio = (inicio - base) / HORARIO_CONFIG.intervaloMinutos;
+        const slotFin = (fin - base) / HORARIO_CONFIG.intervaloMinutos;
 
         const evento = document.createElement('div');
         evento.className = 'horario-event';
