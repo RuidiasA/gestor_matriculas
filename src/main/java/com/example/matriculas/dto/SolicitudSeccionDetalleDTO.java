@@ -21,6 +21,11 @@ public class SolicitudSeccionDetalleDTO {
     private LocalDateTime fechaActualizacion;
     private String mensajeAdmin;
     private String motivo;
+    private String diaSolicitado;
+    private String horaInicioSolicitada;
+    private String horaFinSolicitada;
+    private String modalidadSolicitada;
+    private String turnoSolicitado;
     private String evidenciaNombreArchivo;
     private String evidenciaContentType;
     private String evidenciaBase64;

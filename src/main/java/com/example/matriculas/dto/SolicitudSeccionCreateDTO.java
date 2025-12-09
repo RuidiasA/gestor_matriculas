@@ -15,8 +15,26 @@ public class SolicitudSeccionCreateDTO {
     @Size(max = 50)
     private String turno;
 
+    @NotBlank
+    @Size(max = 25)
+    private String diaSolicitado;
+
+    @NotBlank
+    @Size(max = 10)
+    private String horaInicioSolicitada;
+
+    @NotBlank
+    @Size(max = 10)
+    private String horaFinSolicitada;
+
     @Size(max = 50)
     private String modalidad;
+
+    @Size(max = 50)
+    private String modalidadSolicitada;
+
+    @Size(max = 50)
+    private String turnoSolicitado;
 
     @Email
     private String correo;

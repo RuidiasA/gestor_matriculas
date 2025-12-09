@@ -1140,23 +1140,27 @@
                             </div>
                         </form>
 
-                        <div class="table-wrapper">
-                            <table class="admin-table" id="tablaSolicitudes">
-                                <thead>
-                                <tr>
-                                    <th>Curso</th>
-                                    <th>Carrera</th>
-                                    <th>Ciclo</th>
-                                    <th>Alumnos</th>
-                                    <th>Estado</th>
-                                    <th>Fecha</th>
-                                </tr>
-                                </thead>
-                                <tbody id="tablaSolicitudesBody">
-                                <tr><td colspan="6" class="muted">Sin solicitudes</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
+                                <div class="table-wrapper">
+                                    <table class="admin-table" id="tablaSolicitudes">
+                                        <thead>
+                                        <tr>
+                                            <th>Curso</th>
+                                            <th>Carrera</th>
+                                            <th>Ciclo</th>
+                                            <th>Día solicitado</th>
+                                            <th>Horario</th>
+                                            <th>Modalidad</th>
+                                            <th>Turno</th>
+                                            <th>Alumnos</th>
+                                            <th>Estado</th>
+                                            <th>Fecha</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody id="tablaSolicitudesBody">
+                                        <tr><td colspan="9" class="muted">Sin solicitudes</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
                         <p id="estadoSolicitudes" class="muted" hidden></p>
                     </article>
                 </div>
@@ -1192,6 +1196,22 @@
                             <div>
                                 <h3 class="detalle-label">Fecha</h3>
                                 <p id="solicitudFecha" class="detalle-valor">—</p>
+                            </div>
+                            <div>
+                                <h3 class="detalle-label">Día solicitado</h3>
+                                <p id="solicitudDia" class="detalle-valor">—</p>
+                            </div>
+                            <div>
+                                <h3 class="detalle-label">Horario solicitado</h3>
+                                <p id="solicitudHorario" class="detalle-valor">—</p>
+                            </div>
+                            <div>
+                                <h3 class="detalle-label">Modalidad solicitada</h3>
+                                <p id="solicitudModalidad" class="detalle-valor">—</p>
+                            </div>
+                            <div>
+                                <h3 class="detalle-label">Turno solicitado</h3>
+                                <p id="solicitudTurno" class="detalle-valor">—</p>
                             </div>
                         </div>
 
