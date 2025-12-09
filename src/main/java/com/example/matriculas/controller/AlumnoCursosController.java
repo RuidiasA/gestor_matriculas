@@ -64,35 +64,10 @@ public class AlumnoCursosController {
     }
 
     @PostMapping(value = "/solicitudes", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public void registrarSolicitud(@RequestPart("cursoId") Long cursoId,
-                                   @RequestPart("turno") String turno,
-                                   @RequestPart("diaSolicitado") String diaSolicitado,
-                                   @RequestPart("horaInicioSolicitada") String horaInicioSolicitada,
-                                   @RequestPart("horaFinSolicitada") String horaFinSolicitada,
-                                   @RequestPart(value = "modalidad", required = false) String modalidad,
-                                   @RequestPart(value = "modalidadSolicitada", required = false) String modalidadSolicitada,
-                                   @RequestPart(value = "turnoSolicitado", required = false) String turnoSolicitado,
-                                   @RequestPart(value = "correo", required = false) String correo,
-                                   @RequestPart(value = "telefono", required = false) String telefono,
-                                   @RequestPart("motivo") String motivo,
-                                   @RequestPart(value = "evidencia", required = false) MultipartFile evidencia) {
-
-        SolicitudSeccionCreateDTO solicitud = new SolicitudSeccionCreateDTO();
-        solicitud.setCursoId(cursoId);
-        solicitud.setTurno(turno);
-        solicitud.setDiaSolicitado(diaSolicitado);
-        solicitud.setHoraInicioSolicitada(horaInicioSolicitada);
-        solicitud.setHoraFinSolicitada(horaFinSolicitada);
-        solicitud.setModalidad(modalidad);
-        solicitud.setModalidadSolicitada(modalidadSolicitada);
-        solicitud.setTurnoSolicitado(turnoSolicitado);
-        solicitud.setCorreo(correo);
-        solicitud.setTelefono(telefono);
-        solicitud.setMotivo(motivo);
-        solicitud.setEvidencia(evidencia);
-
+    public void registrarSolicitud(@ModelAttribute SolicitudSeccionCreateDTO solicitud) {
         alumnoPortalService.registrarSolicitud(solicitud);
     }
+
 
     @GetMapping("/solicitudes/{id}/evidencia")
     public ResponseEntity<Resource> descargarEvidencia(@PathVariable Long id) {

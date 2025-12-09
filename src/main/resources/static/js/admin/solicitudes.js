@@ -206,10 +206,12 @@ export function createSolicitudesModule(tools) {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
+                    id: solicitudSeleccionada.id,
                     estado,
                     mensajeAdmin: detalleCampos.mensajeAdmin?.value || ''
                 })
             });
+
             tools.showToast('Solicitud actualizada', 'success');
             await cargarSolicitudes();
             await cargarDetalle(solicitudSeleccionada.id);

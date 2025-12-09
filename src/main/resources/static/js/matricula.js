@@ -904,6 +904,9 @@ function renderHistorialSolicitudes() {
 
 async function registrarSolicitudSeccion(e) {
     e.preventDefault();
+
+    const formEl = e.target;
+
     const cursoId = document.getElementById('curso')?.value;
     const diaSolicitado = document.getElementById('diaSolicitado')?.value;
     const turnoSolicitado = document.getElementById('turnoSolicitado')?.value;
@@ -915,6 +918,7 @@ async function registrarSolicitudSeccion(e) {
     const motivo = document.getElementById('motivo')?.value?.trim();
     const evidenciaInput = document.getElementById('evidencia');
 
+    // VALIDACIONES
     if (!cursoId || !motivo || !turnoSolicitado || !diaSolicitado || !horaInicioSolicitada || !horaFinSolicitada) {
         mostrarMensajeError('Completa los campos obligatorios');
         return;
@@ -935,23 +939,28 @@ async function registrarSolicitudSeccion(e) {
         return;
     }
 
+    // FORM DATA
     const formData = new FormData();
+
+    // Obligatorios
     formData.append('cursoId', cursoId);
-    formData.append('turno', turnoSolicitado);
-    formData.append('modalidad', modalidadSolicitada || '');
     formData.append('diaSolicitado', diaSolicitado);
     formData.append('horaInicioSolicitada', horaInicioSolicitada);
     formData.append('horaFinSolicitada', horaFinSolicitada);
-    formData.append('modalidadSolicitada', modalidadSolicitada || '');
-    formData.append('turnoSolicitado', turnoSolicitado);
-    formData.append('correo', correo || '');
-    formData.append('telefono', telefono || '');
     formData.append('motivo', motivo);
 
+    // Opcionales: SOLO si existen (evita romper @RequestPart)
+    if (modalidadSolicitada) formData.append('modalidadSolicitada', modalidadSolicitada);
+    if (turnoSolicitado) formData.append('turnoSolicitado', turnoSolicitado);
+    if (correo) formData.append('correo', correo);
+    if (telefono) formData.append('telefono', telefono);
+
+    // Evidencia
     if (evidenciaInput?.files?.length) {
         const archivo = evidenciaInput.files[0];
         const maxSize = 5 * 1024 * 1024;
         const tiposPermitidos = ['application/pdf', 'image/jpeg', 'image/png'];
+
         if (archivo.size > maxSize) {
             mostrarMensajeError('La evidencia no debe superar los 5 MB');
             return;
@@ -960,19 +969,25 @@ async function registrarSolicitudSeccion(e) {
             mostrarMensajeError('Formato de evidencia no permitido. Usa PDF o imagen.');
             return;
         }
+
         formData.append('evidencia', archivo);
     }
 
+    // ENVÍO
     await fetchJson('/alumno/solicitudes', 'No se pudo registrar la solicitud', {
         method: 'POST',
         body: formData
     });
 
     mostrarMensajeExito('Solicitud registrada correctamente');
-    form.reset();
+
+    // Reset correcto
+    formEl.reset();
+
     await cargarSolicitudesAlumno();
     await cargarCursosSolicitables();
 }
+
 
 function limpiarFormularioSolicitud() {
     form?.reset();

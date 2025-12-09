@@ -31,6 +31,11 @@ import org.springframework.web.server.ResponseStatusException;
 import com.example.matriculas.security.CustomUserDetails;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.Files;
+
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -511,11 +516,6 @@ public class AlumnoPortalService {
         LocalTime horaFin = parseHora(solicitudDto.getHoraFinSolicitada());
         if (horaInicio != null && horaFin != null && !horaInicio.isBefore(horaFin)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La hora de inicio debe ser menor a la de fin");
-        }
-
-        boolean existeSeccionViable = existeSeccionViableParaAlumno(curso, alumno, solicitudDto);
-        if (existeSeccionViable) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Ya existe una sección disponible y compatible para este curso");
         }
 
         SolicitudSeccion solicitud = new SolicitudSeccion();
