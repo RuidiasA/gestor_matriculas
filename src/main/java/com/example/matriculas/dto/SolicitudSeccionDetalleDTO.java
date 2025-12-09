@@ -18,7 +18,12 @@ public class SolicitudSeccionDetalleDTO {
     private String ciclo;
     private String estado;
     private LocalDateTime fechaSolicitud;
+    private LocalDateTime fechaActualizacion;
     private String mensajeAdmin;
     private String motivo;
+    private String evidenciaNombreArchivo;
+    private String evidenciaContentType;
+    private String evidenciaBase64;
+    private Long solicitantes;
     private List<SolicitudSeccionListadoDTO> relacionados;
 }

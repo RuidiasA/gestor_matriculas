@@ -16,5 +16,7 @@ public class SolicitudSeccionListadoDTO {
     private Long solicitantes;
     private String estado;
     private LocalDateTime fechaSolicitud;
+    private LocalDateTime fechaActualizacion;
+    private String mensajeAdmin;
     private String alumno;
 }

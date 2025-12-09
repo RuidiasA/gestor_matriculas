@@ -29,4 +29,6 @@ public class SolicitudSeccionCreateDTO {
     private String motivo;
 
     private String evidenciaNombreArchivo;
+    private String evidenciaContentType;
+    private String evidenciaBase64;
 }

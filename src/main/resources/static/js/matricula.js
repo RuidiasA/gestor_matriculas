@@ -5,6 +5,8 @@ const state = {
     horario: [],
     pagos: [],
     solicitudes: [],
+    solicitudesCargadas: false,
+    solicitudesSnapshot: new Map(),
     cursosSolicitables: [],
     cursosDisponibles: [],
     seccionesPorCurso: {},
@@ -35,6 +37,8 @@ function mostrarVista(vista, event) {
         vistas.solicitud?.classList.remove('hidden');
         asideDerecho?.classList.add('hidden');
         body.classList.add('layout-2-cols');
+        cargarSolicitudesAlumno();
+        cargarCursosSolicitables();
     } else if (vista === 'pensiones') {
         vistas.pensiones?.classList.remove('hidden');
         asideDerecho?.classList.add('hidden');
@@ -84,11 +88,22 @@ function setText(selector, value) {
     if (el) el.textContent = value ?? '—';
 }
 
-function mostrarToast(mensaje, tipo = 'error') {
+function ensureToastContainer() {
+    let container = document.querySelector('.toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.className = 'toast-container';
+        document.body.appendChild(container);
+    }
+    return container;
+}
+
+function mostrarToast(mensaje, tipo = 'info') {
+    const container = ensureToastContainer();
     const toast = document.createElement('div');
-    toast.className = `toast-banner toast-${tipo}`;
+    toast.className = `toast toast--${tipo}`;
     toast.textContent = mensaje || '';
-    document.body.appendChild(toast);
+    container.appendChild(toast);
     setTimeout(() => toast.remove(), 4000);
 }
 
@@ -98,6 +113,12 @@ function mostrarMensajeError(msg) {
 
 function mostrarMensajeExito(msg) {
     mostrarToast(msg || 'Operación exitosa', 'success');
+}
+
+function formatearFechaCorta(fecha) {
+    if (!fecha) return '—';
+    const date = new Date(fecha);
+    return date.toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
 async function confirmarAccion(titulo, texto, confirmText = 'Confirmar') {
@@ -701,10 +722,77 @@ function actualizarDatosPensiones() {
 const form = document.querySelector('.solicitud-container');
 const historialVacio = document.querySelector('.historial-vacio');
 const historialLista = document.querySelector('.historial-lista');
+const badgeSolicitudesAlumno = document.getElementById('badge-solicitudes-alumno');
+const estadoActualSolicitud = document.getElementById('solicitud-estado-actual');
+const btnLimpiarSolicitud = document.getElementById('btn-limpiar-solicitud');
+
+function estadoChipClass(estado) {
+    const normalizado = (estado || 'PENDIENTE').toUpperCase();
+    if (normalizado === 'SOLUCIONADA') return 'solucionada';
+    if (normalizado === 'RECHAZADA') return 'rechazada';
+    return 'pendiente';
+}
+
+function actualizarIndicadoresSolicitud() {
+    const total = state.solicitudes?.length || 0;
+    if (badgeSolicitudesAlumno) {
+        badgeSolicitudesAlumno.textContent = total;
+        badgeSolicitudesAlumno.hidden = total === 0;
+    }
+
+    if (estadoActualSolicitud) {
+        if (!total) {
+            estadoActualSolicitud.textContent = 'Pendiente de envío';
+            return;
+        }
+        const ultima = state.solicitudes[0];
+        const estado = (ultima.estado || 'PENDIENTE').toLowerCase();
+        const mensajes = {
+            pendiente: 'Pendiente de revisión',
+            solucionada: 'Sección solucionada',
+            rechazada: 'Solicitud rechazada'
+        };
+        estadoActualSolicitud.textContent = mensajes[estado] || ultima.estado || 'Pendiente';
+    }
+}
+
+function actualizarSnapshotSolicitudes(solicitudes) {
+    state.solicitudesSnapshot = new Map((solicitudes || []).map(s => [s.id, {
+        estado: s.estado,
+        mensajeAdmin: s.mensajeAdmin
+    }]));
+}
+
+function notificarCambiosSolicitudes(nuevasSolicitudes) {
+    if (!state.solicitudesCargadas) {
+        actualizarSnapshotSolicitudes(nuevasSolicitudes);
+        state.solicitudesCargadas = true;
+        return;
+    }
+
+    const anterior = state.solicitudesSnapshot || new Map();
+    (nuevasSolicitudes || []).forEach(s => {
+        if (!s?.id) return;
+        const previo = anterior.get(s.id);
+        if (!previo) {
+            mostrarToast('Registraste una nueva solicitud de sección', 'info');
+            return;
+        }
+        if (previo.estado !== s.estado && s.estado) {
+            const tipo = s.estado === 'SOLUCIONADA' ? 'success' : (s.estado === 'RECHAZADA' ? 'error' : 'info');
+            mostrarToast(`Tu solicitud de ${s.codigoCurso || 'curso'} ahora está ${s.estado.toLowerCase()}`, tipo);
+        } else if (previo.mensajeAdmin !== s.mensajeAdmin && s.mensajeAdmin) {
+            mostrarToast('El administrador dejó un nuevo mensaje en tu solicitud', 'info');
+        }
+    });
+
+    actualizarSnapshotSolicitudes(nuevasSolicitudes);
+}
 
 async function cargarSolicitudesAlumno() {
     try {
         const solicitudes = await fetchJson('/alumno/solicitudes', 'No se pudieron cargar tus solicitudes');
+        notificarCambiosSolicitudes(solicitudes || []);
         state.solicitudes = solicitudes || [];
         renderHistorialSolicitudes();
     } catch (err) {
@@ -722,36 +810,94 @@ async function cargarCursosSolicitables() {
     }
 }
 
+function descargarEvidencia(solicitud) {
+    if (!solicitud?.evidenciaBase64 || !solicitud?.evidenciaNombreArchivo) return;
+    const link = document.createElement('a');
+    const tipo = solicitud.evidenciaContentType || 'application/octet-stream';
+    link.href = `data:${tipo};base64,${solicitud.evidenciaBase64}`;
+    link.download = solicitud.evidenciaNombreArchivo;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+}
+
 function renderHistorialSolicitudes() {
     if (!historialLista) return;
     historialLista.innerHTML = '';
 
     if (!state.solicitudes || !state.solicitudes.length) {
         if (historialVacio) historialVacio.style.display = 'block';
+        actualizarIndicadoresSolicitud();
         return;
     }
     if (historialVacio) historialVacio.style.display = 'none';
 
     state.solicitudes.forEach(s => {
-        const card = document.createElement('div');
-        card.classList.add('solicitud-card');
+        const card = document.createElement('article');
+        card.classList.add('solicitud-item');
 
-        const fecha = s.fechaSolicitud ? new Date(s.fechaSolicitud).toLocaleDateString('es-PE') : '—';
-        const chip = (s.estado || 'PENDIENTE').toLowerCase();
+        const estadoClass = estadoChipClass(s.estado);
+        const fechaSolicitud = formatearFechaCorta(s.fechaSolicitud);
+        const fechaActualizacion = formatearFechaCorta(s.fechaActualizacion || s.fechaSolicitud);
+
         card.innerHTML = `
-            <div class="curso-titulo">${s.curso || 'Curso'}</div>
-            <p class="muted">${s.codigoCurso || ''}</p>
-            <div class="chip chip-${chip}">${s.estado || 'PENDIENTE'}</div>
-            <dl>
-                <div><dt>Turno</dt><dd>${s.turno || '—'}</dd></div>
-                <div><dt>Modalidad</dt><dd>${s.modalidad || '—'}</dd></div>
-                <div><dt>Ciclo</dt><dd>${s.ciclo || 'Actual'}</dd></div>
-                <div><dt>Fecha</dt><dd>${fecha}</dd></div>
-                ${s.mensajeAdmin ? `<div><dt>Mensaje</dt><dd>${s.mensajeAdmin}</dd></div>` : ''}
-            </dl>
+            <div class="solicitud-item__header">
+                <div>
+                    <p class="muted">${s.codigoCurso || ''}</p>
+                    <h4 class="solicitud-item__title">${s.curso || 'Curso'}</h4>
+                </div>
+                <div class="estado-chip ${estadoClass}">${s.estado || 'PENDIENTE'}</div>
+            </div>
+            <div class="solicitud-meta">
+                ${s.ciclo ? `<span class="badge-light">Ciclo ${s.ciclo}</span>` : ''}
+                ${s.modalidad ? `<span class="meta-tag"><strong>Modalidad:</strong> ${s.modalidad}</span>` : ''}
+                ${s.turno ? `<span class="meta-tag"><strong>Turno:</strong> ${s.turno}</span>` : ''}
+                ${typeof s.solicitantes === 'number' ? `<span class="meta-tag"><strong>Solicitudes:</strong> ${s.solicitantes}</span>` : ''}
+            </div>
+            <div class="solicitud-body">
+                <div>
+                    <p class="label">Motivo</p>
+                    <p>${s.motivo || '—'}</p>
+                </div>
+                <div>
+                    <p class="label">Mensaje del administrador</p>
+                    <p>${s.mensajeAdmin || 'Aún no hay comentarios del administrador'}</p>
+                </div>
+            </div>
+            <div class="solicitud-meta">
+                <span class="meta-tag"><strong>Solicitud:</strong> ${fechaSolicitud}</span>
+                <span class="meta-tag"><strong>Última actualización:</strong> ${fechaActualizacion}</span>
+            </div>
         `;
 
+        const actions = document.createElement('div');
+        actions.className = 'solicitud-actions';
+        if (s.evidenciaNombreArchivo && s.evidenciaBase64) {
+            const btnEvidencia = document.createElement('button');
+            btnEvidencia.type = 'button';
+            btnEvidencia.className = 'btn-evidencia';
+            btnEvidencia.textContent = `Descargar ${s.evidenciaNombreArchivo}`;
+            btnEvidencia.addEventListener('click', () => descargarEvidencia(s));
+            actions.appendChild(btnEvidencia);
+        }
+
+        card.appendChild(actions);
         historialLista.appendChild(card);
+    });
+
+    actualizarIndicadoresSolicitud();
+}
+
+async function archivoABase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+            const result = reader.result || '';
+            const base64 = result.toString().split(',')[1];
+            resolve(base64);
+        };
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(file);
     });
 }
 
@@ -762,10 +908,16 @@ async function registrarSolicitudSeccion(e) {
     const modalidad = document.getElementById('modalidad')?.value;
     const correo = document.getElementById('correo')?.value;
     const telefono = document.getElementById('telefono')?.value;
-    const motivo = document.getElementById('motivo')?.value;
+    const motivo = document.getElementById('motivo')?.value?.trim();
+    const evidenciaInput = document.getElementById('evidencia');
 
     if (!cursoId || !motivo || !turno) {
         mostrarMensajeError('Completa los campos obligatorios');
+        return;
+    }
+
+    if (motivo.length < 8) {
+        mostrarMensajeError('Describe mejor el motivo de tu solicitud');
         return;
     }
 
@@ -774,16 +926,46 @@ async function registrarSolicitudSeccion(e) {
         return;
     }
 
+    let evidenciaNombreArchivo = null;
+    let evidenciaBase64 = null;
+    let evidenciaContentType = null;
+    if (evidenciaInput?.files?.length) {
+        const archivo = evidenciaInput.files[0];
+        const maxSize = 5 * 1024 * 1024;
+        if (archivo.size > maxSize) {
+            mostrarMensajeError('La evidencia no debe superar los 5 MB');
+            return;
+        }
+        evidenciaNombreArchivo = archivo.name;
+        evidenciaContentType = archivo.type || 'application/octet-stream';
+        evidenciaBase64 = await archivoABase64(archivo);
+    }
+
     await fetchJson('/alumno/solicitudes', 'No se pudo registrar la solicitud', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cursoId, turno, modalidad, correo, telefono, motivo })
+        body: JSON.stringify({
+            cursoId,
+            turno,
+            modalidad,
+            correo,
+            telefono,
+            motivo,
+            evidenciaNombreArchivo,
+            evidenciaContentType,
+            evidenciaBase64
+        })
     });
 
-    mostrarMensajeExito('Solicitud registrada');
+    mostrarMensajeExito('Solicitud registrada correctamente');
     form.reset();
     await cargarSolicitudesAlumno();
     await cargarCursosSolicitables();
+}
+
+function limpiarFormularioSolicitud() {
+    form?.reset();
+    if (estadoActualSolicitud) estadoActualSolicitud.textContent = 'Pendiente de envío';
 }
 
 function poblarCursosSolicitud() {
@@ -797,6 +979,7 @@ function poblarCursosSolicitud() {
 if (form) {
     form.addEventListener('submit', registrarSolicitudSeccion);
 }
+btnLimpiarSolicitud?.addEventListener('click', limpiarFormularioSolicitud);
 
 /* ============================================================
    INICIALIZACIÓN

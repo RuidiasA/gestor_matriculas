@@ -22,6 +22,8 @@ public interface SolicitudSeccionRepository extends JpaRepository<SolicitudSecci
 
     long countByEstado(EstadoSolicitud estado);
 
+    long countByCursoId(Long cursoId);
+
     List<SolicitudSeccion> findByCursoIdAndEstado(Long cursoId, EstadoSolicitud estado);
 
     @Query("SELECT s FROM SolicitudSeccion s WHERE s.fechaSolicitud BETWEEN :inicio AND :fin")
