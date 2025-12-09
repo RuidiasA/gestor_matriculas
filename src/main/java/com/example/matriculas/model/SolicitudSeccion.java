@@ -27,6 +27,9 @@ public class SolicitudSeccion {
 
     private LocalDateTime fechaSolicitud;
 
+    @Column(name = "fecha_actualizacion")
+    private LocalDateTime fechaActualizacion;
+
     @Column(name = "ciclo_academico")
     private String cicloAcademico;
 
@@ -45,6 +48,13 @@ public class SolicitudSeccion {
     private String mensajeAdmin;
 
     private String evidenciaNombreArchivo;
+
+    @Column(name = "evidencia_content_type", length = 150)
+    private String evidenciaContentType;
+
+    @Lob
+    @Column(name = "evidencia_contenido")
+    private byte[] evidenciaContenido;
 
     public SolicitudSeccion() {}
 }

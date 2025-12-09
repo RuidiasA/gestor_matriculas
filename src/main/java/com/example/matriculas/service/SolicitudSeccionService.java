@@ -18,6 +18,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Base64;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -147,8 +148,17 @@ public class SolicitudSeccionService {
                 .ciclo(solicitud.getCicloAcademico())
                 .estado(solicitud.getEstado() != null ? solicitud.getEstado().name() : null)
                 .fechaSolicitud(solicitud.getFechaSolicitud())
+                .fechaActualizacion(solicitud.getFechaActualizacion())
                 .mensajeAdmin(solicitud.getMensajeAdmin())
                 .motivo(solicitud.getMotivo())
+                .evidenciaNombreArchivo(solicitud.getEvidenciaNombreArchivo())
+                .evidenciaContentType(solicitud.getEvidenciaContentType())
+                .evidenciaBase64(solicitud.getEvidenciaContenido() != null
+                        ? Base64.getEncoder().encodeToString(solicitud.getEvidenciaContenido())
+                        : null)
+                .solicitantes(solicitud.getCurso() != null && solicitud.getCurso().getId() != null
+                        ? solicitudSeccionRepository.countByCursoId(solicitud.getCurso().getId())
+                        : null)
                 .relacionados(relacionados)
                 .build();
     }
@@ -162,6 +172,7 @@ public class SolicitudSeccionService {
         }
         solicitud.setEstado(nuevoEstado);
         solicitud.setMensajeAdmin(StringUtils.hasText(dto.getMensajeAdmin()) ? dto.getMensajeAdmin().trim() : null);
+        solicitud.setFechaActualizacion(LocalDateTime.now());
         solicitudSeccionRepository.save(solicitud);
     }
 
@@ -201,6 +212,8 @@ public class SolicitudSeccionService {
                 .solicitantes(totalCurso)
                 .estado(s.getEstado() != null ? s.getEstado().name() : null)
                 .fechaSolicitud(s.getFechaSolicitud())
+                .fechaActualizacion(s.getFechaActualizacion())
+                .mensajeAdmin(s.getMensajeAdmin())
                 .alumno(Optional.ofNullable(s.getAlumno()).map(a -> (a.getNombres() + " " + a.getApellidos()).trim()).orElse(null))
                 .build();
     }

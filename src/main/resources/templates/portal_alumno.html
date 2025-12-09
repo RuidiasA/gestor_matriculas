@@ -457,52 +457,99 @@
         ======================================================= -->
         <section id="vista-solicitud" class="hidden vista-solicitud">
 
-            <!-- FORMULARIO -->
-            <form class="solicitud-container">
+            <div class="solicitud-grid">
 
-                <h2>Solicitar Apertura de Sección</h2>
+                <!-- FORMULARIO -->
+                <article class="card solicitud-card-wrapper">
+                    <header class="card__header">
+                        <div>
+                            <p class="eyebrow">Apertura de sección</p>
+                            <h2>Solicitar nueva sección</h2>
+                            <p class="muted">El administrador recibirá tus datos y podrás seguir el estado en tiempo real.</p>
+                        </div>
+                        <div class="pill pill-info">Estado: <span id="solicitud-estado-actual">Pendiente de envío</span></div>
+                    </header>
 
-                <label for="curso">Curso a solicitar</label>
-                <select id="curso" name="curso" required>
-                    <option value="" disabled selected>Seleccione un curso</option>
-                </select>
+                    <form class="solicitud-container">
+                        <div class="form-grid solicitud-form-grid">
+                            <label for="curso" class="form-field">
+                                <span>Curso a solicitar</span>
+                                <select id="curso" name="curso" required>
+                                    <option value="" disabled selected>Seleccione un curso</option>
+                                </select>
+                            </label>
 
-                <label for="turno">Turno</label>
-                <select id="turno" name="turno" required>
-                    <option value="" disabled selected>Seleccione un turno</option>
-                    <option>Diurno</option>
-                    <option>Nocturno</option>
-                </select>
+                            <label for="turno" class="form-field">
+                                <span>Turno</span>
+                                <select id="turno" name="turno" required>
+                                    <option value="" disabled selected>Seleccione un turno</option>
+                                    <option>Diurno</option>
+                                    <option>Nocturno</option>
+                                </select>
+                            </label>
 
-                <label for="modalidad">Modalidad</label>
-                <select id="modalidad" name="modalidad" required>
-                    <option value="" disabled selected>Seleccione una modalidad</option>
-                    <option>Presencial</option>
-                    <option>Virtual</option>
-                </select>
+                            <label for="modalidad" class="form-field">
+                                <span>Modalidad</span>
+                                <select id="modalidad" name="modalidad" required>
+                                    <option value="" disabled selected>Seleccione una modalidad</option>
+                                    <option>Presencial</option>
+                                    <option>Virtual</option>
+                                    <option>Online</option>
+                                </select>
+                            </label>
 
-                <label for="correo">Correo electrónico</label>
-                <input type="email" id="correo" name="correo" required placeholder="tucorreo@ejemplo.com">
+                            <label for="correo" class="form-field">
+                                <span>Correo electrónico</span>
+                                <input type="email" id="correo" name="correo" required placeholder="tucorreo@ejemplo.com">
+                            </label>
 
-                <label for="telefono">Número de teléfono</label>
-                <input type="tel" id="telefono" name="telefono" required placeholder="999999999">
+                            <label for="telefono" class="form-field">
+                                <span>Número de teléfono</span>
+                                <input type="tel" id="telefono" name="telefono" required placeholder="999999999">
+                            </label>
+                        </div>
 
-                <label for="motivo">Motivo de la solicitud</label>
-                <textarea id="motivo" name="motivo" placeholder="Explique por qué solicita esta sección..."></textarea>
+                        <div class="form-grid solicitud-form-grid">
+                            <label for="motivo" class="form-field form-field--full">
+                                <span>Motivo de la solicitud</span>
+                                <textarea id="motivo" name="motivo" placeholder="Explica por qué necesitas una nueva sección..." required></textarea>
+                            </label>
 
-                <label for="evidencia">Adjuntar evidencia (opcional)</label>
-                <input type="file" id="evidencia" name="evidencia" accept=".pdf,.jpg,.png">
+                            <label for="evidencia" class="form-field">
+                                <span>Adjuntar evidencia (opcional)</span>
+                                <input type="file" id="evidencia" name="evidencia" accept=".pdf,.jpg,.png,.jpeg">
+                                <small class="muted">Formatos: PDF o imagen. Máx. 5 MB.</small>
+                            </label>
 
-                <button type="submit">Solicitar sección</button>
-            </form>
+                            <div class="form-field">
+                                <span>Notificaciones</span>
+                                <p class="muted">Recibirás alertas cuando el administrador responda o actualice el estado.</p>
+                            </div>
+                        </div>
 
-            <!-- HISTORIAL -->
-            <div class="historial-container-seccion">
-                <h3>Historial de solicitudes</h3>
+                        <div class="form-actions">
+                            <button type="submit" class="btn-primary">Solicitar sección</button>
+                            <button type="button" class="btn-outline" id="btn-limpiar-solicitud">Limpiar formulario</button>
+                        </div>
+                    </form>
+                </article>
 
-                <div class="historial-vacio">Aún no has realizado solicitudes.</div>
+                <!-- HISTORIAL -->
+                <article class="card historial-container-seccion">
+                    <header class="card__header">
+                        <div>
+                            <p class="eyebrow">Seguimiento</p>
+                            <h3>Historial de solicitudes</h3>
+                            <p class="muted">Consulta el estado, mensajes del administrador y descargas.</p>
+                        </div>
+                        <div class="badge badge--pill" id="badge-solicitudes-alumno" hidden>0</div>
+                    </header>
 
-                <div class="historial-lista"></div>
+                    <div class="historial-vacio">Aún no has realizado solicitudes.</div>
+
+                    <div class="historial-lista"></div>
+                </article>
+
             </div>
 
         </section>

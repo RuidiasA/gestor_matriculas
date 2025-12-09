@@ -32,8 +32,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Base64;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Map;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -504,9 +506,22 @@ public class AlumnoPortalService {
         solicitud.setTurno(solicitudDto.getTurno());
         solicitud.setCorreo(solicitudDto.getCorreo());
         solicitud.setTelefono(solicitudDto.getTelefono());
-        solicitud.setMotivo(solicitudDto.getMotivo());
-        solicitud.setEvidenciaNombreArchivo(solicitudDto.getEvidenciaNombreArchivo());
+        solicitud.setMotivo(solicitudDto.getMotivo().trim());
+        solicitud.setEvidenciaNombreArchivo(StringUtils.hasText(solicitudDto.getEvidenciaNombreArchivo())
+                ? solicitudDto.getEvidenciaNombreArchivo().trim()
+                : null);
         solicitud.setFechaSolicitud(LocalDateTime.now());
+        solicitud.setFechaActualizacion(solicitud.getFechaSolicitud());
+        if (StringUtils.hasText(solicitudDto.getEvidenciaBase64()) && solicitudDto.getEvidenciaNombreArchivo() != null) {
+            try {
+                solicitud.setEvidenciaContenido(Base64.getDecoder().decode(solicitudDto.getEvidenciaBase64()));
+                solicitud.setEvidenciaContentType(StringUtils.hasText(solicitudDto.getEvidenciaContentType())
+                        ? solicitudDto.getEvidenciaContentType()
+                        : "application/octet-stream");
+            } catch (IllegalArgumentException ex) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La evidencia adjunta no es válida");
+            }
+        }
         solicitud.setEstado(EstadoSolicitud.PENDIENTE);
 
         solicitudSeccionRepository.save(solicitud);
@@ -515,21 +530,41 @@ public class AlumnoPortalService {
     @Transactional(readOnly = true)
     public List<SolicitudSeccionAlumnoDTO> listarSolicitudesAlumno() {
         Alumno alumno = obtenerAlumnoActual();
-        return solicitudSeccionRepository.findByAlumnoId(alumno.getId())
-                .stream()
+        List<SolicitudSeccion> solicitudes = solicitudSeccionRepository.findByAlumnoId(alumno.getId());
+
+        Set<Long> cursosSolicitados = solicitudes.stream()
+                .map(s -> Optional.ofNullable(s.getCurso()).map(Curso::getId).orElse(null))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        Map<Long, Long> solicitantesPorCurso = cursosSolicitados.stream()
+                .collect(Collectors.toMap(id -> id, id -> solicitudSeccionRepository.countByCursoId(id)));
+
+        return solicitudes.stream()
                 .sorted(Comparator.comparing(SolicitudSeccion::getFechaSolicitud, Comparator.nullsLast(Comparator.naturalOrder())).reversed())
-                .map(s -> SolicitudSeccionAlumnoDTO.builder()
-                        .id(s.getId())
-                        .cursoId(Optional.ofNullable(s.getCurso()).map(Curso::getId).orElse(null))
-                        .curso(Optional.ofNullable(s.getCurso()).map(Curso::getNombre).orElse(null))
-                        .codigoCurso(Optional.ofNullable(s.getCurso()).map(Curso::getCodigo).orElse(null))
-                        .modalidad(s.getModalidad())
-                        .turno(s.getTurno())
-                        .ciclo(s.getCicloAcademico())
-                        .estado(s.getEstado() != null ? s.getEstado().name() : null)
-                        .mensajeAdmin(s.getMensajeAdmin())
-                        .fechaSolicitud(s.getFechaSolicitud())
-                        .build())
+                .map(s -> {
+                    Long cursoId = Optional.ofNullable(s.getCurso()).map(Curso::getId).orElse(null);
+                    return SolicitudSeccionAlumnoDTO.builder()
+                            .id(s.getId())
+                            .cursoId(cursoId)
+                            .curso(Optional.ofNullable(s.getCurso()).map(Curso::getNombre).orElse(null))
+                            .codigoCurso(Optional.ofNullable(s.getCurso()).map(Curso::getCodigo).orElse(null))
+                            .motivo(s.getMotivo())
+                            .modalidad(s.getModalidad())
+                            .turno(s.getTurno())
+                            .ciclo(s.getCicloAcademico())
+                            .estado(s.getEstado() != null ? s.getEstado().name() : null)
+                            .mensajeAdmin(s.getMensajeAdmin())
+                            .fechaSolicitud(s.getFechaSolicitud())
+                            .fechaActualizacion(s.getFechaActualizacion())
+                            .evidenciaNombreArchivo(s.getEvidenciaNombreArchivo())
+                            .evidenciaContentType(s.getEvidenciaContentType())
+                            .evidenciaBase64(s.getEvidenciaContenido() != null
+                                    ? Base64.getEncoder().encodeToString(s.getEvidenciaContenido())
+                                    : null)
+                            .solicitantes(solicitantesPorCurso.getOrDefault(cursoId, 0L))
+                            .build();
+                })
                 .toList();
     }
 
