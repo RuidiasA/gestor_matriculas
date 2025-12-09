@@ -23,6 +23,7 @@ export function createDocentesModule(tools) {
     const modalDatosDocente = document.getElementById('modalDatosDocente');
     const modalContactoDocente = document.getElementById('modalContactoDocente');
     const btnLimpiarDocentes = document.getElementById('btnLimpiarDocentes');
+    const columnaDocentesDerecha = document.querySelector('.docentes-col--right');
 
     const inputsDocente = {
         codigo: document.getElementById('docCodigo'),
@@ -57,6 +58,8 @@ export function createDocentesModule(tools) {
     function init() {
         cargarCatalogoCursos();
         buscarDocentes();
+
+        asegurarPosicionModales();
 
         if (formBusquedaDocentes) {
             formBusquedaDocentes.addEventListener('submit', e => {
@@ -233,6 +236,18 @@ export function createDocentesModule(tools) {
         tools.renderEmptyRow(tablaCursosDictables, 5, 'Cargando...');
         tools.renderEmptyRow(tablaSeccionesDocente, 9, 'Cargando...');
         tools.renderEmptyRow(tablaHistorialDocente, 11, 'Cargando...');
+    }
+
+    function asegurarPosicionModales() {
+        const destinoModales = columnaDocentesDerecha || document.body;
+        [modalDatosDocente, modalContactoDocente].forEach(modal => {
+            if (!modal) return;
+            if (modal.parentElement !== destinoModales) {
+                destinoModales.appendChild(modal);
+                return;
+            }
+            destinoModales.appendChild(modal);
+        });
     }
 
     function renderizarFichaDocente(detalle) {

@@ -980,6 +980,56 @@
                         </div>
                     </article>
 
+                    <!-- ==================  TARJETA 5  ===================== -->
+                    <article class="card card--buscar-docentes">
+                        <header class="card__header">
+                            <h2>Buscar docentes</h2>
+                        </header>
+                        <form id="formBusquedaDocentes" class="docente-form">
+                            <div class="form-grid">
+                                <h4>Filtro general<input type="text" id="filtroDocente" placeholder="Código, DNI, nombre, correo"></h4>
+                                <h4>Curso dictable
+                                    <select id="filtroCursoDictable">
+                                        <option value="">Todos</option>
+                                    </select>
+                                </h4>
+                                <h4>Estado
+                                    <select id="filtroEstadoDocente">
+                                        <option value="">Todos</option>
+                                        <option value="ACTIVO">Activo</option>
+                                        <option value="INACTIVO">Inactivo</option>
+                                    </select>
+                                </h4>
+                                <div class="form-actions">
+                                    <button type="button" id="btnLimpiarDocentes" class="clear-button">Limpiar</button>
+                                    <button class="btn-primary" type="submit">Buscar</button>
+                                </div>
+                            </div>
+                        </form>
+
+                        <div class="panel-divider"></div>
+
+
+                        <!-- TABLA CON SCROLL -->
+                        <h3>Listado de docentes</h3>
+                        <div class="table-wrapper table-wrapper--docentes">
+                            <table class="admin-table" id="tablaDocentes">
+                                <thead>
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Nombre completo</th>
+                                    <th>DNI</th>
+                                    <th>Estado</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr><td colspan="4" class="muted">Sin resultados</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <p id="estadoBusquedaDocentes" class="muted" hidden></p>
+                    </article>
+
                     <!-- ===============    ====  Modales  ====================== -->
                     <div class="modal modal--docente" id="modalDatosDocente" hidden>
                         <div class="modal__dialog">
@@ -1030,56 +1080,6 @@
                             </form>
                         </div>
                     </div>
-
-                    <!-- ==================  TARJETA 5  ===================== -->
-                    <article class="card card--buscar-docentes">
-                        <header class="card__header">
-                            <h2>Buscar docentes</h2>
-                        </header>
-                        <form id="formBusquedaDocentes" class="docente-form">
-                            <div class="form-grid">
-                                <h4>Filtro general<input type="text" id="filtroDocente" placeholder="Código, DNI, nombre, correo"></h4>
-                                <h4>Curso dictable
-                                    <select id="filtroCursoDictable">
-                                        <option value="">Todos</option>
-                                    </select>
-                                </h4>
-                                <h4>Estado
-                                    <select id="filtroEstadoDocente">
-                                        <option value="">Todos</option>
-                                        <option value="ACTIVO">Activo</option>
-                                        <option value="INACTIVO">Inactivo</option>
-                                    </select>
-                                </h4>
-                                <div class="form-actions">
-                                    <button type="button" id="btnLimpiarDocentes" class="clear-button">Limpiar</button>
-                                    <button class="btn-primary" type="submit">Buscar</button>
-                                </div>
-                            </div>
-                        </form>
-
-                        <div class="panel-divider"></div>
-
-
-                        <!-- TABLA CON SCROLL -->
-                        <h3>Listado de docentes</h3>
-                        <div class="table-wrapper table-wrapper--docentes">
-                            <table class="admin-table" id="tablaDocentes">
-                                <thead>
-                                <tr>
-                                    <th>Código</th>
-                                    <th>Nombre completo</th>
-                                    <th>DNI</th>
-                                    <th>Estado</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                <tr><td colspan="4" class="muted">Sin resultados</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <p id="estadoBusquedaDocentes" class="muted" hidden></p>
-                    </article>
                 </div>
             </div>
         </section>
