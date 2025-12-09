@@ -61,7 +61,7 @@ export function createSeccionesModule(tools, alumnosModule) {
     const contenedorHorariosNuevaSeccion = document.getElementById('contenedorHorariosNuevaSeccion');
     const btnAgregarHorarioNuevaSeccion = document.getElementById('btnAgregarHorarioNuevaSeccion');
 
-    let seccionSeleccionada = null;
+    let seccionSeleccionada = null; // Objeto completo de la sección seleccionada
     let detalleSeccionActual = null;
     const catalogosSeccion = { docentes: [], modalidades: [], cursos: [] };
 
@@ -92,7 +92,7 @@ export function createSeccionesModule(tools, alumnosModule) {
 
         if (btnEditarSeccion) btnEditarSeccion.onclick = () => abrirModalEdicionSeccion();
         if (btnGestionarHorarios) btnGestionarHorarios.onclick = () => abrirModalGestionHorarios();
-        if (btnAnularSeccion) btnAnularSeccion.onclick = () => anularSeccion(seccionSeleccionada);
+        if (btnAnularSeccion) btnAnularSeccion.onclick = () => anularSeccion(getSeccionId());
 
         tabsHistorial?.forEach(tab => {
             tab.addEventListener('click', () => {
@@ -200,10 +200,10 @@ export function createSeccionesModule(tools, alumnosModule) {
             const data = await resp.json();
             tools.showToast('Sección registrada correctamente', 'success');
             cerrarModalNuevaSeccion();
-            seccionSeleccionada = data.idSeccion || data.id || null;
+            seccionSeleccionada = data;
             await buscarSecciones(true);
-            if (seccionSeleccionada) {
-                cargarFichaSeccion(seccionSeleccionada);
+            if (getSeccionId()) {
+                cargarFichaSeccion(getSeccionId());
             }
         } catch (err) {
             tools.showToast(err.message || 'No se pudo registrar la sección', 'error');
@@ -260,6 +260,8 @@ export function createSeccionesModule(tools, alumnosModule) {
     }
 
     function resetFicha() {
+        seccionSeleccionada = null;
+        detalleSeccionActual = null;
         limpiarFichaSeccion();
     }
 
@@ -292,10 +294,10 @@ export function createSeccionesModule(tools, alumnosModule) {
         tools.renderEmptyRow(tablaCambiosSeccion, 6, 'Selecciona una sección');
         tools.renderEmptyRow(tablaEstadisticasSeccion, 6, 'Selecciona una sección');
         limpiarFichaSeccion();
-        buscarSecciones();
+        buscarSecciones(false);
     }
 
-    async function buscarSecciones(preservarSeleccion = false) {
+    async function buscarSecciones(preservarSeleccion = true) {
         if (!tablaSecciones) return;
         tools.renderEmptyRow(tablaSecciones, 9, 'Cargando secciones...');
         const params = new URLSearchParams();
@@ -321,6 +323,8 @@ export function createSeccionesModule(tools, alumnosModule) {
             tools.renderEmptyRow(tablaSecciones, 9, 'Sin resultados');
             return;
         }
+        const seccionIdSeleccionada = getSeccionId();
+
         secciones.forEach(sec => {
             const tr = document.createElement('tr');
             const idSeccion = sec.idSeccion;
@@ -341,11 +345,11 @@ export function createSeccionesModule(tools, alumnosModule) {
             }
             if (idSeccion) {
                 tr.addEventListener('click', () => {
-                    seccionSeleccionada = idSeccion;
+                    seccionSeleccionada = { idSeccion };
                     tools.markSelectedRow(tablaSecciones, tr);
                     cargarFichaSeccion(idSeccion);
                 });
-                if (preservarSeleccion && seccionSeleccionada && `${seccionSeleccionada}` === `${idSeccion}`) {
+                if (preservarSeleccion && seccionIdSeleccionada && `${seccionIdSeleccionada}` === `${idSeccion}`) {
                     tools.markSelectedRow(tablaSecciones, tr);
                 }
             }
@@ -355,6 +359,11 @@ export function createSeccionesModule(tools, alumnosModule) {
 
     async function cargarFichaSeccion(idSeccion) {
         if (!idSeccion) return;
+
+        const seccionId = typeof idSeccion === 'object' ? (idSeccion.idSeccion || idSeccion.id) : idSeccion;
+        seccionSeleccionada = seccionSeleccionada && seccionSeleccionada.idSeccion === seccionId
+            ? seccionSeleccionada
+            : { idSeccion: seccionId };
 
         actualizarFichaSeccion({
             curso: 'Cargando...',
@@ -381,6 +390,7 @@ export function createSeccionesModule(tools, alumnosModule) {
                 fetchJson(`/admin/secciones/${idSeccion}/estadisticas`, 'No se pudieron cargar las estadísticas')
             ]);
 
+            seccionSeleccionada = detalle;
             detalleSeccionActual = detalle;
             renderizarFichaSeccion(detalle, estudiantes);
             renderizarHistorial(historial);
@@ -396,6 +406,7 @@ export function createSeccionesModule(tools, alumnosModule) {
             tools.renderEmptyRow(tablaEstadisticasSeccion, 6, 'No se pudo cargar las estadísticas');
             detalleSeccionActual = null;
             seccionSeleccionada = null;
+            limpiarFichaSeccion();
             activarBotonesFicha();
         }
     }
@@ -588,7 +599,7 @@ export function createSeccionesModule(tools, alumnosModule) {
     }
 
     function abrirModalEdicionSeccion() {
-        if (!seccionSeleccionada || !detalleSeccionActual) {
+        if (!getSeccionId() || !detalleSeccionActual) {
             tools.showToast('Selecciona una sección primero', 'info');
             return;
         }
@@ -665,10 +676,10 @@ export function createSeccionesModule(tools, alumnosModule) {
         }).then(async result => {
             if (!result.isConfirmed || !result.value) return;
             try {
-                await actualizarSeccion(seccionSeleccionada, result.value);
+                await actualizarSeccion(getSeccionId(), result.value);
                 Swal.fire('Guardado', 'La sección se actualizó correctamente', 'success');
-                await cargarFichaSeccion(seccionSeleccionada);
-                buscarSecciones();
+                await cargarFichaSeccion(getSeccionId());
+                buscarSecciones(true);
             } catch (err) {
                 Swal.fire('Error', err.message || 'No se pudo actualizar la sección', 'error');
             }
@@ -676,7 +687,7 @@ export function createSeccionesModule(tools, alumnosModule) {
     }
 
     function abrirModalGestionHorarios() {
-        if (!seccionSeleccionada || !detalleSeccionActual) {
+        if (!getSeccionId() || !detalleSeccionActual) {
             tools.showToast('Selecciona una sección primero', 'info');
             return;
         }
@@ -794,7 +805,7 @@ export function createSeccionesModule(tools, alumnosModule) {
                 }
 
                 try {
-                    await actualizarHorarios(seccionSeleccionada, horarios);
+                    await actualizarHorarios(getSeccionId(), horarios);
                     detalleSeccionActual.horarios = horarios;
                     return horarios;
                 } catch (err) {
@@ -805,7 +816,7 @@ export function createSeccionesModule(tools, alumnosModule) {
         }).then(async result => {
             if (!result.isConfirmed || !result.value) return;
             tools.showToast('Horarios actualizados', 'success');
-            await cargarFichaSeccion(seccionSeleccionada);
+            await cargarFichaSeccion(getSeccionId());
             await buscarSecciones(true);
         });
 
@@ -875,7 +886,7 @@ export function createSeccionesModule(tools, alumnosModule) {
 
             Swal.fire('Listo', 'La sección fue anulada correctamente.', 'success');
 
-            buscarSecciones();
+            buscarSecciones(true);
             cargarFichaSeccion(id);
 
         } catch (err) {
@@ -884,7 +895,7 @@ export function createSeccionesModule(tools, alumnosModule) {
     }
 
     function activarBotonesFicha() {
-        if (!seccionSeleccionada) {
+        if (!getSeccionId()) {
             if (btnEditarSeccion) btnEditarSeccion.disabled = true;
             if (btnGestionarHorarios) btnGestionarHorarios.disabled = true;
             if (btnAnularSeccion) btnAnularSeccion.disabled = true;
@@ -897,7 +908,14 @@ export function createSeccionesModule(tools, alumnosModule) {
 
         if (btnEditarSeccion) btnEditarSeccion.onclick = () => abrirModalEdicionSeccion();
         if (btnGestionarHorarios) btnGestionarHorarios.onclick = () => abrirModalGestionHorarios();
-        if (btnAnularSeccion) btnAnularSeccion.onclick = () => anularSeccion(seccionSeleccionada);
+        if (btnAnularSeccion) btnAnularSeccion.onclick = () => anularSeccion(getSeccionId());
+    }
+
+    function getSeccionId() {
+        if (typeof seccionSeleccionada === 'number' || typeof seccionSeleccionada === 'string') {
+            return seccionSeleccionada;
+        }
+        return seccionSeleccionada?.idSeccion ?? seccionSeleccionada?.id ?? null;
     }
 
     return { init, resetFicha };
