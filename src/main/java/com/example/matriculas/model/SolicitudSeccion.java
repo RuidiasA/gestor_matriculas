@@ -41,8 +41,8 @@ public class SolicitudSeccion {
     @Column(columnDefinition = "TEXT")
     private String motivo;
 
-    @Column(columnDefinition = "TEXT")
-    private String respuesta;
+    @Column(name = "mensaje_admin", length = 300)
+    private String mensajeAdmin;
 
     private String evidenciaNombreArchivo;
 

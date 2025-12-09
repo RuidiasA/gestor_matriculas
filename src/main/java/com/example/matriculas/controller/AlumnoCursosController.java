@@ -59,12 +59,17 @@ public class AlumnoCursosController {
     }
 
     @PostMapping("/solicitudes")
-    public void registrarSolicitud(@RequestBody SolicitudSeccionCrearDTO solicitud) {
+    public void registrarSolicitud(@RequestBody SolicitudSeccionCreateDTO solicitud) {
         alumnoPortalService.registrarSolicitud(solicitud);
     }
 
     @GetMapping("/solicitudes")
     public List<SolicitudSeccionAlumnoDTO> listarSolicitudes() {
         return alumnoPortalService.listarSolicitudesAlumno();
+    }
+
+    @GetMapping("/solicitudes/cursos")
+    public List<CursoSolicitudAlumnoDTO> cursosSolicitables() {
+        return alumnoPortalService.listarCursosSolicitables();
     }
 }

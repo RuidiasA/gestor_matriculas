@@ -3,6 +3,7 @@ package com.example.matriculas.service;
 import com.example.matriculas.dto.*;
 import com.example.matriculas.model.*;
 import com.example.matriculas.model.enums.EstadoSolicitud;
+import com.example.matriculas.model.enums.EstadoSeccion;
 import com.example.matriculas.model.enums.EstadoDetalleMatricula;
 import com.example.matriculas.model.enums.EstadoMatricula;
 import com.example.matriculas.model.enums.EstadoPago;
@@ -466,7 +467,7 @@ public class AlumnoPortalService {
     }
 
     @Transactional
-    public void registrarSolicitud(SolicitudSeccionCrearDTO solicitudDto) {
+    public void registrarSolicitud(SolicitudSeccionCreateDTO solicitudDto) {
         if (solicitudDto == null || solicitudDto.getCursoId() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La solicitud está incompleta: curso inválido");
         }
@@ -478,14 +479,22 @@ public class AlumnoPortalService {
         Alumno alumno = obtenerAlumnoActual();
         String cicloActual = obtenerCicloActual(alumno);
 
-        boolean yaExiste = solicitudSeccionRepository.existsByAlumnoIdAndCursoIdAndCicloAcademico(
-                alumno.getId(), solicitudDto.getCursoId(), cicloActual);
-        if (yaExiste) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Ya registraste una solicitud para este curso en el ciclo actual");
+        boolean pendiente = solicitudSeccionRepository.existsByAlumnoIdAndCursoIdAndEstado(
+                alumno.getId(), solicitudDto.getCursoId(), EstadoSolicitud.PENDIENTE);
+        if (pendiente) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Ya registraste una solicitud pendiente para este curso");
         }
 
         Curso curso = cursoRepository.findById(solicitudDto.getCursoId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Curso no encontrado"));
+
+        boolean tieneSeccionDisponible = seccionRepository.findByCursoId(curso.getId())
+                .stream()
+                .filter(sec -> sec.getEstado() != EstadoSeccion.ANULADA)
+                .anyMatch(sec -> calcularCuposDisponibles(sec) > 0);
+        if (tieneSeccionDisponible) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "El curso ya tiene secciones disponibles");
+        }
 
         SolicitudSeccion solicitud = new SolicitudSeccion();
         solicitud.setAlumno(alumno);
@@ -511,15 +520,47 @@ public class AlumnoPortalService {
                 .sorted(Comparator.comparing(SolicitudSeccion::getFechaSolicitud, Comparator.nullsLast(Comparator.naturalOrder())).reversed())
                 .map(s -> SolicitudSeccionAlumnoDTO.builder()
                         .id(s.getId())
+                        .cursoId(Optional.ofNullable(s.getCurso()).map(Curso::getId).orElse(null))
                         .curso(Optional.ofNullable(s.getCurso()).map(Curso::getNombre).orElse(null))
                         .codigoCurso(Optional.ofNullable(s.getCurso()).map(Curso::getCodigo).orElse(null))
                         .modalidad(s.getModalidad())
                         .turno(s.getTurno())
                         .ciclo(s.getCicloAcademico())
                         .estado(s.getEstado() != null ? s.getEstado().name() : null)
-                        .respuesta(s.getRespuesta())
+                        .mensajeAdmin(s.getMensajeAdmin())
                         .fechaSolicitud(s.getFechaSolicitud())
                         .build())
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<CursoSolicitudAlumnoDTO> listarCursosSolicitables() {
+        Alumno alumno = obtenerAlumnoActual();
+        if (alumno.getCarrera() == null || alumno.getCarrera().getId() == null) {
+            return List.of();
+        }
+
+        Set<Long> pendientes = solicitudSeccionRepository.findByAlumnoId(alumno.getId())
+                .stream()
+                .filter(s -> s.getEstado() == EstadoSolicitud.PENDIENTE)
+                .map(s -> Optional.ofNullable(s.getCurso()).map(Curso::getId).orElse(null))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        return cursoRepository.findCursosPorCarrera(alumno.getCarrera().getId())
+                .stream()
+                .filter(c -> seccionRepository.findByCursoId(c.getId())
+                        .stream()
+                        .filter(sec -> sec.getEstado() != EstadoSeccion.ANULADA)
+                        .noneMatch(sec -> calcularCuposDisponibles(sec) > 0))
+                .map(c -> CursoSolicitudAlumnoDTO.builder()
+                        .id(c.getId())
+                        .codigo(c.getCodigo())
+                        .nombre(c.getNombre())
+                        .ciclo(c.getCiclo() != null ? c.getCiclo().toString() : null)
+                        .pendiente(pendientes.contains(c.getId()))
+                        .build())
+                .sorted(Comparator.comparing(CursoSolicitudAlumnoDTO::getNombre, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)))
                 .toList();
     }
 

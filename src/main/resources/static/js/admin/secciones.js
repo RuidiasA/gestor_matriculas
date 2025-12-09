@@ -205,8 +205,28 @@ export function createSeccionesModule(tools, alumnosModule) {
             if (getSeccionId()) {
                 cargarFichaSeccion(getSeccionId());
             }
+            await sugerirResolverSolicitudes(dto.idCurso, dto.codigoSeccion);
         } catch (err) {
             tools.showToast(err.message || 'No se pudo registrar la sección', 'error');
+        }
+    }
+
+    async function sugerirResolverSolicitudes(cursoId, codigoSeccion) {
+        if (!cursoId) return;
+        try {
+            const pendientes = await fetchJson(`/admin/solicitudes/curso/${cursoId}/pendientes`, 'No se pudieron revisar solicitudes');
+            if (!pendientes?.length) return;
+            const confirmar = confirm(`Existen ${pendientes.length} solicitudes pendientes para este curso. ¿Marcarlas como solucionadas?`);
+            if (!confirmar) return;
+            const mensaje = codigoSeccion ? `Sección creada: ${codigoSeccion}` : 'Sección creada';
+            await Promise.all(pendientes.map(p => fetchJson(`/admin/solicitudes/${p.id}/estado`, 'No se pudo actualizar la solicitud', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ estado: 'SOLUCIONADA', mensajeAdmin: mensaje })
+            })));
+            tools.showToast('Solicitudes marcadas como solucionadas', 'success');
+        } catch (e) {
+            tools.showToast(e.message || 'No se pudo actualizar las solicitudes pendientes', 'error');
         }
     }
 

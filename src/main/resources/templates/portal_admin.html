@@ -18,6 +18,7 @@
                 <a href="#" data-section="secciones">Secciones</a>
                 <a href="#" data-section="alumnos">Alumnos</a>
                 <a href="#" data-section="docentes">Docentes</a>
+                <a href="#" data-section="solicitudes">Solicitudes <span id="badge-solicitudes" class="badge badge--pill badge--alert" hidden>0</span></a>
             </nav>
             <a class="logout" href="/logout">CERRAR SESIÓN</a>
         </div>
@@ -1080,6 +1081,144 @@
                             </form>
                         </div>
                     </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==========================================================================================
+                                                 SOLICITUDES
+        =========================================================================================== -->
+        <section id="solicitudes" class="admin-section">
+            <div class="admin-panel solicitudes-layout">
+                <div class="panel-izquierdo">
+                    <article class="card">
+                        <header class="card__header">
+                            <div>
+                                <h2>Solicitudes de apertura</h2>
+                                <p class="muted">Filtra por curso, carrera, ciclo, estado o fecha.</p>
+                            </div>
+                            <div class="card__actions">
+                                <button id="btnExportarSolicitudes" class="btn-outline" type="button">Exportar CSV</button>
+                            </div>
+                        </header>
+
+                        <form id="formFiltroSolicitudes" class="filters-form filters-form--inline">
+                            <label class="form-field">
+                                <span>Curso</span>
+                                <select id="filtroSolicitudCurso"></select>
+                            </label>
+                            <label class="form-field">
+                                <span>Carrera</span>
+                                <select id="filtroSolicitudCarrera"></select>
+                            </label>
+                            <label class="form-field">
+                                <span>Ciclo</span>
+                                <select id="filtroSolicitudCiclo"></select>
+                            </label>
+                            <label class="form-field">
+                                <span>Estado</span>
+                                <select id="filtroSolicitudEstado">
+                                    <option value="">Todos</option>
+                                    <option value="PENDIENTE">Pendiente</option>
+                                    <option value="SOLUCIONADA">Solucionada</option>
+                                    <option value="RECHAZADA">Rechazada</option>
+                                </select>
+                            </label>
+                            <label class="form-field">
+                                <span>Desde</span>
+                                <input type="date" id="filtroSolicitudDesde">
+                            </label>
+                            <label class="form-field">
+                                <span>Hasta</span>
+                                <input type="date" id="filtroSolicitudHasta">
+                            </label>
+                            <div class="form-actions">
+                                <button class="btn-primary" type="submit">Buscar</button>
+                                <button class="btn-outline" type="button" id="btnLimpiarSolicitudes">Limpiar</button>
+                            </div>
+                        </form>
+
+                        <div class="table-wrapper">
+                            <table class="admin-table" id="tablaSolicitudes">
+                                <thead>
+                                <tr>
+                                    <th>Curso</th>
+                                    <th>Carrera</th>
+                                    <th>Ciclo</th>
+                                    <th>Alumnos</th>
+                                    <th>Estado</th>
+                                    <th>Fecha</th>
+                                </tr>
+                                </thead>
+                                <tbody id="tablaSolicitudesBody">
+                                <tr><td colspan="6" class="muted">Sin solicitudes</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <p id="estadoSolicitudes" class="muted" hidden></p>
+                    </article>
+                </div>
+
+                <div class="panel-derecho">
+                    <article class="card solicitud-detalle-card">
+                        <header class="card__header">
+                            <div>
+                                <p class="eyebrow">Detalle</p>
+                                <h2 id="solicitudCurso">Selecciona una solicitud</h2>
+                                <p class="muted" id="solicitudEstado"></p>
+                            </div>
+                            <div class="chip" id="solicitudEstadoChip">—</div>
+                        </header>
+
+                        <div class="detalle-grid">
+                            <div>
+                                <h3 class="detalle-label">Alumno</h3>
+                                <p id="solicitudAlumno" class="detalle-valor">—</p>
+                            </div>
+                            <div>
+                                <h3 class="detalle-label">Código</h3>
+                                <p id="solicitudCodigoAlumno" class="detalle-valor">—</p>
+                            </div>
+                            <div>
+                                <h3 class="detalle-label">Carrera</h3>
+                                <p id="solicitudCarrera" class="detalle-valor">—</p>
+                            </div>
+                            <div>
+                                <h3 class="detalle-label">Ciclo</h3>
+                                <p id="solicitudCiclo" class="detalle-valor">—</p>
+                            </div>
+                            <div>
+                                <h3 class="detalle-label">Fecha</h3>
+                                <p id="solicitudFecha" class="detalle-valor">—</p>
+                            </div>
+                        </div>
+
+                        <div class="detalle-grid detalle-grid--full">
+                            <div>
+                                <h3 class="detalle-label">Motivo del alumno</h3>
+                                <p id="solicitudMotivo" class="detalle-valor">—</p>
+                            </div>
+                        </div>
+
+                        <div class="detalle-grid detalle-grid--full">
+                            <div>
+                                <h3 class="detalle-label">Mensaje del administrador</h3>
+                                <textarea id="solicitudMensajeAdmin" rows="3" placeholder="Mensaje opcional"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="detalle-grid detalle-grid--full">
+                            <div>
+                                <h3 class="detalle-label">Otros alumnos solicitando este curso</h3>
+                                <ul id="solicitudRelacionados" class="lista-relacionados"></ul>
+                            </div>
+                        </div>
+
+                        <div class="card-actions card-actions--end">
+                            <button class="btn-success" type="button" id="btnSolucionarSolicitud" disabled>Marcar como solucionada</button>
+                            <button class="btn-danger" type="button" id="btnRechazarSolicitud" disabled>Marcar como rechazada</button>
+                        </div>
+                    </article>
                 </div>
             </div>
         </section>

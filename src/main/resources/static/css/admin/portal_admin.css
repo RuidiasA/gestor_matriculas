@@ -600,3 +600,68 @@ body.modal-open {
     margin-bottom: 12px;
 }
 
+
+/* ===============================
+   Solicitudes
+================================ */
+.badge--alert {
+    background: #e74c3c;
+    color: #fff;
+    padding: 0 8px;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    margin-left: 6px;
+}
+
+.solicitudes-layout {
+    grid-template-columns: 2fr 1.2fr;
+}
+
+.solicitudes-layout .card textarea {
+    width: 100%;
+    resize: vertical;
+}
+
+.lista-relacionados {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 8px;
+}
+
+.lista-relacionados li {
+    padding: 8px 10px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #fafafa;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.chip {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    background: #e5e7eb;
+    color: #111827;
+}
+
+.chip-pendiente { background: #f1c40f; color: #7a5e02; }
+.chip-solucionada { background: #2ecc71; color: #0b6830; }
+.chip-rechazada { background: #e74c3c; color: #fff; }
+
+.solicitud-detalle-card textarea {
+    border: 1px solid #dcdfe6;
+    padding: 10px;
+    border-radius: 8px;
+}
+
+@media (max-width: 1100px) {
+    .solicitudes-layout {
+        grid-template-columns: 1fr;
+    }
+}

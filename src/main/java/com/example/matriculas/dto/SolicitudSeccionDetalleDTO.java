@@ -4,22 +4,21 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Builder
-public class SolicitudSeccionAdminDTO {
+public class SolicitudSeccionDetalleDTO {
     private Long id;
     private String alumno;
     private String codigoAlumno;
     private String curso;
     private String codigoCurso;
-    private String motivo;
-    private String modalidad;
-    private String turno;
-    private String telefono;
-    private String correo;
-    private String estado;
-    private String mensajeAdmin;
+    private String carrera;
     private String ciclo;
+    private String estado;
     private LocalDateTime fechaSolicitud;
+    private String mensajeAdmin;
+    private String motivo;
+    private List<SolicitudSeccionListadoDTO> relacionados;
 }
