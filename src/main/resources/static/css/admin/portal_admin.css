@@ -28,6 +28,15 @@ main { padding: var(--space-5); display: flex; flex-direction: column; }
 .admin-section { display: none; flex-direction: column; gap: var(--space-5); }
 .admin-section.active { display: flex; }
 
+.eyebrow {
+  color: var(--color-texto-suave);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 12px;
+  margin: 0;
+}
+
 html::-webkit-scrollbar{ display: none}
 /* =============================================================
    SECCIÓN CURSOS
@@ -102,6 +111,44 @@ html::-webkit-scrollbar{ display: none}
 .docente-form .form-grid { gap: var(--space-3); }
 
 /* =============================================================
+   SECCIÓN SOLICITUDES
+   ============================================================= */
+.solicitudes-layout { grid-template-columns: 1.7fr 1fr; align-items: start; }
+
+.solicitudes-filtros {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-borde);
+  background: var(--color-superficie-2);
+  box-shadow: var(--shadow-sm);
+}
+
+.solicitudes-filtros__header { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--space-3); }
+.solicitudes-filtros__header h3 { margin: 2px 0 0; }
+
+.solicitudes-filtros__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-3);
+}
+
+.solicitudes-filtros .form-field { gap: var(--space-2); }
+
+.solicitudes-filtros__actions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.solicitudes-filtros__actions button { min-width: 140px; }
+
+/* =============================================================
    NAV: ESTADOS
    ============================================================= */
 #estadoBusquedaCursos { font-size: 13px; color: var(--color-texto-suave); }
@@ -115,11 +162,17 @@ html::-webkit-scrollbar{ display: none}
   .admin-panel, .secciones-grid, .alumnos-grid, .docentes-grid { grid-template-columns: 1fr; }
 }
 
+@media (max-width: 900px) {
+  .solicitudes-filtros__grid { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+}
+
 @media (max-width: 768px) {
   main { padding: var(--space-4); }
   .page-header { flex-direction: column; align-items: flex-start; }
   .admin-nav a { padding: 10px 12px; }
   .agregar-curso, .ficha-acciones { flex-direction: column; }
+  .solicitudes-filtros__actions { justify-content: stretch; }
+  .solicitudes-filtros__actions button { flex: 1; min-width: 0; }
 }
 .label { color: var(--color-texto); }
 

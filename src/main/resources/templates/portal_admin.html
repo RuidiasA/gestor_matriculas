@@ -1102,39 +1102,49 @@
                             </div>
                         </header>
 
-                        <form id="formFiltroSolicitudes" class="filters-form filters-form--inline">
-                            <label class="form-field">
-                                <span>Curso</span>
-                                <select id="filtroSolicitudCurso"></select>
-                            </label>
-                            <label class="form-field">
-                                <span>Carrera</span>
-                                <select id="filtroSolicitudCarrera"></select>
-                            </label>
-                            <label class="form-field">
-                                <span>Ciclo</span>
-                                <select id="filtroSolicitudCiclo"></select>
-                            </label>
-                            <label class="form-field">
-                                <span>Estado</span>
-                                <select id="filtroSolicitudEstado">
-                                    <option value="">Todos</option>
-                                    <option value="PENDIENTE">Pendiente</option>
-                                    <option value="SOLUCIONADA">Solucionada</option>
-                                    <option value="RECHAZADA">Rechazada</option>
-                                </select>
-                            </label>
-                            <label class="form-field">
-                                <span>Desde</span>
-                                <input type="date" id="filtroSolicitudDesde">
-                            </label>
-                            <label class="form-field">
-                                <span>Hasta</span>
-                                <input type="date" id="filtroSolicitudHasta">
-                            </label>
-                            <div class="form-actions">
-                                <button class="btn-primary" type="submit">Buscar</button>
-                                <button class="btn-outline" type="button" id="btnLimpiarSolicitudes">Limpiar</button>
+                        <form id="formFiltroSolicitudes" class="solicitudes-filtros">
+                            <div class="solicitudes-filtros__header">
+                                <div>
+                                    <p class="eyebrow">Filtros</p>
+                                    <h3>Filtros de búsqueda</h3>
+                                    <p class="muted">Organiza los criterios por estado, carrera, curso, ciclo o fechas.</p>
+                                </div>
+                            </div>
+
+                            <div class="solicitudes-filtros__grid">
+                                <label class="form-field">
+                                    <span>Curso</span>
+                                    <select id="filtroSolicitudCurso"></select>
+                                </label>
+                                <label class="form-field">
+                                    <span>Carrera</span>
+                                    <select id="filtroSolicitudCarrera"></select>
+                                </label>
+                                <label class="form-field">
+                                    <span>Ciclo</span>
+                                    <select id="filtroSolicitudCiclo"></select>
+                                </label>
+                                <label class="form-field">
+                                    <span>Estado</span>
+                                    <select id="filtroSolicitudEstado">
+                                        <option value="">Todos</option>
+                                        <option value="PENDIENTE">Pendiente</option>
+                                        <option value="SOLUCIONADA">Solucionada</option>
+                                        <option value="RECHAZADA">Rechazada</option>
+                                    </select>
+                                </label>
+                                <label class="form-field">
+                                    <span>Desde</span>
+                                    <input type="date" id="filtroSolicitudDesde">
+                                </label>
+                                <label class="form-field">
+                                    <span>Hasta</span>
+                                    <input type="date" id="filtroSolicitudHasta">
+                                </label>
+                                <div class="solicitudes-filtros__actions form-actions">
+                                    <button class="btn-primary" type="submit">Buscar</button>
+                                    <button class="btn-outline" type="button" id="btnLimpiarSolicitudes">Limpiar</button>
+                                </div>
                             </div>
                         </form>
 
