@@ -48,8 +48,9 @@ html::-webkit-scrollbar{ display: none}
 .table-wrapper--cursos { max-height: 100%; }
 .detalle-card { display: flex; flex-direction: column; gap: var(--space-4); }
 .detalle-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: var(--space-3); }
-.detalle-label { color: var(--color-texto-suave); font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; margin: 0 0 6px; }
-.detalle-valor { color: var(--color-texto); font-weight: 700; }
+.detalle-label { color: var(--color-texto); text-transform: uppercase; letter-spacing: 0.06em; }
+.detalle-motivo { padding-top: var(--space-4); }
+.detalle-valor { color: var(--color-texto-suave); font-weight: 700; }
 .detalle-valor--multiline { white-space: pre-line; }
 .detalle-descripcion { padding: var(--space-3); border: 1px solid var(--color-borde); border-radius: var(--radius-md); background: rgba(255,255,255,0.02); }
 .card-header-between { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); }
@@ -119,10 +120,8 @@ html::-webkit-scrollbar{ display: none}
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
-  padding: var(--space-4);
+  padding: 0 0 var(--space-4) 0;
   border-radius: var(--radius-lg);
-  border: 1px solid var(--color-borde);
-  background: var(--color-superficie-2);
   box-shadow: var(--shadow-sm);
 }
 
@@ -147,7 +146,9 @@ html::-webkit-scrollbar{ display: none}
 }
 
 .solicitudes-filtros__actions button { min-width: 140px; }
+#solicitudEstadoChip { align-content: center;}
 
+.card-actions--end { padding-top: var(--space-2); display: flex; gap: var(--space-3); }
 /* =============================================================
    NAV: ESTADOS
    ============================================================= */
@@ -421,7 +422,7 @@ html::-webkit-scrollbar{ display: none}
     width: 100%;
     max-width: 520px;
     padding: var(--space-4);
-    box-shadow: var(--shadow-soft-2);
+    box-shadow: var(--shadow-sm);
     animation: modalFadeIn .25s ease;
 }
 
@@ -685,9 +686,8 @@ body.modal-open {
 
 .lista-relacionados li {
     padding: 8px 10px;
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--color-borde);
     border-radius: 8px;
-    background: #fafafa;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -708,7 +708,7 @@ body.modal-open {
 .chip-rechazada { background: #e74c3c; color: #fff; }
 
 .solicitud-detalle-card textarea {
-    border: 1px solid #dcdfe6;
+    border: 1px solid var(--color-borde);
     padding: 10px;
     border-radius: 8px;
 }

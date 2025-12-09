@@ -33,50 +33,90 @@ public class SolicitudSeccionService {
     private final CursoRepository cursoRepository;
 
     @Transactional(readOnly = true)
-    public List<SolicitudSeccionListadoDTO> listar(String estadoFiltro, Long cursoId, Long carreraId, String ciclo,
-                                                   LocalDate fechaInicio, LocalDate fechaFin) {
-        Specification<SolicitudSeccion> spec = Specification.where(null);
+    public List<SolicitudSeccionListadoDTO> listar(
+            String estadoFiltro,
+            Long cursoId,
+            Long carreraId,
+            String ciclo,
+            LocalDate fechaInicio,
+            LocalDate fechaFin
+    ) {
+
+        // SOLUCIÓN: evitar ambiguity con Specification.where()
+        Specification<SolicitudSeccion> spec = (root, query, cb) -> cb.conjunction();
 
         if (cursoId != null) {
-            spec = spec.and((root, query, cb) -> cb.equal(root.get("curso").get("id"), cursoId));
+            spec = spec.and((root, query, cb) ->
+                    cb.equal(root.get("curso").get("id"), cursoId)
+            );
         }
+
         if (carreraId != null) {
-            spec = spec.and((root, query, cb) -> cb.equal(root.get("curso").get("carrera").get("id"), carreraId));
+            spec = spec.and((root, query, cb) ->
+                    cb.equal(root.get("curso").get("carrera").get("id"), carreraId)
+            );
         }
+
         if (StringUtils.hasText(ciclo)) {
-            spec = spec.and((root, query, cb) -> cb.equal(root.get("cicloAcademico"), ciclo));
+            spec = spec.and((root, query, cb) ->
+                    cb.equal(root.get("cicloAcademico"), ciclo)
+            );
         }
+
         if (StringUtils.hasText(estadoFiltro)) {
             try {
                 EstadoSolicitud estado = EstadoSolicitud.valueOf(estadoFiltro.toUpperCase());
-                spec = spec.and((root, query, cb) -> cb.equal(root.get("estado"), estado));
+                spec = spec.and((root, query, cb) ->
+                        cb.equal(root.get("estado"), estado)
+                );
             } catch (IllegalArgumentException ex) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Estado inválido");
             }
         }
+
         if (fechaInicio != null) {
             LocalDateTime inicio = fechaInicio.atStartOfDay();
-            spec = spec.and((root, query, cb) -> cb.greaterThanOrEqualTo(root.get("fechaSolicitud"), inicio));
+            spec = spec.and((root, query, cb) ->
+                    cb.greaterThanOrEqualTo(root.get("fechaSolicitud"), inicio)
+            );
         }
+
         if (fechaFin != null) {
             LocalDateTime fin = fechaFin.plusDays(1).atStartOfDay();
-            spec = spec.and((root, query, cb) -> cb.lessThan(root.get("fechaSolicitud"), fin));
+            spec = spec.and((root, query, cb) ->
+                    cb.lessThan(root.get("fechaSolicitud"), fin)
+            );
         }
 
+        // OBTENER SOLICITUDES
         List<SolicitudSeccion> solicitudes = solicitudSeccionRepository.findAll(spec)
                 .stream()
-                .sorted(Comparator.comparing(SolicitudSeccion::getFechaSolicitud, Comparator.nullsLast(Comparator.naturalOrder())).reversed())
+                .sorted(Comparator.comparing(
+                        SolicitudSeccion::getFechaSolicitud,
+                        Comparator.nullsLast(Comparator.naturalOrder())
+                ).reversed())
                 .toList();
 
+        // CONTAR TOTAL POR CURSO
         Map<Long, Long> totalPorCurso = solicitudes.stream()
                 .filter(s -> s.getCurso() != null && s.getCurso().getId() != null)
-                .collect(Collectors.groupingBy(s -> s.getCurso().getId(), Collectors.counting()));
+                .collect(Collectors.groupingBy(
+                        s -> s.getCurso().getId(),
+                        Collectors.counting()
+                ));
 
         return solicitudes.stream()
-                .map(s -> mapearListado(s, totalPorCurso.getOrDefault(
-                        Optional.ofNullable(s.getCurso()).map(Curso::getId).orElse(null), 0L)))
+                .map(s -> mapearListado(
+                        s,
+                        totalPorCurso.getOrDefault(
+                                Optional.ofNullable(s.getCurso())
+                                        .map(Curso::getId)
+                                        .orElse(null),
+                                0L
+                        )))
                 .toList();
     }
+
 
     @Transactional(readOnly = true)
     public List<SolicitudSeccionListadoDTO> listarPendientesPorCurso(Long cursoId) {

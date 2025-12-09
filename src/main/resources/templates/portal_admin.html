@@ -1095,7 +1095,6 @@
                         <header class="card__header">
                             <div>
                                 <h2>Solicitudes de apertura</h2>
-                                <p class="muted">Filtra por curso, carrera, ciclo, estado o fecha.</p>
                             </div>
                             <div class="card__actions">
                                 <button id="btnExportarSolicitudes" class="btn-outline" type="button">Exportar CSV</button>
@@ -1103,29 +1102,22 @@
                         </header>
 
                         <form id="formFiltroSolicitudes" class="solicitudes-filtros">
-                            <div class="solicitudes-filtros__header">
-                                <div>
-                                    <p class="eyebrow">Filtros</p>
-                                    <h3>Filtros de búsqueda</h3>
-                                    <p class="muted">Organiza los criterios por estado, carrera, curso, ciclo o fechas.</p>
-                                </div>
-                            </div>
 
                             <div class="solicitudes-filtros__grid">
                                 <label class="form-field">
-                                    <span>Curso</span>
+                                    <h4>Curso</h4>
                                     <select id="filtroSolicitudCurso"></select>
                                 </label>
                                 <label class="form-field">
-                                    <span>Carrera</span>
+                                    <h4>Carrera</h4>
                                     <select id="filtroSolicitudCarrera"></select>
                                 </label>
                                 <label class="form-field">
-                                    <span>Ciclo</span>
+                                    <h4>Ciclo</h4>
                                     <select id="filtroSolicitudCiclo"></select>
                                 </label>
                                 <label class="form-field">
-                                    <span>Estado</span>
+                                    <h4>Estado</h4>
                                     <select id="filtroSolicitudEstado">
                                         <option value="">Todos</option>
                                         <option value="PENDIENTE">Pendiente</option>
@@ -1134,11 +1126,11 @@
                                     </select>
                                 </label>
                                 <label class="form-field">
-                                    <span>Desde</span>
+                                    <h4>Desde</h4>
                                     <input type="date" id="filtroSolicitudDesde">
                                 </label>
                                 <label class="form-field">
-                                    <span>Hasta</span>
+                                    <h4>Hasta</h4>
                                     <input type="date" id="filtroSolicitudHasta">
                                 </label>
                                 <div class="solicitudes-filtros__actions form-actions">
@@ -1182,7 +1174,7 @@
 
                         <div class="detalle-grid">
                             <div>
-                                <h3 class="detalle-label">Alumno</h3>
+                                <h4 class="detalle-label">Alumno</h4>
                                 <p id="solicitudAlumno" class="detalle-valor">—</p>
                             </div>
                             <div>
@@ -1203,12 +1195,14 @@
                             </div>
                         </div>
 
-                        <div class="detalle-grid detalle-grid--full">
+                        <div class="detalle-grid detalle-motivo">
                             <div>
                                 <h3 class="detalle-label">Motivo del alumno</h3>
                                 <p id="solicitudMotivo" class="detalle-valor">—</p>
                             </div>
                         </div>
+
+                        <div class="panel-divider"></div>
 
                         <div class="detalle-grid detalle-grid--full">
                             <div>
@@ -1216,6 +1210,8 @@
                                 <textarea id="solicitudMensajeAdmin" rows="3" placeholder="Mensaje opcional"></textarea>
                             </div>
                         </div>
+
+                        <div class="panel-divider"></div>
 
                         <div class="detalle-grid detalle-grid--full">
                             <div>
@@ -1225,7 +1221,7 @@
                         </div>
 
                         <div class="card-actions card-actions--end">
-                            <button class="btn-success" type="button" id="btnSolucionarSolicitud" disabled>Marcar como solucionada</button>
+                            <button class="btn-primary" type="button" id="btnSolucionarSolicitud" disabled>Marcar como solucionada</button>
                             <button class="btn-danger" type="button" id="btnRechazarSolicitud" disabled>Marcar como rechazada</button>
                         </div>
                     </article>

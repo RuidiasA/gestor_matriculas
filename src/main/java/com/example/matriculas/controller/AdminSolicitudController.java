@@ -62,8 +62,14 @@ public class AdminSolicitudController {
                     return map;
                 }).toList();
         List<Map<String, Object>> carreras = carreraRepository.findAll().stream()
-                .map(c -> Map.of("id", c.getId(), "nombre", c.getNombre()))
+                .map(c -> {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("id", c.getId());
+                    map.put("nombre", c.getNombre());
+                    return map;
+                })
                 .toList();
+
         return Map.of(
                 "cursos", cursos,
                 "carreras", carreras,
