@@ -112,10 +112,10 @@ h1, h2, h3, h4 {
 
 .horario-card { margin-top: 8px; }
 .horario-card .tabla-horario-completa { border: 1px solid var(--color-borde); border-radius: var(--radius-md); overflow: hidden; }
-.horario-completo th { background: #f5f7fb; color: var(--color-texto-suave); }
-.horario-completo td { border-color: var(--color-borde); }
-.horario-completo td.empty { background: #f9fbff; }
-.horario-completo td:not(.empty) { background: #e2e8ff; color: #1b3b6f; font-weight: 700; border-radius: 6px; }
+.horario-card .horario-completo { box-shadow: none; border-radius: 0; }
+.horario-card .horario-header-grid { background: #f5f7fb; color: var(--color-texto-suave); }
+.horario-card .horario-header-cell { border-right: 1px solid var(--color-borde); }
+.horario-card .horario-grid { background-color: #fdfdff; }
 
 .estado-consulta { margin: 0; font-size: 13px; }
 .col-izquierda .table-wrapper { max-height: none; }

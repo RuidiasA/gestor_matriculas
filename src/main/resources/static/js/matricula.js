@@ -487,78 +487,142 @@ async function descargarHorarioPdf() {
 /* ============================================================
    HORARIO
 ============================================================ */
-function generarEstructuraHorario(tbody) {
-    tbody.innerHTML = '';
-    const horaInicio = 8;
-    const horaFin = 22;
-    const dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
-
-    for (let h = horaInicio; h < horaFin; h++) {
-        const fila = document.createElement('tr');
-        const horaInicioStr = String(h).padStart(2, '0') + ':00';
-        const horaFinStr = String(h + 1).padStart(2, '0') + ':00';
-
-        const celdaHora = document.createElement('td');
-        celdaHora.textContent = `${horaInicioStr} - ${horaFinStr}`;
-        fila.appendChild(celdaHora);
-
-        dias.forEach(() => {
-            const celda = document.createElement('td');
-            celda.classList.add('empty');
-            fila.appendChild(celda);
-        });
-
-        tbody.appendChild(fila);
+const HORARIO_CONFIG = {
+    horaInicio: 7,
+    horaFin: 22,
+    intervaloMinutos: 15,
+    dayToColumn: {
+        LUNES: 2,
+        MARTES: 3,
+        MIÉRCOLES: 4,
+        MIERCOLES: 4,
+        JUEVES: 5,
+        VIERNES: 6,
+        SÁBADO: 7,
+        SABADO: 7
     }
-}
+};
 
-function pintarHorario() {
-    const tablas = document.querySelectorAll('.horario-completo tbody');
-    if (!tablas.length) return;
+const minutosDesdeMedianoche = (horaStr = '') => {
+    const [h, m] = horaStr.split(':').map(Number);
+    if (Number.isNaN(h) || Number.isNaN(m)) return null;
+    return h * 60 + m;
+};
 
-    const mapaDias = {
-        LUNES: 1,
-        MARTES: 2,
-        MIÉRCOLES: 3,
-        MIERCOLES: 3,
-        JUEVES: 4,
-        VIERNES: 5,
-        SÁBADO: 6,
-        SABADO: 6,
-        DOMINGO: 7
-    };
+const minutosAFormato = minutos => {
+    const h = Math.floor(minutos / 60);
+    const m = minutos % 60;
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+};
 
-    tablas.forEach(tbody => {
-        Array.from(tbody.querySelectorAll('tr')).forEach(tr => {
-            Array.from(tr.children).forEach((td, idx) => {
-                if (idx === 0) return;
-                td.classList.add('empty');
-                td.innerHTML = '';
-            });
-        });
+function mergearBloquesHorario(horarios = []) {
+    const agrupados = {};
 
-        state.horario.forEach(bloque => {
-            const inicioHora = parseInt((bloque.horaInicio || '0').split(':')[0], 10);
-            const finHora = parseInt((bloque.horaFin || '0').split(':')[0], 10);
-            const columna = mapaDias[(bloque.dia || bloque.diaSemana || '').toUpperCase()];
-            if (!columna) return;
+    horarios.forEach(h => {
+        const dia = (h.dia || h.diaSemana || '').toUpperCase();
+        if (!HORARIO_CONFIG.dayToColumn[dia]) return;
 
-            for (let h = inicioHora; h < finHora; h++) {
-                const fila = tbody.children[h - 8];
-                if (!fila) continue;
-                const celda = fila.children[columna];
-                if (!celda) continue;
-                celda.classList.remove('empty');
-                celda.innerHTML = `<strong>${bloque.curso || bloque.codigoCurso || ''}</strong><br>${bloque.horaInicio || ''} - ${bloque.horaFin || ''}<br>${bloque.docente || ''}`;
+        const inicio = minutosDesdeMedianoche(h.horaInicio);
+        const fin = minutosDesdeMedianoche(h.horaFin);
+        if (inicio === null || fin === null || fin <= inicio) return;
+
+        const base = HORARIO_CONFIG.horaInicio * 60;
+        const limite = HORARIO_CONFIG.horaFin * 60;
+        const inicioClamped = Math.max(inicio, base);
+        const finClamped = Math.min(fin, limite);
+        if (finClamped <= base || inicioClamped >= limite) return;
+
+        const meta = {
+            curso: h.curso || h.nombreCurso || h.codigoCurso || '',
+            docente: h.docente || h.profesor || '',
+            aula: h.aula || h.salon || h.sala || '',
+            seccion: h.codigoSeccion || h.seccion || ''
+        };
+        const metaKey = JSON.stringify(meta);
+        const bloque = { ...h, dia, inicio, fin, inicioClamped, finClamped, meta, metaKey };
+        if (!agrupados[dia]) agrupados[dia] = [];
+        agrupados[dia].push(bloque);
+    });
+
+    const resultado = [];
+    Object.values(agrupados).forEach(lista => {
+        lista.sort((a, b) => a.inicio - b.inicio);
+        let actual = null;
+
+        lista.forEach(item => {
+            if (!actual) {
+                actual = { ...item };
+                return;
+            }
+
+            const sonContiguos = actual.fin === item.inicio && actual.metaKey === item.metaKey;
+            if (sonContiguos) {
+                actual.fin = item.fin;
+                actual.finClamped = Math.min(item.fin, HORARIO_CONFIG.horaFin * 60);
+                actual.horaFin = item.horaFin || actual.horaFin;
+            } else {
+                resultado.push(actual);
+                actual = { ...item };
             }
         });
+
+        if (actual) resultado.push(actual);
+    });
+
+    return resultado
+        .filter(b => b.finClamped > b.inicioClamped)
+        .map(b => ({
+            ...b,
+            columna: HORARIO_CONFIG.dayToColumn[b.dia],
+            displayInicio: minutosAFormato(b.inicio),
+            displayFin: minutosAFormato(b.fin)
+        }));
+}
+
+function renderHorarioGrid(horarios = [], contenedor) {
+    if (!contenedor) return;
+
+    const base = HORARIO_CONFIG.horaInicio * 60;
+    const totalSlots = ((HORARIO_CONFIG.horaFin - HORARIO_CONFIG.horaInicio) * 60) / HORARIO_CONFIG.intervaloMinutos;
+    contenedor.innerHTML = '';
+    contenedor.style.gridTemplateRows = `repeat(${totalSlots}, var(--slot-height))`;
+
+    for (let hora = HORARIO_CONFIG.horaInicio; hora < HORARIO_CONFIG.horaFin; hora++) {
+        const label = document.createElement('div');
+        label.className = 'hora-label';
+        label.textContent = `${String(hora).padStart(2, '0')}:00`;
+        const slot = ((hora * 60) - base) / HORARIO_CONFIG.intervaloMinutos;
+        label.style.gridRow = `${slot + 1} / span 4`;
+        contenedor.appendChild(label);
+    }
+
+    const bloques = mergearBloquesHorario(horarios);
+    bloques.forEach(b => {
+        const inicio = Math.max(b.inicio, base);
+        const fin = Math.min(b.fin, HORARIO_CONFIG.horaFin * 60);
+        if (!b.columna || fin <= inicio) return;
+
+        const slotInicio = Math.round((inicio - base) / HORARIO_CONFIG.intervaloMinutos);
+        const slotFin = Math.round((fin - base) / HORARIO_CONFIG.intervaloMinutos);
+
+        const evento = document.createElement('div');
+        evento.className = 'horario-event';
+        evento.style.gridColumn = b.columna;
+        evento.style.gridRowStart = slotInicio + 1;
+        evento.style.gridRowEnd = slotFin + 1;
+        evento.innerHTML = `
+            <div class="horario-event__curso">${b.meta.curso || b.curso || b.codigoCurso || ''}</div>
+            <div class="horario-event__hora">${b.horaInicio || b.displayInicio} - ${b.horaFin || b.displayFin}</div>
+            <div class="horario-event__docente">${b.meta.docente || b.docente || ''}</div>
+        `;
+
+        contenedor.appendChild(evento);
     });
 }
 
 function renderHorarioTablas() {
-    const tablas = document.querySelectorAll('.horario-completo tbody');
-    tablas.forEach(generarEstructuraHorario);
-    pintarHorario();
+    const contenedores = document.querySelectorAll('.horario-grid');
+    contenedores.forEach(contenedor => renderHorarioGrid(state.horario, contenedor));
 }
 
 async function actualizarHorario() {
