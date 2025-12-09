@@ -69,7 +69,8 @@ public class AlumnoCursosController {
     }
 
     @GetMapping("/solicitudes/cursos")
-    public List<CursoSolicitudAlumnoDTO> cursosSolicitables() {
-        return alumnoPortalService.listarCursosSolicitables();
+    public List<CursoSolicitudAlumnoDTO> cursosSolicitables(@RequestParam(value = "carreraId", required = false) Long carreraId,
+                                                            @RequestParam(value = "ciclo", required = false) Integer ciclo) {
+        return alumnoPortalService.listarCursosSolicitables(carreraId, ciclo);
     }
 }

@@ -55,6 +55,7 @@ public class AlumnoPortalService {
     private final DetalleMatriculaRepository detalleMatriculaRepository;
     private final SolicitudSeccionRepository solicitudSeccionRepository;
     private final CursoRepository cursoRepository;
+    private final CursoService cursoService;
 
 
     @Transactional(readOnly = true)
@@ -569,11 +570,8 @@ public class AlumnoPortalService {
     }
 
     @Transactional(readOnly = true)
-    public List<CursoSolicitudAlumnoDTO> listarCursosSolicitables() {
+    public List<CursoSolicitudAlumnoDTO> listarCursosSolicitables(Long carreraId, Integer ciclo) {
         Alumno alumno = obtenerAlumnoActual();
-        if (alumno.getCarrera() == null || alumno.getCarrera().getId() == null) {
-            return List.of();
-        }
 
         Set<Long> pendientes = solicitudSeccionRepository.findByAlumnoId(alumno.getId())
                 .stream()
@@ -582,17 +580,18 @@ public class AlumnoPortalService {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 
-        return cursoRepository.findCursosPorCarrera(alumno.getCarrera().getId())
+        return cursoService.listarTodos()
                 .stream()
-                .filter(c -> seccionRepository.findByCursoId(c.getId())
-                        .stream()
-                        .filter(sec -> sec.getEstado() != EstadoSeccion.ANULADA)
-                        .noneMatch(sec -> calcularCuposDisponibles(sec) > 0))
+                .filter(c -> carreraId == null || (c.getCarrera() != null && carreraId.equals(c.getCarrera().getId())))
+                .filter(c -> ciclo == null || (c.getCiclo() != null && Objects.equals(c.getCiclo(), ciclo)))
                 .map(c -> CursoSolicitudAlumnoDTO.builder()
                         .id(c.getId())
                         .codigo(c.getCodigo())
                         .nombre(c.getNombre())
                         .ciclo(c.getCiclo() != null ? c.getCiclo().toString() : null)
+                        .carrera(c.getCarrera() != null ? c.getCarrera().getNombre() : null)
+                        .carreraId(c.getCarrera() != null ? c.getCarrera().getId() : null)
+                        .modalidad(c.getModalidad() != null ? c.getModalidad().name() : null)
                         .pendiente(pendientes.contains(c.getId()))
                         .build())
                 .sorted(Comparator.comparing(CursoSolicitudAlumnoDTO::getNombre, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)))
