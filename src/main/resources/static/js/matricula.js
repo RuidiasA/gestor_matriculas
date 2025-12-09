@@ -951,8 +951,13 @@ async function registrarSolicitudSeccion(e) {
     if (evidenciaInput?.files?.length) {
         const archivo = evidenciaInput.files[0];
         const maxSize = 5 * 1024 * 1024;
+        const tiposPermitidos = ['application/pdf', 'image/jpeg', 'image/png'];
         if (archivo.size > maxSize) {
             mostrarMensajeError('La evidencia no debe superar los 5 MB');
+            return;
+        }
+        if (archivo.type && !tiposPermitidos.includes(archivo.type)) {
+            mostrarMensajeError('Formato de evidencia no permitido. Usa PDF o imagen.');
             return;
         }
         formData.append('evidencia', archivo);
