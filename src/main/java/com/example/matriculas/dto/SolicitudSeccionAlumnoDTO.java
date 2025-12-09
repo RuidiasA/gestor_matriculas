@@ -27,6 +27,6 @@ public class SolicitudSeccionAlumnoDTO {
     private LocalDateTime fechaActualizacion;
     private String evidenciaNombreArchivo;
     private String evidenciaContentType;
-    private String evidenciaBase64;
+    private String evidenciaUrl;
     private Long solicitantes;
 }

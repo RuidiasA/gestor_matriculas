@@ -18,22 +18,24 @@ import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
 import com.example.matriculas.security.CustomUserDetails;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.Base64;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Map;
@@ -57,6 +59,7 @@ public class AlumnoPortalService {
     private final SolicitudSeccionRepository solicitudSeccionRepository;
     private final CursoRepository cursoRepository;
     private final CursoService cursoService;
+    private final EvidenciaStorageService evidenciaStorageService;
 
 
     @Transactional(readOnly = true)
@@ -525,24 +528,67 @@ public class AlumnoPortalService {
         solicitud.setHoraFinSolicitada(horaFin);
         solicitud.setModalidadSolicitada(StringUtils.hasText(solicitudDto.getModalidadSolicitada()) ? solicitudDto.getModalidadSolicitada().trim() : solicitudDto.getModalidad());
         solicitud.setTurnoSolicitado(StringUtils.hasText(solicitudDto.getTurnoSolicitado()) ? solicitudDto.getTurnoSolicitado().trim() : solicitudDto.getTurno());
-        solicitud.setEvidenciaNombreArchivo(StringUtils.hasText(solicitudDto.getEvidenciaNombreArchivo())
-                ? solicitudDto.getEvidenciaNombreArchivo().trim()
-                : null);
+
+        MultipartFile evidencia = solicitudDto.getEvidencia();
+        if (evidencia != null && !evidencia.isEmpty()) {
+            long maxSize = 5L * 1024 * 1024;
+            if (evidencia.getSize() > maxSize) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La evidencia no debe superar los 5 MB");
+            }
+            String nombre = evidencia.getOriginalFilename();
+            solicitud.setEvidenciaNombreArchivo(StringUtils.hasText(nombre)
+                    ? java.nio.file.Paths.get(nombre).getFileName().toString()
+                    : "evidencia");
+            solicitud.setEvidenciaContentType(StringUtils.hasText(evidencia.getContentType())
+                    ? evidencia.getContentType()
+                    : "application/octet-stream");
+        }
+
         solicitud.setFechaSolicitud(LocalDateTime.now());
         solicitud.setFechaActualizacion(solicitud.getFechaSolicitud());
-        if (StringUtils.hasText(solicitudDto.getEvidenciaBase64()) && solicitudDto.getEvidenciaNombreArchivo() != null) {
-            try {
-                solicitud.setEvidenciaContenido(Base64.getDecoder().decode(solicitudDto.getEvidenciaBase64()));
-                solicitud.setEvidenciaContentType(StringUtils.hasText(solicitudDto.getEvidenciaContentType())
-                        ? solicitudDto.getEvidenciaContentType()
-                        : "application/octet-stream");
-            } catch (IllegalArgumentException ex) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La evidencia adjunta no es válida");
-            }
-        }
         solicitud.setEstado(EstadoSolicitud.PENDIENTE);
 
         solicitudSeccionRepository.save(solicitud);
+
+        if (evidencia != null && !evidencia.isEmpty()) {
+            try {
+                String ruta = evidenciaStorageService.guardarEvidencia(solicitud.getId(), evidencia);
+                solicitud.setEvidenciaRuta(ruta);
+                solicitud.setEvidenciaContenido(null);
+                solicitudSeccionRepository.save(solicitud);
+            } catch (IOException ex) {
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "No se pudo almacenar la evidencia adjunta");
+            }
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public ResponseEntity<Resource> descargarEvidencia(Long solicitudId) {
+        Alumno alumno = obtenerAlumnoActual();
+        SolicitudSeccion solicitud = solicitudSeccionRepository.findById(solicitudId)
+                .filter(s -> s.getAlumno() != null && Objects.equals(s.getAlumno().getId(), alumno.getId()))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Solicitud no encontrada"));
+
+        try {
+            Resource recurso = evidenciaStorageService.cargarEvidencia(solicitud);
+            if (recurso == null) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "La solicitud no tiene evidencia adjunta");
+            }
+
+            String nombre = StringUtils.hasText(solicitud.getEvidenciaNombreArchivo())
+                    ? solicitud.getEvidenciaNombreArchivo()
+                    : "evidencia";
+            String contentType = StringUtils.hasText(solicitud.getEvidenciaContentType())
+                    ? solicitud.getEvidenciaContentType()
+                    : "application/octet-stream";
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + nombre + "\"")
+                    .header(HttpHeaders.CONTENT_TYPE, contentType)
+                    .body(recurso);
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "No se pudo cargar la evidencia");
+        }
     }
 
     @Transactional(readOnly = true)
@@ -582,8 +628,8 @@ public class AlumnoPortalService {
                             .fechaActualizacion(s.getFechaActualizacion())
                             .evidenciaNombreArchivo(s.getEvidenciaNombreArchivo())
                             .evidenciaContentType(s.getEvidenciaContentType())
-                            .evidenciaBase64(s.getEvidenciaContenido() != null
-                                    ? Base64.getEncoder().encodeToString(s.getEvidenciaContenido())
+                            .evidenciaUrl(StringUtils.hasText(s.getEvidenciaNombreArchivo())
+                                    ? "/alumno/solicitudes/" + s.getId() + "/evidencia"
                                     : null)
                             .solicitantes(solicitantesPorCurso.getOrDefault(cursoId, 0L))
                             .build();

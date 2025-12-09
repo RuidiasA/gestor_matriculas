@@ -28,6 +28,8 @@ export function createSolicitudesModule(tools) {
         turno: document.getElementById('solicitudTurno'),
         motivo: document.getElementById('solicitudMotivo'),
         mensajeAdmin: document.getElementById('solicitudMensajeAdmin'),
+        evidenciaNombre: document.getElementById('solicitudEvidenciaNombre'),
+        btnEvidencia: document.getElementById('btnDescargarEvidencia'),
         relacionados: document.getElementById('solicitudRelacionados'),
         btnSolucionar: document.getElementById('btnSolucionarSolicitud'),
         btnRechazar: document.getElementById('btnRechazarSolicitud')
@@ -49,6 +51,7 @@ export function createSolicitudesModule(tools) {
         btnExportar?.addEventListener('click', exportarCsv);
         detalleCampos.btnSolucionar?.addEventListener('click', () => actualizarEstado('SOLUCIONADA'));
         detalleCampos.btnRechazar?.addEventListener('click', () => actualizarEstado('RECHAZADA'));
+        detalleCampos.btnEvidencia?.addEventListener('click', descargarEvidencia);
     }
 
     function limpiarFiltros() {
@@ -157,6 +160,14 @@ export function createSolicitudesModule(tools) {
         detalleCampos.motivo.textContent = detalle.motivo || '—';
         detalleCampos.mensajeAdmin.value = detalle.mensajeAdmin || '';
 
+        if (detalleCampos.evidenciaNombre) {
+            detalleCampos.evidenciaNombre.textContent = detalle.evidenciaNombreArchivo || 'Sin archivo adjunto';
+        }
+        if (detalleCampos.btnEvidencia) {
+            detalleCampos.btnEvidencia.disabled = !detalle.evidenciaUrl;
+            detalleCampos.btnEvidencia.dataset.url = detalle.evidenciaUrl || '';
+        }
+
         if (detalleCampos.relacionados) {
             detalleCampos.relacionados.innerHTML = '';
             (detalle.relacionados || []).forEach(rel => {
@@ -174,6 +185,18 @@ export function createSolicitudesModule(tools) {
         const habilitar = !!detalle.id && detalle.estado === 'PENDIENTE';
         detalleCampos.btnSolucionar.disabled = !habilitar;
         detalleCampos.btnRechazar.disabled = !habilitar;
+    }
+
+    function descargarEvidencia() {
+        if (!solicitudSeleccionada?.evidenciaUrl) return;
+        const link = document.createElement('a');
+        link.href = solicitudSeleccionada.evidenciaUrl;
+        link.target = '_blank';
+        link.rel = 'noopener';
+        link.download = solicitudSeleccionada.evidenciaNombreArchivo || 'evidencia';
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
     }
 
     async function actualizarEstado(estado) {
@@ -236,6 +259,11 @@ export function createSolicitudesModule(tools) {
             detalleCampos.turno.textContent = '—';
             detalleCampos.motivo.textContent = '—';
             detalleCampos.mensajeAdmin.value = '';
+            if (detalleCampos.evidenciaNombre) detalleCampos.evidenciaNombre.textContent = '—';
+            if (detalleCampos.btnEvidencia) {
+                detalleCampos.btnEvidencia.disabled = true;
+                detalleCampos.btnEvidencia.dataset.url = '';
+            }
             detalleCampos.relacionados.innerHTML = '';
             detalleCampos.btnSolucionar.disabled = true;
             detalleCampos.btnRechazar.disabled = true;
