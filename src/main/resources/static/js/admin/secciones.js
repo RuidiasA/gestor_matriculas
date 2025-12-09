@@ -260,9 +260,12 @@ export function createSeccionesModule(tools, alumnosModule) {
     }
 
     function resetFicha() {
-        seccionSeleccionada = null;
-        detalleSeccionActual = null;
-        limpiarFichaSeccion();
+        if (getSeccionId()) {
+            buscarSecciones(true);
+            cargarFichaSeccion(getSeccionId());
+            return;
+        }
+        limpiarEstadoDetalle();
     }
 
     async function cargarCatalogos() {
@@ -286,15 +289,11 @@ export function createSeccionesModule(tools, alumnosModule) {
             if (sel) sel.value = '';
         });
         if (filtroCodigoSeccion) filtroCodigoSeccion.value = '';
-        seccionSeleccionada = null;
-        detalleSeccionActual = null;
-        tools.renderEmptyRow(tablaSecciones, 9, 'Realiza una búsqueda para ver resultados');
-        tools.renderEmptyRow(tablaEstudiantesSeccion, 4, 'Sin estudiantes');
-        tools.renderEmptyRow(tablaHistorialSeccion, 5, 'Selecciona una sección');
-        tools.renderEmptyRow(tablaCambiosSeccion, 6, 'Selecciona una sección');
-        tools.renderEmptyRow(tablaEstadisticasSeccion, 6, 'Selecciona una sección');
-        limpiarFichaSeccion();
-        buscarSecciones(false);
+        detalleSeccionActual = seccionSeleccionada ? detalleSeccionActual : null;
+        buscarSecciones(true);
+        if (!getSeccionId()) {
+            limpiarEstadoDetalle();
+        }
     }
 
     async function buscarSecciones(preservarSeleccion = true) {
@@ -571,6 +570,16 @@ export function createSeccionesModule(tools, alumnosModule) {
             if (anulada) btn.classList.add("btn-disabled");
             else btn.classList.remove("btn-disabled");
         });
+    }
+
+    function limpiarEstadoDetalle() {
+        seccionSeleccionada = null;
+        detalleSeccionActual = null;
+        tools.renderEmptyRow(tablaEstudiantesSeccion, 4, 'Sin estudiantes');
+        tools.renderEmptyRow(tablaHistorialSeccion, 5, 'Selecciona una sección');
+        tools.renderEmptyRow(tablaCambiosSeccion, 6, 'Selecciona una sección');
+        tools.renderEmptyRow(tablaEstadisticasSeccion, 6, 'Selecciona una sección');
+        limpiarFichaSeccion();
     }
 
     function limpiarFichaSeccion() {
