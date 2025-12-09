@@ -803,10 +803,12 @@ async function cargarSolicitudesAlumno() {
 async function cargarCursosSolicitables() {
     try {
         const cursos = await fetchJson('/alumno/solicitudes/cursos', 'No se pudieron cargar los cursos solicitables');
-        state.cursosSolicitables = cursos || [];
+        state.cursosSolicitables = Array.isArray(cursos) ? cursos : [];
         poblarCursosSolicitud();
     } catch (err) {
         console.error(err);
+        state.cursosSolicitables = [];
+        poblarCursosSolicitud();
     }
 }
 
@@ -971,9 +973,27 @@ function limpiarFormularioSolicitud() {
 function poblarCursosSolicitud() {
     const select = document.getElementById('curso');
     if (!select) return;
-    const opciones = state.cursosSolicitables || [];
-    select.innerHTML = '<option value="" disabled selected>Seleccione un curso</option>' +
-        opciones.map(c => `<option value="${c.id}" ${c.pendiente ? 'disabled' : ''}>${c.nombre} (${c.codigo})${c.pendiente ? ' - pendiente' : ''}</option>`).join('');
+    const opciones = Array.isArray(state.cursosSolicitables) ? state.cursosSolicitables : [];
+
+    if (!opciones.length) {
+        select.innerHTML = '<option value="" disabled selected>Sin cursos disponibles</option>';
+        return;
+    }
+
+    const opcionesHtml = opciones
+        .filter(c => c && c.id)
+        .map(c => {
+            const carrera = c.carrera ? ` - ${c.carrera}` : '';
+            const ciclo = c.ciclo ? ` | Ciclo ${c.ciclo}` : '';
+            const modalidad = c.modalidad ? ` | ${c.modalidad}` : '';
+            const etiqueta = `${c.nombre || 'Curso'} (${c.codigo || 'S/C'})${carrera}${ciclo}${modalidad}`;
+            const disabled = c.pendiente ? 'disabled' : '';
+            const etiquetaFinal = c.pendiente ? `${etiqueta} - pendiente` : etiqueta;
+            return `<option value="${c.id}" ${disabled}>${etiquetaFinal}</option>`;
+        })
+        .join('');
+
+    select.innerHTML = '<option value="" disabled selected>Seleccione un curso</option>' + opcionesHtml;
 }
 
 if (form) {

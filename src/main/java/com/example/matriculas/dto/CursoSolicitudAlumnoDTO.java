@@ -10,5 +10,8 @@ public class CursoSolicitudAlumnoDTO {
     private String codigo;
     private String nombre;
     private String ciclo;
+    private String carrera;
+    private Long carreraId;
+    private String modalidad;
     private boolean pendiente;
 }
