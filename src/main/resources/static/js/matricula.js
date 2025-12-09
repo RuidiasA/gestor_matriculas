@@ -590,11 +590,14 @@ function renderHorarioGrid(horarios = [], contenedor) {
     for (let hora = HORARIO_CONFIG.horaInicio; hora < HORARIO_CONFIG.horaFin; hora++) {
         const label = document.createElement('div');
         label.className = 'hora-label';
-        label.textContent = `${String(hora).padStart(2, '0')}:00`;
+        const inicio = `${String(hora).padStart(2, '0')}:00`;
+        const fin = `${String(hora + 1).padStart(2, '0')}:00`;
+        label.textContent = `${inicio} - ${fin}`;
         const slot = ((hora * 60) - base) / HORARIO_CONFIG.intervaloMinutos;
         label.style.gridRow = `${slot + 1} / span 4`;
         contenedor.appendChild(label);
     }
+
 
     const bloques = mergearBloquesHorario(horarios);
     bloques.forEach(b => {
