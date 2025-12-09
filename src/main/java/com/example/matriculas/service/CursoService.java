@@ -5,6 +5,8 @@ import com.example.matriculas.model.Curso;
 import com.example.matriculas.model.Docente;
 import com.example.matriculas.repository.CursoRepository;
 import com.example.matriculas.repository.DocenteRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +23,9 @@ public class CursoService {
 
     private final CursoRepository cursoRepository;
     private final DocenteRepository docenteRepository;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     // ===============================================================
     // 1. Registrar curso (con prerrequisitos)
@@ -96,8 +101,10 @@ public class CursoService {
     // ===============================================================
     // 6. Listar todos los cursos
     // ===============================================================
-    @Transactional(readOnly = true)
+    @Transactional
     public List<Curso> listarTodos() {
+        entityManager.flush();
+        entityManager.clear();
         return cursoRepository.findAll();
     }
 

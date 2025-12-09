@@ -10,11 +10,12 @@ public class CursoListadoDTO {
     private Long idCurso;
     private String codigo;
     private String nombre;
+    private Long carreraId;
+    private String carrera;
     private Integer ciclo;
     private String tipo;
-    private Integer creditos;
-    private String carrera;
-    private Integer horasSemanales;
     private String modalidad;
+    private Integer creditos;
+    private Integer horasSemanales;
 }
 

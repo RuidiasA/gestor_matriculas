@@ -557,6 +557,7 @@ export function createCursosModule(globalTools) {
         }).then(async r => {
             if (!r.isConfirmed) return;
             tools.showToast('Curso creado correctamente', 'success');
+            await cargarCatalogos();
             buscarCursos();
         });
     }
@@ -583,6 +584,7 @@ export function createCursosModule(globalTools) {
         }).then(async r => {
             if (!r.isConfirmed) return;
             tools.showToast('Curso actualizado', 'success');
+            await cargarCatalogos();
             buscarCursos();
         });
     }
@@ -604,6 +606,7 @@ export function createCursosModule(globalTools) {
 
             tools.showToast('Curso eliminado', 'success');
             limpiarDetalle();
+            await cargarCatalogos();
             buscarCursos();
         });
     }
