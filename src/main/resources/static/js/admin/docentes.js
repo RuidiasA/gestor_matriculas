@@ -58,8 +58,6 @@ export function createDocentesModule(tools) {
         cargarCatalogoCursos();
         buscarDocentes();
 
-        asegurarPosicionModales();
-
         if (formBusquedaDocentes) {
             formBusquedaDocentes.addEventListener('submit', e => {
                 e.preventDefault();
@@ -237,14 +235,6 @@ export function createDocentesModule(tools) {
         tools.renderEmptyRow(tablaHistorialDocente, 11, 'Cargando...');
     }
 
-    function asegurarPosicionModales() {
-        [modalDatosDocente, modalContactoDocente].forEach(modal => {
-            if (!modal) return;
-            if (modal.parentElement !== document.body) {
-                document.body.appendChild(modal);
-            }
-        });
-    }
 
     function renderizarFichaDocente(detalle) {
         const nombreCompleto = (detalle.nombreCompleto || `${detalle.nombres || ''} ${detalle.apellidos || ''}`).trim();
