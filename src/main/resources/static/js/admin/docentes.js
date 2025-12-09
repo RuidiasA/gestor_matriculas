@@ -26,9 +26,8 @@ export function createDocentesModule(tools) {
 
     const inputsDocente = {
         codigo: document.getElementById('docCodigo'),
+        nombreCompleto: document.getElementById('docNombreCompleto'),
         estado: document.getElementById('docEstado'),
-        apellidos: document.getElementById('docApellidos'),
-        nombres: document.getElementById('docNombres'),
         dni: document.getElementById('docDni'),
         especialidad: document.getElementById('docEspecialidad'),
         correoInst: document.getElementById('docCorreoInst'),
@@ -214,7 +213,7 @@ export function createDocentesModule(tools) {
         cerrarModalDocente(modalContactoDocente);
         docenteSeleccionado = null;
         [
-            inputsDocente.codigo, inputsDocente.apellidos, inputsDocente.nombres,
+            inputsDocente.codigo, inputsDocente.nombreCompleto,
             inputsDocente.dni, inputsDocente.especialidad, inputsDocente.correoInst,
             inputsDocente.correoPer, inputsDocente.telefono, inputsDocente.direccion
         ].forEach(el => {
@@ -237,12 +236,12 @@ export function createDocentesModule(tools) {
     }
 
     function renderizarFichaDocente(detalle) {
+        const nombreCompleto = (detalle.nombreCompleto || `${detalle.nombres || ''} ${detalle.apellidos || ''}`).trim();
+        inputsDocente.nombreCompleto.textContent = nombreCompleto || '-';
         inputsDocente.codigo.textContent = detalle.codigo || '-';
         inputsDocente.estado.textContent = detalle.estado || '-';
         inputsDocente.estado.className = 'badge';
         inputsDocente.estado.classList.add(detalle.estado === 'ACTIVO' || detalle.estado === 'Activo' ? 'badge--success' : 'badge--info');
-        inputsDocente.apellidos.textContent = detalle.apellidos || '-';
-        inputsDocente.nombres.textContent = detalle.nombres || '-';
         inputsDocente.dni.textContent = detalle.dni || '-';
         inputsDocente.especialidad.textContent = detalle.especialidad || '-';
         inputsDocente.correoInst.textContent = detalle.correoInstitucional || '-';
@@ -408,7 +407,7 @@ export function createDocentesModule(tools) {
     function limpiarSeleccionDocente() {
         docenteSeleccionado = null;
         [
-            inputsDocente.codigo, inputsDocente.apellidos, inputsDocente.nombres,
+            inputsDocente.codigo, inputsDocente.nombreCompleto,
             inputsDocente.dni, inputsDocente.especialidad, inputsDocente.correoInst,
             inputsDocente.correoPer, inputsDocente.telefono, inputsDocente.direccion
         ].forEach(el => {
