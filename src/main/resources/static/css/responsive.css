@@ -44,12 +44,6 @@
 ============================================================ */
 @media (min-width: 1540px) {
 
-    .vista-solicitud {
-        gap: 40px;
-        padding: 30px;
-        align-items: center; /* mejor centrado */
-    }
-
     .solicitud-container {
         padding: 32px;
         border-radius: 18px;

@@ -32,7 +32,7 @@ h1, h2, h3, h4 {
 /* ============================= */
 /*       LAYOUT MATRÍCULA       */
 /* ============================= */
-.student-portal { padding: 20px 0 40px 0; }
+.student-portal { padding: 20px; }
 .vista-matricula { width: 100%; display: flex; flex-direction: column; gap: 18px; }
 
 .page-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; background: var(--color-card); padding: 18px 24px; border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); border: 1px solid var(--color-borde); }
@@ -72,6 +72,8 @@ h1, h2, h3, h4 {
 /* TABLAS */
 .table-wrapper { width: 100%; border: 1px solid var(--color-borde); border-radius: var(--radius-md); overflow: hidden; background: #fff; box-shadow: inset 0 1px 0 rgba(255,255,255,0.9); }
 .table-wrapper--inscritos { max-height: 360px; overflow: auto; }
+.table-wrapper--inscritos::-webkit-scrollbar { display: none; }
+
 .admin-table { width: 100%; border-collapse: collapse; }
 .admin-table thead th { background: #f5f7fb; color: var(--color-texto-suave); text-transform: uppercase; letter-spacing: 0.04em; font-size: 12px; padding: 12px; border-bottom: 1px solid var(--color-borde); text-align: left; }
 .admin-table tbody td { padding: 12px; border-bottom: 1px solid var(--color-borde-suave); color: var(--color-texto); font-weight: 600; }
