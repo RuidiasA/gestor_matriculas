@@ -33,6 +33,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -44,11 +46,13 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.springframework.util.StringUtils;
 
 @Service
 @RequiredArgsConstructor
 public class AlumnoPortalService {
+
+    private static final long MAX_EVIDENCIA_BYTES = 5L * 1024 * 1024;
+    private static final long MAX_EVIDENCIA_EN_MEMORIA = 700L * 1024;
 
     private final AlumnoRepository alumnoRepository;
     private final AlumnoService alumnoService;
@@ -531,17 +535,8 @@ public class AlumnoPortalService {
 
         MultipartFile evidencia = solicitudDto.getEvidencia();
         if (evidencia != null && !evidencia.isEmpty()) {
-            long maxSize = 5L * 1024 * 1024;
-            if (evidencia.getSize() > maxSize) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La evidencia no debe superar los 5 MB");
-            }
-            String nombre = evidencia.getOriginalFilename();
-            solicitud.setEvidenciaNombreArchivo(StringUtils.hasText(nombre)
-                    ? java.nio.file.Paths.get(nombre).getFileName().toString()
-                    : "evidencia");
-            solicitud.setEvidenciaContentType(StringUtils.hasText(evidencia.getContentType())
-                    ? evidencia.getContentType()
-                    : "application/octet-stream");
+            validarEvidencia(evidencia);
+            aplicarMetadatosEvidencia(solicitud, evidencia);
         }
 
         solicitud.setFechaSolicitud(LocalDateTime.now());
@@ -550,15 +545,44 @@ public class AlumnoPortalService {
 
         solicitudSeccionRepository.save(solicitud);
 
-        if (evidencia != null && !evidencia.isEmpty()) {
-            try {
+        almacenarEvidencia(solicitud, evidencia);
+    }
+
+    private void validarEvidencia(MultipartFile evidencia) {
+        if (evidencia == null || evidencia.isEmpty()) {
+            return;
+        }
+        if (evidencia.getSize() > MAX_EVIDENCIA_BYTES) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La evidencia no debe superar los 5 MB");
+        }
+    }
+
+    private void aplicarMetadatosEvidencia(SolicitudSeccion solicitud, MultipartFile evidencia) {
+        String nombre = evidencia.getOriginalFilename();
+        Path nombrePath = StringUtils.hasText(nombre) ? Paths.get(nombre).getFileName() : null;
+        String nombreSeguro = nombrePath != null ? nombrePath.toString() : "evidencia";
+        solicitud.setEvidenciaNombreArchivo(nombreSeguro);
+        solicitud.setEvidenciaContentType(StringUtils.hasText(evidencia.getContentType())
+                ? evidencia.getContentType()
+                : "application/octet-stream");
+    }
+
+    private void almacenarEvidencia(SolicitudSeccion solicitud, MultipartFile evidencia) {
+        if (solicitud == null || solicitud.getId() == null || evidencia == null || evidencia.isEmpty()) {
+            return;
+        }
+        try {
+            if (evidencia.getSize() <= MAX_EVIDENCIA_EN_MEMORIA) {
+                solicitud.setEvidenciaContenido(evidencia.getBytes());
+                solicitud.setEvidenciaRuta(null);
+            } else {
                 String ruta = evidenciaStorageService.guardarEvidencia(solicitud.getId(), evidencia);
                 solicitud.setEvidenciaRuta(ruta);
                 solicitud.setEvidenciaContenido(null);
-                solicitudSeccionRepository.save(solicitud);
-            } catch (IOException ex) {
-                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "No se pudo almacenar la evidencia adjunta");
             }
+            solicitudSeccionRepository.save(solicitud);
+        } catch (IOException ex) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "No se pudo almacenar la evidencia adjunta");
         }
     }
 

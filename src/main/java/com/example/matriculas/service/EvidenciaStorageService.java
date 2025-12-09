@@ -13,6 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Optional;
 
 @Service
 public class EvidenciaStorageService {
@@ -23,10 +24,16 @@ public class EvidenciaStorageService {
         if (solicitudId == null || archivo == null || archivo.isEmpty()) {
             return null;
         }
-        String nombreLimpio = Paths.get(archivo.getOriginalFilename()).getFileName().toString();
-        Path directorio = rootLocation.resolve(String.valueOf(solicitudId));
+        Path nombreLimpio = Optional.ofNullable(archivo.getOriginalFilename())
+                .map(Paths::get)
+                .map(Path::getFileName)
+                .orElse(Paths.get("evidencia"));
+        Path directorio = rootLocation.resolve(String.valueOf(solicitudId)).normalize();
         Files.createDirectories(directorio);
-        Path destino = directorio.resolve(nombreLimpio);
+        Path destino = directorio.resolve(nombreLimpio).normalize();
+        if (!destino.startsWith(rootLocation)) {
+            throw new IOException("Ruta de archivo inválida");
+        }
         Files.copy(archivo.getInputStream(), destino, StandardCopyOption.REPLACE_EXISTING);
         return rootLocation.relativize(destino).toString().replace('\\', '/');
     }
