@@ -297,15 +297,13 @@ public class SeccionService {
         if (EstadoSeccion.ANULADA.equals(seccion.getEstado())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "No se puede editar una sección anulada");
         }
-
-        List<SeccionHorario> horariosActualizados = construirHorarios(dto.getHorarios(), seccion);
-        reemplazarHorarios(seccion, horariosActualizados);
-
-        registrarCambio(seccion, "horarios", formatearHorario(seccion.getHorarios()), formatearHorario(horariosActualizados),
-                "Gestión de horarios");
-
+        List<SeccionHorario> nuevos = construirHorarios(dto.getHorarios(), seccion);
+        seccion.getHorarios().clear();
+        nuevos.forEach(h -> h.setSeccion(seccion));
+        seccion.getHorarios().addAll(nuevos);
         seccionRepository.save(seccion);
     }
+
 
     @Transactional(readOnly = true)
     public List<SeccionCambioDTO> obtenerCambios(Long seccionId) {

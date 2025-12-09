@@ -49,7 +49,7 @@ public class Seccion {
 
     private LocalDateTime fechaCreacion;
 
-    @OneToMany(mappedBy = "seccion")
+    @OneToMany(mappedBy = "seccion", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SeccionHorario> horarios;
 
     @OneToMany(mappedBy = "seccion")

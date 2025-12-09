@@ -32,7 +32,7 @@ h1, h2, h3, h4 {
 /* ============================= */
 /*       LAYOUT MATRÍCULA       */
 /* ============================= */
-.student-portal { padding: 20px; }
+.student-portal { padding: 0 40px; }
 .vista-matricula { width: 100%; display: flex; flex-direction: column; gap: 18px; }
 
 .page-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; background: var(--color-card); padding: 18px 24px; border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); border: 1px solid var(--color-borde); }
@@ -40,9 +40,8 @@ h1, h2, h3, h4 {
 .page-header h1 { margin: 4px 0; font-size: 30px; }
 .page-actions { display: flex; gap: 10px; align-items: center; }
 
-.matricula-layout { width: 100%; display: grid; grid-template-columns: 1.7fr 1fr; gap: 18px; align-items: start; }
-.col-izquierda { display: flex; flex-direction: column; gap: 18px; }
-.col-derecha { display: flex; flex-direction: column; gap: 14px; }
+.matricula-layout { width: 100%; display: grid; grid-template-columns: 1.7fr 1fr; gap: 20px; align-items: start; }
+.col-izquierda { display: flex; flex-direction: column; gap: 20px; }
 
 .card { background: var(--color-card); border-radius: var(--radius-lg); border: 1px solid var(--color-borde); box-shadow: var(--shadow-sm); padding: 18px 20px; display: flex; flex-direction: column; gap: 14px; }
 .card__header { display: flex; justify-content: space-between; gap: 16px; align-items: center; }
@@ -98,7 +97,7 @@ h1, h2, h3, h4 {
 .badge--soft { background: #f0f4ff; color: var(--color-texto); }
 
 /* TARJETA LATERAL */
-.panel-lateral { display: flex; flex-direction: column; gap: 14px; }
+.panel-lateral { display: flex; flex-direction: column; gap: 20px; }
 .student-card { gap: 16px; }
 .student-info-grid { display: grid; grid-template-columns: repeat(2, minmax(140px, 1fr)); gap: 12px; }
 .student-stats { display: grid; grid-template-columns: repeat(2, minmax(140px, 1fr)); gap: 12px; padding: 12px; border: 1px dashed var(--color-borde); border-radius: var(--radius-md); background: #f9fbff; }
@@ -110,10 +109,10 @@ h1, h2, h3, h4 {
 
 .inscritos-card h3 { margin: 0; }
 
-.horario-card { margin-top: 8px; }
+.horario-card { padding: 50px;   }
+.horario-card .card__header-horario { text-align: center; font-size: 24px; margin-bottom: 8px; }
 .horario-card .tabla-horario-completa { border: 1px solid var(--color-borde); border-radius: var(--radius-md); overflow: hidden; }
 .horario-card .horario-completo { box-shadow: none; border-radius: 0; }
-.horario-card .horario-header-grid { background: #f5f7fb; color: var(--color-texto-suave); }
 .horario-card .horario-header-cell { border-right: 1px solid var(--color-borde); }
 .horario-card .horario-grid { background-color: #fdfdff; }
 
