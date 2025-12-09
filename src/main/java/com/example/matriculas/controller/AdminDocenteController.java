@@ -1,5 +1,6 @@
 package com.example.matriculas.controller;
 
+import com.example.matriculas.dto.CursoDTO;
 import com.example.matriculas.dto.DocenteActualizarContactoDTO;
 import com.example.matriculas.dto.DocenteActualizarDatosDTO;
 import com.example.matriculas.dto.DocenteBusquedaDTO;
@@ -11,6 +12,7 @@ import com.example.matriculas.service.DocenteService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -58,16 +60,16 @@ public class AdminDocenteController {
     // ===========================================================
     // 2. LISTAR CURSOS DISPONIBLES PARA ASIGNAR A DOCENTE
     // ===========================================================
-    @GetMapping("/cursos")
-    public List<DocenteCursoDictableDTO> listarCursosDisponibles() {
+    @GetMapping(value = "/cursos", produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<CursoDTO> listarCursosDisponibles() {
         return cursoRepository.findAll()
                 .stream()
-                .map(c -> DocenteCursoDictableDTO.builder()
+                .map(c -> CursoDTO.builder()
                         .idCurso(c.getId())
-                        .codigoDocente(c.getCodigo())
-                        .nombreCompleto(c.getNombre())
-                        .creditosCurso(c.getCreditos())
-                        .cicloCurso(c.getCiclo())
+                        .codigo(c.getCodigo())
+                        .nombre(c.getNombre())
+                        .creditos(c.getCreditos())
+                        .ciclo(c.getCiclo())
                         .build())
                 .toList();
     }

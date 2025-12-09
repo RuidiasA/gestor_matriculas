@@ -112,8 +112,12 @@ export function createDocentesModule(tools) {
     async function cargarCatalogoCursos() {
         try {
             const resp = await fetch('/admin/docentes/cursos');
-            if (!resp.ok) throw new Error();
-            const cursos = await resp.json();
+            const contentType = resp.headers.get('content-type') || '';
+            if (!resp.ok || !contentType.includes('application/json')) {
+                throw new Error('Respuesta inválida del servidor');
+            }
+            const data = await resp.json();
+            const cursos = Array.isArray(data) ? data : [];
             [selectCursoDictable, filtroCursoDictable].forEach(select => {
                 if (!select) return;
                 select.innerHTML = '';
@@ -122,16 +126,19 @@ export function createDocentesModule(tools) {
                 baseOption.textContent = select === selectCursoDictable ? 'Selecciona curso' : 'Todos';
                 select.appendChild(baseOption);
                 cursos.forEach(c => {
+                    const id = c.idCurso ?? c.id ?? c.codigo;
+                    if (!id && !c.codigo && !c.codigoCurso && !c.nombre && !c.nombreCurso) return;
                     const opt = document.createElement('option');
-                    opt.value = c.idCurso;
-                    opt.textContent = `${c.codigo} - ${c.nombre}`;
+                    opt.value = id;
+                    opt.textContent = `${c.codigo || c.codigoCurso || '-'} - ${c.nombre || c.nombreCurso || 'Sin nombre'}`;
                     select.appendChild(opt);
                 });
             });
+            console.log('Cursos dictables cargados:', cursos);
         } catch (e) {
+            console.error('No se pudo cargar el catálogo de cursos', e);
             tools.showToast('No se pudo cargar el catálogo de cursos', 'error');
         }
-        console.log("Cursos:", cursos);
 
     }
 
