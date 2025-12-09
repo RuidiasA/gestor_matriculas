@@ -463,11 +463,9 @@
                 <article class="card solicitud-card-wrapper">
                     <header class="card__header">
                         <div>
-                            <p class="eyebrow">Apertura de sección</p>
                             <h2>Solicitar nueva sección</h2>
                             <p class="muted">El administrador recibirá tus datos y podrás seguir el estado en tiempo real.</p>
                         </div>
-                        <div class="pill pill-info">Estado: <span id="solicitud-estado-actual">Pendiente de envío</span></div>
                     </header>
 
                     <form class="solicitud-container">
@@ -515,7 +513,7 @@
                                 <textarea id="motivo" name="motivo" placeholder="Explica por qué necesitas una nueva sección..." required></textarea>
                             </label>
 
-                            <label for="evidencia" class="form-field">
+                            <label for="evidencia" class="form-field evidencia">
                                 <span>Adjuntar evidencia (opcional)</span>
                                 <input type="file" id="evidencia" name="evidencia" accept=".pdf,.jpg,.png,.jpeg">
                                 <small class="muted">Formatos: PDF o imagen. Máx. 5 MB.</small>
@@ -538,9 +536,7 @@
                 <article class="card historial-container-seccion">
                     <header class="card__header">
                         <div>
-                            <p class="eyebrow">Seguimiento</p>
-                            <h3>Historial de solicitudes</h3>
-                            <p class="muted">Consulta el estado, mensajes del administrador y descargas.</p>
+                            <h2>Historial de solicitudes</h2>
                         </div>
                         <div class="badge badge--pill" id="badge-solicitudes-alumno" hidden>0</div>
                     </header>
