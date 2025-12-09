@@ -1,309 +1,95 @@
-/* ============================================================
-   RESPONSIVE
-============================================================ */
-@media (min-width: 1600px) {
+/*
+ * Adaptaciones responsive
+ */
+@media (max-width: 1200px) {
+  body {
+    grid-template-columns: 250px 1fr;
+  }
 
+  .matricula-layout {
+    grid-template-columns: 1.2fr 1fr;
+  }
+
+  .horario-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .tabla-horario-completa.fija {
+    position: relative;
+    top: 0;
+  }
 }
 
-/* --- Ajustes para pantallas grandes intermedias --- */
-@media (max-width: 1600px) {
-    .main__container-item h1 {
-        font-size: 32px;
-    }
+@media (max-width: 992px) {
+  body {
+    grid-template-columns: 1fr;
+  }
 
-    .horario__title {
-        font-size: 28px;
-    }
+  .aside-left {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+  }
 
-    .table__info {
-        font-size: 0.95rem;
-    }
+  main {
+    padding: 18px;
+  }
 
-    table {
-        font-size: 0.95rem;
-    }
+  .matricula-layout {
+    grid-template-columns: 1fr;
+  }
 
-    .table-actions {
-        gap: 10px;
-        justify-content: end;
-        width: 50%;
-        flex-wrap: wrap;
-    }
+  .panel-lateral {
+    position: relative;
+  }
 
-    .table__info__item-nombre {
-        font-size: 1.2rem;
-    }
-    .table__info__item__carrera {
-        font-size: 1.1rem;
-    }
+  .pensiones-actions {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  #vista-solicitud {
+    grid-template-columns: 1fr;
+  }
 }
 
-/* ============================================================
-   TABLETS / LAPTOPS PEQUEÑAS (≤ 1024px)
-   Panel derecho pasa abajo del contenido
-============================================================ */
-@media (min-width: 1540px) {
+@media (max-width: 720px) {
+  .main__container {
+    padding: 18px;
+  }
 
-    .vista-solicitud {
-        gap: 40px;
-        padding: 30px;
-        align-items: center; /* mejor centrado */
-    }
+  .card__header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 
-    .solicitud-container {
-        padding: 32px;
-        border-radius: 18px;
-    }
+  .card__actions,
+  .student-actions,
+  .form-actions {
+    width: 100%;
+  }
 
-    .solicitud-container h2 {
-        font-size: 1.8rem;
-        margin-bottom: 26px;
-    }
+  .form-actions {
+    flex-direction: column;
+  }
 
-    .solicitud-container label {
-        font-size: 1rem;
-        margin-bottom: 6px;
-    }
+  .filters-form--inline {
+    grid-template-columns: 1fr;
+  }
 
-    .solicitud-container input,
-    .solicitud-container select,
-    .solicitud-container textarea {
-        font-size: 1.2rem;
-        border-radius: 8px;
-    }
-
-    .solicitud-container textarea {
-        min-height: 130px;
-    }
-
-    .solicitud-container button {
-        padding: 16px;
-        font-size: 1rem;
-        border-radius: 8px;
-    }
-
-    .historial-container-seccion {
-        padding: 30px;
-        border-radius: 18px;
-    }
+  .student-info-grid,
+  .student-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 540px) {
+  .student-info-grid,
+  .student-stats {
+    grid-template-columns: 1fr;
+  }
 
-    body {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-        padding: 10px;
-    }
-
-    /* ASIDE IZQUIERDO ahora arriba */
-    .aside-left {
-        position: static;
-        width: 100%;
-        height: auto;
-        border-radius: 12px;
-    }
-
-    .aside-left__container {
-        grid-template-rows: auto;
-        margin: 10px 12px;
-        gap: 10px;
-    }
-
-    .aside-left__container > a {
-        line-height: normal;
-        padding: 10px;
-        font-size: 0.95rem;
-    }
-
-    /* MAIN ocupa todo el ancho */
-    main {
-        width: 100%;
-        margin: 0;
-    }
-
-    .main__container {
-        max-width: 100%;
-    }
-
-    /* TABLAS: scroll horizontal si hace falta */
-    table {
-        font-size: 0.9rem;
-        overflow-x: auto;
-        display: block;
-    }
-
-    th, td {
-        padding: 8px 4px;
-        white-space: nowrap;
-    }
-
-    /* TOOLBAR apilado */
-    .table__toolbar {
-        flex-direction: column;
-        gap: 15px;
-        padding: 12px;
-        text-align: center;
-    }
-
-    .table__info {
-        width: 100%;
-        grid-template-areas:
-            "nombre nombre dia"
-            "carrera ciclo hora";
-        font-size: 0.9rem;
-    }
-
-    .table-actions {
-        justify-content: center;
-        flex-wrap: wrap;
-        gap: 10px;
-    }
-
-    .table-actions button {
-        width: 110px;
-        height: 35px;
-        font-size: 0.85rem;
-    }
-
-    /* HORARIO tabla */
-    .horario {
-        font-size: 0.85rem;
-        overflow-x: auto;
-        display: block;
-    }
-
-    /* PANEL RESUMEN — ahora tarjeta debajo del main */
-    .aside-right {
-        position: static;
-        width: 100%;
-        max-width: 600px;
-        margin: 0 auto 10px;
-        height: auto;
-    }
-}
-
-/* ============================================================
-   CELULARES (≤ 600px)
-============================================================ */
-@media (max-width: 600px) {
-
-    body {
-        gap: 8px;
-        padding: 8px;
-    }
-
-    /* Aside izquierdo más compacto */
-    .aside-left__container {
-        margin: 8px 8px;
-    }
-
-    .aside-left__container > a {
-        font-size: 0.95rem;
-        padding: 10px;
-    }
-
-    .logo {
-        width: 60px;
-        height: 60px;
-    }
-
-    .contact__info {
-        padding: 10px;
-        font-size: 0.85rem;
-    }
-
-    /* Main */
-    .main__container-item h1 {
-        font-size: 26px;
-    }
-
-    .fecha__matricula {
-        grid-template-columns: 1fr;
-        gap: 10px;
-    }
-
-    /* Tabla principal */
-    table {
-        font-size: 0.8rem;
-        border-radius: 10px;
-    }
-
-    th, td {
-        padding: 10px 6px;
-    }
-
-    /* Toolbar más vertical */
-    .table__toolbar {
-        flex-direction: column;
-        gap: 12px;
-        padding: 10px;
-    }
-
-    .table__info {
-        grid-template-areas:
-            "nombre"
-            "carrera"
-            "ciclo"
-            "dia"
-            "hora";
-        font-size: 0.8rem;
-    }
-
-    .table-actions {
-        flex-wrap: wrap;
-    }
-
-    .table-actions button {
-        width: 100%;
-        padding: 8px;
-        font-size: 0.85rem;
-    }
-
-    /* Horario */
-    .horario__title {
-        font-size: 24px;
-        margin-top: 16px;
-    }
-
-    .horario {
-        font-size: 0.8rem;
-    }
-
-    /* Panel resumen como tarjetas separadas */
-    .aside-right {
-        max-width: 100%;
-        margin: 0;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-
-    .resumen {
-        margin-bottom: 10px;
-    }
-
-    .resumen__info {
-        margin: 6px 0;
-        height: 40px;
-    }
-
-    .adicional__info {
-        min-height: 80px;
-        margin-top: 6px;
-    }
-
-    /* Pensiones responsive básico */
-    .pensiones-actions {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .btn-pagar {
-        width: 100%;
-        justify-content: center;
-    }
-
-    .pensiones-dashboard {
-        grid-template-columns: 1fr;
-    }
+  .pensiones-dashboard {
+    grid-template-columns: 1fr;
+  }
 }

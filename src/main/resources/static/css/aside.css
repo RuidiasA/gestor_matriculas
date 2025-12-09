@@ -1,67 +1,81 @@
-/* ============================================================
-   ASIDE IZQUIERDO (DISEÑO ORIGINAL)
-============================================================ */
+/*
+ * Navegación lateral
+ */
 .aside-left {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 250px;
-    height: 100vh;
-    background-color: #1B3B6F;
-    color: #E3F6FF;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.6);
-    z-index: 100;
+  background: linear-gradient(180deg, #1b3b6f 0%, #10284d 100%);
+  color: var(--blanco);
+  min-height: 100vh;
+  padding: 28px 20px;
+  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.12);
 }
 
 .aside-left__container {
-    display: grid;
-    grid-template-rows: 100px repeat(4, 40px) 1fr 40px;
-    height: calc(100% - 40px);
-    margin: 20px;
-    gap: 20px;
-}
-
-.aside-left__container > a {
-    background-color: #E3F6FF;
-    color: #1B3B6F;
-    font-weight: bold;
-    border-radius: 10px;
-    line-height: 40px;
-    text-align: center;
-}
-
-.aside-left__container > a.active {
-    background-color: #6EC6E6;
-    border: 1px solid #E3F6FF;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  height: 100%;
 }
 
 .logo {
-    width: 80px;
-    height: 80px;
-    margin: auto;
-    background-color: #E3F6FF;
-    border-radius: 15px;
+  height: 54px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(110, 198, 230, 0.3), rgba(255, 255, 255, 0.1));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.aside-left a {
+  display: block;
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.92);
+  transition: background var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
+}
+
+.aside-left a:hover {
+  background: rgba(110, 198, 230, 0.18);
+  color: #e2f6ff;
+  transform: translateX(3px);
+}
+
+.aside-left a.active {
+  background: var(--blanco);
+  color: var(--azul-oscuro);
+  box-shadow: var(--shadow-soft-1);
+}
+
+.contact {
+  margin-top: auto;
 }
 
 .contact__container {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 14px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(3px);
 }
+
 .contact__title {
-    text-align: center;
+  font-size: 0.9rem;
+  letter-spacing: 0.04em;
+  color: #dbeafe;
 }
+
 .contact__info {
-    padding: 10px;
-    background-color: #E3F6FF;
-    color: #1B3B6F;
-    border-radius: 6px;
-    height: 100%;
+  margin-top: 8px;
+  font-weight: 600;
+  color: #f9fbff;
 }
 
 .logout {
-    background-color: #B22222 !important;
-    color: #fff !important;
-    border-radius: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  margin-top: 6px;
+  text-align: center;
+}
+
+.logout:hover {
+  background: rgba(229, 62, 62, 0.15);
+  color: #fff1f2;
 }
