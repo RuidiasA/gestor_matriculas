@@ -54,8 +54,11 @@ public class SolicitudSeccion {
     private String evidenciaContentType;
 
     @Lob
-    @Column(name = "evidencia_contenido")
+    @Column(name = "evidencia_contenido", columnDefinition = "LONGBLOB")
     private byte[] evidenciaContenido;
+
+    @Column(name = "evidencia_ruta", length = 500)
+    private String evidenciaRuta;
 
     @Column(name = "dia_solicitado", length = 25)
     private String diaSolicitado;

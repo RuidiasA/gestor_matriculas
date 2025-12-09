@@ -819,11 +819,12 @@ async function cargarCursosSolicitables() {
 }
 
 function descargarEvidencia(solicitud) {
-    if (!solicitud?.evidenciaBase64 || !solicitud?.evidenciaNombreArchivo) return;
+    if (!solicitud?.evidenciaUrl) return;
     const link = document.createElement('a');
-    const tipo = solicitud.evidenciaContentType || 'application/octet-stream';
-    link.href = `data:${tipo};base64,${solicitud.evidenciaBase64}`;
-    link.download = solicitud.evidenciaNombreArchivo;
+    link.href = solicitud.evidenciaUrl;
+    link.target = '_blank';
+    link.rel = 'noopener';
+    link.download = solicitud.evidenciaNombreArchivo || 'evidencia';
     document.body.appendChild(link);
     link.click();
     link.remove();
@@ -885,7 +886,7 @@ function renderHistorialSolicitudes() {
 
         const actions = document.createElement('div');
         actions.className = 'solicitud-actions';
-        if (s.evidenciaNombreArchivo && s.evidenciaBase64) {
+        if (s.evidenciaNombreArchivo && s.evidenciaUrl) {
             const btnEvidencia = document.createElement('button');
             btnEvidencia.type = 'button';
             btnEvidencia.className = 'btn-evidencia';
@@ -899,19 +900,6 @@ function renderHistorialSolicitudes() {
     });
 
     actualizarIndicadoresSolicitud();
-}
-
-async function archivoABase64(file) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-            const result = reader.result || '';
-            const base64 = result.toString().split(',')[1];
-            resolve(base64);
-        };
-        reader.onerror = () => reject(reader.error);
-        reader.readAsDataURL(file);
-    });
 }
 
 async function registrarSolicitudSeccion(e) {
@@ -947,9 +935,19 @@ async function registrarSolicitudSeccion(e) {
         return;
     }
 
-    let evidenciaNombreArchivo = null;
-    let evidenciaBase64 = null;
-    let evidenciaContentType = null;
+    const formData = new FormData();
+    formData.append('cursoId', cursoId);
+    formData.append('turno', turnoSolicitado);
+    formData.append('modalidad', modalidadSolicitada || '');
+    formData.append('diaSolicitado', diaSolicitado);
+    formData.append('horaInicioSolicitada', horaInicioSolicitada);
+    formData.append('horaFinSolicitada', horaFinSolicitada);
+    formData.append('modalidadSolicitada', modalidadSolicitada || '');
+    formData.append('turnoSolicitado', turnoSolicitado);
+    formData.append('correo', correo || '');
+    formData.append('telefono', telefono || '');
+    formData.append('motivo', motivo);
+
     if (evidenciaInput?.files?.length) {
         const archivo = evidenciaInput.files[0];
         const maxSize = 5 * 1024 * 1024;
@@ -957,30 +955,12 @@ async function registrarSolicitudSeccion(e) {
             mostrarMensajeError('La evidencia no debe superar los 5 MB');
             return;
         }
-        evidenciaNombreArchivo = archivo.name;
-        evidenciaContentType = archivo.type || 'application/octet-stream';
-        evidenciaBase64 = await archivoABase64(archivo);
+        formData.append('evidencia', archivo);
     }
 
     await fetchJson('/alumno/solicitudes', 'No se pudo registrar la solicitud', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            cursoId,
-            turno: turnoSolicitado,
-            modalidad: modalidadSolicitada,
-            diaSolicitado,
-            horaInicioSolicitada,
-            horaFinSolicitada,
-            modalidadSolicitada,
-            turnoSolicitado,
-            correo,
-            telefono,
-            motivo,
-            evidenciaNombreArchivo,
-            evidenciaContentType,
-            evidenciaBase64
-        })
+        body: formData
     });
 
     mostrarMensajeExito('Solicitud registrada correctamente');

@@ -10,6 +10,7 @@ import com.example.matriculas.repository.CarreraRepository;
 import com.example.matriculas.service.SolicitudSeccionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -80,6 +81,11 @@ public class AdminSolicitudController {
     @GetMapping("/{id}")
     public SolicitudSeccionDetalleDTO obtenerDetalle(@PathVariable Long id) {
         return solicitudSeccionService.obtenerDetalle(id);
+    }
+
+    @GetMapping("/{id}/evidencia")
+    public ResponseEntity<Resource> descargarEvidencia(@PathVariable Long id) {
+        return solicitudSeccionService.descargarEvidencia(id);
     }
 
     @PutMapping("/{id}/estado")

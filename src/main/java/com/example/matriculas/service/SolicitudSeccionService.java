@@ -9,16 +9,19 @@ import com.example.matriculas.model.enums.EstadoSolicitud;
 import com.example.matriculas.repository.CursoRepository;
 import com.example.matriculas.repository.SolicitudSeccionRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Base64;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +35,7 @@ public class SolicitudSeccionService {
 
     private final SolicitudSeccionRepository solicitudSeccionRepository;
     private final CursoRepository cursoRepository;
+    private final EvidenciaStorageService evidenciaStorageService;
 
     @Transactional(readOnly = true)
     public List<SolicitudSeccionListadoDTO> listar(
@@ -158,8 +162,8 @@ public class SolicitudSeccionService {
                 .turnoSolicitado(solicitud.getTurnoSolicitado())
                 .evidenciaNombreArchivo(solicitud.getEvidenciaNombreArchivo())
                 .evidenciaContentType(solicitud.getEvidenciaContentType())
-                .evidenciaBase64(solicitud.getEvidenciaContenido() != null
-                        ? Base64.getEncoder().encodeToString(solicitud.getEvidenciaContenido())
+                .evidenciaUrl(StringUtils.hasText(solicitud.getEvidenciaNombreArchivo())
+                        ? "/admin/solicitudes/" + solicitud.getId() + "/evidencia"
                         : null)
                 .solicitantes(solicitud.getCurso() != null && solicitud.getCurso().getId() != null
                         ? solicitudSeccionRepository.countByCursoId(solicitud.getCurso().getId())
@@ -179,6 +183,31 @@ public class SolicitudSeccionService {
         solicitud.setMensajeAdmin(StringUtils.hasText(dto.getMensajeAdmin()) ? dto.getMensajeAdmin().trim() : null);
         solicitud.setFechaActualizacion(LocalDateTime.now());
         solicitudSeccionRepository.save(solicitud);
+    }
+
+    @Transactional(readOnly = true)
+    public ResponseEntity<Resource> descargarEvidencia(Long id) {
+        SolicitudSeccion solicitud = obtenerPorId(id);
+        try {
+            Resource recurso = evidenciaStorageService.cargarEvidencia(solicitud);
+            if (recurso == null) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "La solicitud no tiene evidencia adjunta");
+            }
+
+            String nombre = StringUtils.hasText(solicitud.getEvidenciaNombreArchivo())
+                    ? solicitud.getEvidenciaNombreArchivo()
+                    : "evidencia";
+            String contentType = StringUtils.hasText(solicitud.getEvidenciaContentType())
+                    ? solicitud.getEvidenciaContentType()
+                    : "application/octet-stream";
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + nombre + "\"")
+                    .header(HttpHeaders.CONTENT_TYPE, contentType)
+                    .body(recurso);
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "No se pudo cargar la evidencia");
+        }
     }
 
     @Transactional(readOnly = true)
