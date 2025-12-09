@@ -5,6 +5,7 @@ import { createAlumnosModule } from './alumnos.js';
 import { createDocentesModule } from './docentes.js';
 import { createSeccionesModule } from './secciones.js';
 import { createCursosModule } from "./cursos.js";
+import { createSolicitudesModule } from "./solicitudes.js";
 
 document.addEventListener('DOMContentLoaded', () => {
     const tools = createTools();
@@ -13,6 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const docentesModule = createDocentesModule(tools);
     const seccionesModule = createSeccionesModule(tools, alumnosModule);
     const cursosModule = createCursosModule(tools);
+    const solicitudesModule = createSolicitudesModule(tools);
 
     setupNavigation(() => seccionesModule.resetFicha());
 
@@ -20,4 +22,6 @@ document.addEventListener('DOMContentLoaded', () => {
     docentesModule.init();
     seccionesModule.init();
     cursosModule.init();
+    solicitudesModule.init();
+    solicitudesModule.actualizarBadge();
 });

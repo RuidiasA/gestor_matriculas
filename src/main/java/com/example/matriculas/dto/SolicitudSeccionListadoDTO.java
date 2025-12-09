@@ -7,15 +7,14 @@ import java.time.LocalDateTime;
 
 @Data
 @Builder
-public class SolicitudSeccionAlumnoDTO {
+public class SolicitudSeccionListadoDTO {
     private Long id;
-    private Long cursoId;
     private String curso;
     private String codigoCurso;
+    private String carrera;
     private String ciclo;
-    private String modalidad;
-    private String turno;
+    private Long solicitantes;
     private String estado;
-    private String mensajeAdmin;
     private LocalDateTime fechaSolicitud;
+    private String alumno;
 }

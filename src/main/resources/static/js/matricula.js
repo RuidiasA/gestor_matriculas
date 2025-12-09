@@ -5,6 +5,7 @@ const state = {
     horario: [],
     pagos: [],
     solicitudes: [],
+    cursosSolicitables: [],
     cursosDisponibles: [],
     seccionesPorCurso: {},
     seccionSeleccionada: null
@@ -200,7 +201,7 @@ function renderizarCursosTabla() {
     if (!state.cursosDisponibles.length) {
         const tr = document.createElement('tr');
         tr.classList.add('fila-empty');
-        tr.innerHTML = '<td colspan="7" class="estado-vacio">No se encontraron cursos disponibles para los filtros seleccionados.</td>';
+        tr.innerHTML = '<td colspan="8" class="estado-vacio">No se encontraron cursos disponibles para los filtros seleccionados.</td>';
         tbody.appendChild(tr);
         return;
     }
@@ -227,9 +228,42 @@ function renderizarCursosTabla() {
             tr.appendChild(td);
         });
 
+        const tdSolicitud = document.createElement('td');
+        if (puedeSolicitarApertura(cursoId, curso)) {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.textContent = 'Solicitar';
+            btn.className = 'btn-outline btn-sm';
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                abrirFormularioSolicitud(cursoId);
+            });
+            tdSolicitud.appendChild(btn);
+        }
+        tr.appendChild(tdSolicitud);
+
         tr.addEventListener('click', () => mostrarSecciones(curso, tr));
         tbody.appendChild(tr);
     });
+}
+
+function puedeSolicitarApertura(cursoId, curso) {
+    const cupos = curso?.cuposDisponibles ?? 0;
+    const pendiente = tieneSolicitudPendiente(cursoId);
+    const opcionSolicitable = (state.cursosSolicitables || []).find(c => `${c.id}` === `${cursoId}`);
+    return (!cupos || cupos <= 0 || opcionSolicitable) && !pendiente;
+}
+
+function tieneSolicitudPendiente(cursoId) {
+    if (!cursoId) return false;
+    return (state.solicitudes || []).some(s => (`${s.cursoId}` === `${cursoId}` || `${s.codigoCurso}` === `${cursoId}`) && s.estado === 'PENDIENTE');
+}
+
+function abrirFormularioSolicitud(cursoId) {
+    mostrarVista('solicitud');
+    const select = document.getElementById('curso');
+    if (select) select.value = cursoId;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 async function mostrarSecciones(curso, filaCurso) {
@@ -678,6 +712,16 @@ async function cargarSolicitudesAlumno() {
     }
 }
 
+async function cargarCursosSolicitables() {
+    try {
+        const cursos = await fetchJson('/alumno/solicitudes/cursos', 'No se pudieron cargar los cursos solicitables');
+        state.cursosSolicitables = cursos || [];
+        poblarCursosSolicitud();
+    } catch (err) {
+        console.error(err);
+    }
+}
+
 function renderHistorialSolicitudes() {
     if (!historialLista) return;
     historialLista.innerHTML = '';
@@ -693,16 +737,17 @@ function renderHistorialSolicitudes() {
         card.classList.add('solicitud-card');
 
         const fecha = s.fechaSolicitud ? new Date(s.fechaSolicitud).toLocaleDateString('es-PE') : '—';
+        const chip = (s.estado || 'PENDIENTE').toLowerCase();
         card.innerHTML = `
             <div class="curso-titulo">${s.curso || 'Curso'}</div>
             <p class="muted">${s.codigoCurso || ''}</p>
-            <div class="chip chip-${(s.estado || 'PENDIENTE').toLowerCase()}">${s.estado || 'PENDIENTE'}</div>
+            <div class="chip chip-${chip}">${s.estado || 'PENDIENTE'}</div>
             <dl>
                 <div><dt>Turno</dt><dd>${s.turno || '—'}</dd></div>
                 <div><dt>Modalidad</dt><dd>${s.modalidad || '—'}</dd></div>
                 <div><dt>Ciclo</dt><dd>${s.ciclo || 'Actual'}</dd></div>
                 <div><dt>Fecha</dt><dd>${fecha}</dd></div>
-                ${s.respuesta ? `<div><dt>Respuesta</dt><dd>${s.respuesta}</dd></div>` : ''}
+                ${s.mensajeAdmin ? `<div><dt>Mensaje</dt><dd>${s.mensajeAdmin}</dd></div>` : ''}
             </dl>
         `;
 
@@ -724,6 +769,11 @@ async function registrarSolicitudSeccion(e) {
         return;
     }
 
+    if (tieneSolicitudPendiente(cursoId)) {
+        mostrarMensajeError('Ya registraste una solicitud pendiente para este curso');
+        return;
+    }
+
     await fetchJson('/alumno/solicitudes', 'No se pudo registrar la solicitud', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -733,13 +783,15 @@ async function registrarSolicitudSeccion(e) {
     mostrarMensajeExito('Solicitud registrada');
     form.reset();
     await cargarSolicitudesAlumno();
+    await cargarCursosSolicitables();
 }
 
 function poblarCursosSolicitud() {
     const select = document.getElementById('curso');
-    if (!select || !state.cursosDisponibles?.length) return;
+    if (!select) return;
+    const opciones = state.cursosSolicitables || [];
     select.innerHTML = '<option value="" disabled selected>Seleccione un curso</option>' +
-        state.cursosDisponibles.map(c => `<option value="${c.cursoId}">${c.nombreCurso} (${c.codigoCurso})</option>`).join('');
+        opciones.map(c => `<option value="${c.id}" ${c.pendiente ? 'disabled' : ''}>${c.nombre} (${c.codigo})${c.pendiente ? ' - pendiente' : ''}</option>`).join('');
 }
 
 if (form) {
@@ -784,8 +836,9 @@ async function cargarDatosIniciales() {
         actualizarFichaAlumno();
         renderCursosInscritos();
         renderHorarioTablas();
-        poblarCursosSolicitud();
         await cargarSolicitudesAlumno();
+        await cargarCursosSolicitables();
+        poblarCursosSolicitud();
         await cargarPeriodos();
         await cargarCursosDisponibles();
     } catch (err) {

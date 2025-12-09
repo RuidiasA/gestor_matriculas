@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 @Data
-public class SolicitudSeccionCrearDTO {
+public class SolicitudSeccionCreateDTO {
     @NotNull
     private Long cursoId;
 
