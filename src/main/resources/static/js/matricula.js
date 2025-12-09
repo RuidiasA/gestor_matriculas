@@ -973,10 +973,16 @@ function limpiarFormularioSolicitud() {
 function poblarCursosSolicitud() {
     const select = document.getElementById('curso');
     if (!select) return;
-    const opciones = Array.isArray(state.cursosSolicitables) ? state.cursosSolicitables : [];
+    let opciones = Array.isArray(state.cursosSolicitables) ? state.cursosSolicitables : [];
+
+    const carrerasEncontradas = new Set(opciones.map(c => c?.carreraId).filter(Boolean));
+    if (carrerasEncontradas.size > 1) {
+        const carreraPermitida = opciones.find(c => c?.carreraId)?.carreraId;
+        opciones = opciones.filter(c => !carreraPermitida || c?.carreraId === carreraPermitida);
+    }
 
     if (!opciones.length) {
-        select.innerHTML = '<option value="" disabled selected>Sin cursos disponibles</option>';
+        select.innerHTML = '<option value="" disabled selected>No hay cursos disponibles para tu carrera</option>';
         return;
     }
 
