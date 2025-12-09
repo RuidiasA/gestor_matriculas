@@ -57,30 +57,104 @@
     overflow: visible;
     min-height: calc(100vh - 100px);
 }
+
+:root {
+    --slot-height: 18px;
+    --col-hora-width: 96px;
+    --color-grid: #E3E7EF;
+    --color-evento-fondo: #E2E8FF;
+}
+
 .horario-completo {
     width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
     border-radius: 14px;
     background: white;
     overflow: hidden;
     box-shadow: 0 4px 12px rgba(27, 59, 111, 0.15);
     margin-top: 6px;
+    display: flex;
+    flex-direction: column;
 }
-.horario-completo th {
+
+.horario-header-grid {
+    display: grid;
+    grid-template-columns: var(--col-hora-width) repeat(6, 1fr);
     background: #1B3B6F;
     color: white;
-    padding: 0.82rem;
     position: sticky;
     top: 0;
     z-index: 2;
 }
-.horario-completo td {
-    padding: 10px;
-    border: 1px solid #E3E7EF;
-    background: #F9FBFF;
+
+.horario-header-cell {
+    padding: 0.82rem;
+    font-weight: 700;
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: center;
 }
-.horario-completo td.empty {
-    background: #ffffff;
+
+.horario-header-cell:first-child {
+    text-align: left;
 }
+
+.horario-header-cell:last-child { border-right: none; }
+
+.horario-grid {
+    position: relative;
+    display: grid;
+    grid-template-columns: var(--col-hora-width) repeat(6, 1fr);
+    grid-template-rows: repeat(60, var(--slot-height));
+    background-color: #fff;
+    background-image:
+        repeating-linear-gradient(to bottom, var(--color-grid) 0 1px, transparent 1px var(--slot-height)),
+        linear-gradient(to right, #fff 0, #fff 0),
+        linear-gradient(to right, var(--color-grid) 1px, transparent 1px);
+    background-size:
+        100% var(--slot-height),
+        var(--col-hora-width) 100%,
+        calc(100% / 6) 100%;
+    background-position:
+        0 0,
+        0 0,
+        var(--col-hora-width) 0;
+    background-repeat:
+        repeat,
+        no-repeat,
+        repeat;
+}
+
+.hora-label {
+    grid-column: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 6px;
+    font-weight: 700;
+    color: #1B3B6F;
+    background: #f7f9ff;
+    border-right: 1px solid var(--color-grid);
+    border-bottom: 1px solid var(--color-grid);
+    box-sizing: border-box;
+}
+
+.horario-event {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 6px 8px;
+    margin: 2px 4px;
+    border-radius: 6px;
+    background: var(--color-evento-fondo);
+    color: #1B3B6F;
+    font-size: 0.8rem;
+    line-height: 1.3;
+    box-shadow: 0 4px 12px rgba(27, 59, 111, 0.12);
+    border: 1px solid rgba(27, 59, 111, 0.08);
+    overflow: hidden;
+}
+
+.horario-event__curso { font-weight: 800; }
+.horario-event__hora { font-weight: 600; }
+.horario-event__docente { font-size: 0.75rem; opacity: 0.9; }
 
