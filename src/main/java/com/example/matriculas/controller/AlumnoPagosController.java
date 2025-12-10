@@ -1,6 +1,7 @@
 package com.example.matriculas.controller;
 
-import com.example.matriculas.dto.PagoDTO;
+import com.example.matriculas.dto.PensionCuotaDTO;
+import com.example.matriculas.dto.PensionesResponseDTO;
 import com.example.matriculas.service.AlumnoPortalService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -18,18 +19,18 @@ public class AlumnoPagosController {
     private final AlumnoPortalService alumnoPortalService;
 
     @GetMapping
-    public List<PagoDTO> listarPagos(@RequestParam(value = "periodo", required = false) String periodo) {
-        return alumnoPortalService.obtenerPagos(false, periodo);
+    public PensionesResponseDTO listarPagos(@RequestParam(value = "periodo", required = false) String periodo) {
+        return alumnoPortalService.obtenerPagos(periodo);
     }
 
     @GetMapping("/pendientes")
-    public List<PagoDTO> listarPendientes(@RequestParam(value = "periodo", required = false) String periodo) {
-        return alumnoPortalService.obtenerPagos(true, periodo);
+    public PensionesResponseDTO listarPendientes(@RequestParam(value = "periodo", required = false) String periodo) {
+        return alumnoPortalService.obtenerPagos(periodo);
     }
 
     @PutMapping("/{id}/pagar")
-    public ResponseEntity<Void> pagar(@PathVariable Long id) {
-        alumnoPortalService.marcarPagoComoPagado(id);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<PensionCuotaDTO> pagar(@PathVariable Long id) {
+        PensionCuotaDTO dto = alumnoPortalService.marcarPagoComoPagado(id);
+        return ResponseEntity.ok(dto);
     }
 }

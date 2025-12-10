@@ -7,6 +7,7 @@ import com.example.matriculas.model.enums.EstadoSeccion;
 import com.example.matriculas.model.enums.EstadoDetalleMatricula;
 import com.example.matriculas.model.enums.EstadoMatricula;
 import com.example.matriculas.model.enums.EstadoPago;
+import com.example.matriculas.model.enums.TipoConcepto;
 import com.example.matriculas.repository.*;
 import com.lowagie.text.Document;
 import com.lowagie.text.DocumentException;
@@ -62,7 +63,8 @@ public class AlumnoPortalService {
     private final AlumnoRepository alumnoRepository;
     private final AlumnoService alumnoService;
     private final MatriculaRepository matriculaRepository;
-    private final PagoRepository pensionRepository;
+    private final PensionCuotaRepository pensionCuotaRepository;
+    private final PensionCuotaService pensionCuotaService;
     private final SeccionRepository seccionRepository;
     private final DetalleMatriculaRepository detalleMatriculaRepository;
     private final SolicitudSeccionRepository solicitudSeccionRepository;
@@ -234,28 +236,66 @@ public class AlumnoPortalService {
     }
 
     @Transactional(readOnly = true)
-    public List<PagoDTO> obtenerPagos(boolean soloPendientes, String periodo) {
+    public PensionesResponseDTO obtenerPagos(String periodo) {
         Alumno alumno = obtenerAlumnoActual();
-        String ciclo = StringUtils.hasText(periodo) ? periodo : obtenerCicloActual(alumno);
+        List<String> periodosDisponibles = matriculaRepository.findDistinctCiclosByAlumnoId(alumno.getId());
+        String ciclo = StringUtils.hasText(periodo) ? periodo
+                : (!periodosDisponibles.isEmpty() ? periodosDisponibles.get(0) : null);
         if (ciclo == null) {
-            return List.of();
+            return PensionesResponseDTO.builder()
+                    .periodosDisponibles(periodosDisponibles)
+                    .periodoActual(null)
+                    .pagos(List.of())
+                    .totales(PensionesTotalesDTO.builder()
+                            .deudaPendiente(0.0)
+                            .totalPagado(0.0)
+                            .totalInvertidoDelAlumno(0.0)
+                            .build())
+                    .build();
         }
 
-        List<Pago> pensiones = pensionRepository.findByAlumnoIdAndPeriodo(alumno.getId(), ciclo);
-        return pensiones.stream()
-                .filter(p -> !soloPendientes || EstadoPago.PAGADO != p.getEstado())
-                .map(this::mapearPago)
-                .collect(Collectors.toList());
+        matriculaRepository.findByAlumnoId(alumno.getId())
+                .forEach(pensionCuotaService::generarCuotasSiNoExisten);
+
+        List<PensionCuota> cuotas = pensionCuotaRepository.findByAlumnoAndPeriodo(alumno.getId(), ciclo);
+        pensionCuotaService.actualizarEstadosVencidos(cuotas);
+
+        List<PensionCuotaDTO> pagos = cuotas.stream()
+                .map(this::mapearCuota)
+                .toList();
+
+        double deudaPendiente = cuotas.stream()
+                .filter(c -> c.getEstadoPago() != EstadoPago.PAGADO)
+                .mapToDouble(c -> Optional.ofNullable(c.getImporteFinal()).orElse(0.0))
+                .sum();
+
+        double totalPagado = cuotas.stream()
+                .filter(c -> c.getEstadoPago() == EstadoPago.PAGADO)
+                .mapToDouble(c -> Optional.ofNullable(c.getImporteFinal()).orElse(0.0))
+                .sum();
+
+        double totalInvertido = pensionCuotaRepository.findByAlumnoId(alumno.getId())
+                .stream()
+                .mapToDouble(c -> Optional.ofNullable(c.getImporteFinal()).orElse(0.0))
+                .sum();
+
+        return PensionesResponseDTO.builder()
+                .periodosDisponibles(periodosDisponibles)
+                .periodoActual(ciclo)
+                .pagos(pagos)
+                .totales(PensionesTotalesDTO.builder()
+                        .deudaPendiente(deudaPendiente)
+                        .totalPagado(totalPagado)
+                        .totalInvertidoDelAlumno(totalInvertido)
+                        .build())
+                .build();
     }
 
     @Transactional
-    public void marcarPagoComoPagado(Long pagoId) {
+    public PensionCuotaDTO marcarPagoComoPagado(Long pagoId) {
         Alumno alumno = obtenerAlumnoActual();
-        Pago pension = pensionRepository.findByIdAndAlumnoId(pagoId, alumno.getId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pago no encontrado"));
-        pension.setEstado(EstadoPago.PAGADO);
-        pension.setFechaPago(LocalDate.now());
-        pensionRepository.save(pension);
+        PensionCuota cuota = pensionCuotaService.registrarPago(pagoId, alumno.getId());
+        return mapearCuota(cuota);
     }
 
     @Transactional(readOnly = true)
@@ -347,6 +387,11 @@ public class AlumnoPortalService {
 
     @Transactional(readOnly = true)
     public List<String> obtenerPeriodosDisponibles() {
+        Alumno alumno = obtenerAlumnoActual();
+        List<String> periodosMatriculados = matriculaRepository.findDistinctCiclosByAlumnoId(alumno.getId());
+        if (!periodosMatriculados.isEmpty()) {
+            return periodosMatriculados;
+        }
         return seccionRepository.findDistinctPeriodos();
     }
 
@@ -894,7 +939,9 @@ public class AlumnoPortalService {
         matricula.setCicloAcademico(ciclo);
         matricula.setFechaMatricula(LocalDate.now().atStartOfDay());
         matricula.setEstado(EstadoMatricula.GENERADA);
-        return matriculaRepository.save(matricula);
+        Matricula guardada = matriculaRepository.save(matricula);
+        pensionCuotaService.generarCuotasSiNoExisten(guardada);
+        return guardada;
     }
 
     private void actualizarTotales(Matricula matricula) {
@@ -907,15 +954,23 @@ public class AlumnoPortalService {
         matriculaRepository.save(matricula);
     }
 
-    private PagoDTO mapearPago(Pago p) {
-        return PagoDTO.builder()
-                .id(p.getId())
-                .concepto(p.getConcepto())
-                .periodo(p.getPeriodo())
-                .monto(p.getMonto() != null ? p.getMonto().doubleValue() : null)
-                .vencimiento(p.getFechaVencimiento())
-                .estado(p.getEstado() != null ? p.getEstado().name() : null)
-                .fechaPago(p.getFechaPago())
+    private PensionCuotaDTO mapearCuota(PensionCuota cuota) {
+        String concepto = cuota.getTipoConcepto() == TipoConcepto.MATRICULA
+                ? "Matrícula " + Optional.ofNullable(cuota.getPeriodoAcademico()).orElse("")
+                : "Pensión " + Optional.ofNullable(cuota.getNumeroCuota()).map(String::valueOf).orElse("-");
+
+        return PensionCuotaDTO.builder()
+                .id(cuota.getId())
+                .concepto(concepto)
+                .vencimiento(cuota.getFechaVencimiento())
+                .monto(cuota.getImporteOriginal())
+                .mora(cuota.getMora())
+                .descuento(cuota.getDescuento())
+                .importeFinal(cuota.getImporteFinal())
+                .estado(cuota.getEstadoPago() != null ? cuota.getEstadoPago().name() : null)
+                .fechaPago(cuota.getFechaPago())
+                .numeroCuota(cuota.getNumeroCuota())
+                .tipoConcepto(cuota.getTipoConcepto() != null ? cuota.getTipoConcepto().name() : null)
                 .build();
     }
 

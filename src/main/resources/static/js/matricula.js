@@ -3,7 +3,13 @@ const state = {
     resumen: null,
     cursosMatriculados: [],
     horario: [],
-    pagos: [],
+    pensiones: {
+        periodosDisponibles: [],
+        periodoActual: null,
+        pagos: [],
+        totales: {}
+    },
+    cuotaSeleccionada: null,
     solicitudes: [],
     solicitudesCargadas: false,
     solicitudesSnapshot: new Map(),
@@ -43,6 +49,7 @@ function mostrarVista(vista, event) {
         vistas.pensiones?.classList.remove('hidden');
         asideDerecho?.classList.add('hidden');
         body.classList.add('layout-2-cols');
+        cargarPensiones(state.pensiones?.periodoActual);
     } else if (vista === 'horario') {
         vistas.horario?.classList.remove('hidden');
         asideDerecho?.classList.add('hidden');
@@ -125,6 +132,19 @@ function formatearHorarioSolicitud(inicio, fin) {
     if (!inicio && !fin) return '';
     if (inicio && fin) return `${inicio} - ${fin}`;
     return inicio || fin || '';
+}
+
+function formatearMoneda(valor, conSimbolo = true) {
+    const numero = Number(valor || 0);
+    const texto = numero.toFixed(2);
+    return conSimbolo ? `S/ ${texto}` : texto;
+}
+
+function estadoBadgeClass(estado) {
+    const normalizado = (estado || '').toUpperCase();
+    if (normalizado === 'PAGADO') return 'pagado';
+    if (normalizado === 'ATRASADO') return 'atrasado';
+    return 'pendiente';
 }
 
 async function confirmarAccion(titulo, texto, confirmText = 'Confirmar') {
@@ -655,9 +675,8 @@ function actualizarResumenMatricula() {
 function actualizarFichaAlumno() {
     const perfil = state.perfil || {};
     const resumen = state.resumen || {};
-    const pendiente = state.pagos.filter(p => p.estado !== 'PAGADO');
-    const deudaTotal = pendiente.reduce((acc, p) => acc + (p.monto || 0), 0);
-    const estadoFinanciero = deudaTotal > 0 ? `Pendiente: S/ ${deudaTotal.toFixed(2)}` : 'Al día';
+    const deudaTotal = state.pensiones?.totales?.deudaPendiente || 0;
+    const estadoFinanciero = deudaTotal > 0 ? `Pendiente: ${formatearMoneda(deudaTotal)}` : 'Al día';
 
     setText('#alumno-nombre', `${perfil.nombres || ''} ${perfil.apellidos || ''}`.trim() || 'Alumno');
     setText('#alumno-codigo', perfil.codigo || '—');
@@ -753,41 +772,147 @@ function actualizarDatosPensiones() {
     const cicloCard = document.querySelector('.pension-card.success .dato');
     const tabla = document.querySelector('.tabla-pensiones tbody');
 
-    const pendientes = state.pagos.filter(p => p.estado !== 'PAGADO');
-    const deudaTotal = pendientes.reduce((acc, p) => acc + (p.monto || 0), 0);
-    if (deudaCard) deudaCard.textContent = `S/ ${deudaTotal.toFixed(2)}`;
+    const pagos = state.pensiones?.pagos || [];
+    const totales = state.pensiones?.totales || {};
+
+    const pendientes = pagos.filter(p => (p.estado || '').toUpperCase() !== 'PAGADO');
+
+    if (deudaCard) deudaCard.textContent = formatearMoneda(totales.deudaPendiente || 0);
 
     const proximo = pendientes
         .filter(p => p.vencimiento)
         .sort((a, b) => new Date(a.vencimiento) - new Date(b.vencimiento))[0];
-    if (proximoCard) proximoCard.textContent = proximo?.vencimiento || '—';
+    if (proximoCard) proximoCard.textContent = formatearFechaCorta(proximo?.vencimiento) || '—';
     if (proximoSub) proximoSub.textContent = proximo?.concepto || '';
 
-    if (cicloCard) cicloCard.textContent = state.pagos[0]?.periodo || '—';
+    if (cicloCard) cicloCard.textContent = state.pensiones?.periodoActual || '—';
+    setText('#estado-pagos', (totales.deudaPendiente || 0) > 0 ? 'Pendiente' : 'Al día');
 
     if (!tabla) return;
     tabla.innerHTML = '';
 
-    if (!state.pagos.length) {
+    if (!pagos.length) {
         tabla.innerHTML = '<tr><td colspan="7" class="muted">No hay pagos registrados</td></tr>';
         return;
     }
 
-    state.pagos.forEach(pago => {
+    pagos.forEach(pago => {
         const tr = document.createElement('tr');
-        const total = (pago.monto || 0).toFixed(2);
-        const badgeClass = pago.estado === 'PAGADO' ? 'pagado' : 'pendiente';
+        const badgeClass = estadoBadgeClass(pago.estado);
+        const mora = pago.mora ? `+${Number(pago.mora).toFixed(2)}` : '+0.00';
+        const descuento = pago.descuento ? `-${Number(pago.descuento).toFixed(2)}` : '-0.00';
         tr.innerHTML = `
             <td>${pago.concepto || ''}</td>
-            <td>${pago.vencimiento || '—'}</td>
-            <td>${total}</td>
-            <td>0.00</td>
-            <td>${total}</td>
+            <td>${formatearFechaCorta(pago.vencimiento)}</td>
+            <td>${formatearMoneda(pago.monto || 0, false)}</td>
+            <td>${mora} / ${descuento}</td>
+            <td>${formatearMoneda(pago.importeFinal || 0, false)}</td>
             <td><span class="badge ${badgeClass}">${pago.estado || ''}</span></td>
-            <td class="action-cell"><ion-icon name="document-text-outline" class="icon-btn"></ion-icon></td>
+            <td class="action-cell">
+                ${renderBotonPago(pago)}
+            </td>
         `;
         tabla.appendChild(tr);
+
+        const btnPagar = tr.querySelector('.btn-pago-cuota');
+        if (btnPagar) {
+            btnPagar.addEventListener('click', () => abrirModalPago(pago.id));
+        }
     });
+
+    const totalRow = document.createElement('tr');
+    totalRow.classList.add('fila-total-periodo');
+    totalRow.innerHTML = `
+        <td><strong>TOTAL DEL PERIODO</strong></td>
+        <td>—</td>
+        <td>—</td>
+        <td>—</td>
+        <td><strong>${formatearMoneda((totales.deudaPendiente || 0) + (totales.totalPagado || 0), false)}</strong></td>
+        <td>—</td>
+        <td></td>
+    `;
+    tabla.appendChild(totalRow);
+}
+
+function renderBotonPago(pago) {
+    const estado = (pago.estado || '').toUpperCase();
+    if (estado === 'PAGADO') {
+        return '<ion-icon name="checkmark-done-outline" class="icon-btn icon-disabled" title="Pagado"></ion-icon>';
+    }
+    return `<button class="btn-outline btn-sm btn-pago-cuota" type="button" data-id="${pago.id}">Pagar</button>`;
+}
+
+async function cargarPensiones(periodo = '') {
+    const query = periodo ? `?periodo=${encodeURIComponent(periodo)}` : '';
+    const data = await fetchJson(`/alumno/pagos${query}`, 'No se pudieron cargar las pensiones');
+    state.pensiones = {
+        periodosDisponibles: data?.periodosDisponibles || [],
+        periodoActual: data?.periodoActual || periodo,
+        pagos: data?.pagos || [],
+        totales: data?.totales || {}
+    };
+    poblarSelectorPeriodos();
+    actualizarDatosPensiones();
+}
+
+function poblarSelectorPeriodos() {
+    const select = document.getElementById('selector-periodo-pensiones');
+    if (!select) return;
+    const periodos = state.pensiones?.periodosDisponibles || [];
+    select.innerHTML = '';
+    periodos.forEach(periodo => {
+        const option = document.createElement('option');
+        option.value = periodo;
+        option.textContent = periodo === state.pensiones?.periodoActual ? `${periodo} (Actual)` : periodo;
+        if (periodo === state.pensiones?.periodoActual) {
+            option.selected = true;
+        }
+        select.appendChild(option);
+    });
+}
+
+function abrirModalPago(cuotaId) {
+    const modal = document.getElementById('modal-pago');
+    const select = document.getElementById('select-cuota-pago');
+    if (!modal || !select) return;
+    const pendientes = (state.pensiones?.pagos || []).filter(p => (p.estado || '').toUpperCase() !== 'PAGADO');
+    if (!pendientes.length) {
+        mostrarMensajeError('No hay cuotas pendientes por pagar en este periodo');
+        return;
+    }
+    select.innerHTML = pendientes.map(p => `<option value="${p.id}">${p.concepto} - ${formatearMoneda(p.importeFinal || p.monto)}</option>`).join('');
+    select.value = cuotaId || pendientes[0].id;
+    actualizarDetalleModalPago();
+    modal.classList.remove('hidden');
+}
+
+function cerrarModalPago() {
+    const modal = document.getElementById('modal-pago');
+    if (modal) modal.classList.add('hidden');
+}
+
+function actualizarDetalleModalPago() {
+    const select = document.getElementById('select-cuota-pago');
+    const conceptoEl = document.getElementById('modal-concepto-pago');
+    const montoEl = document.getElementById('modal-monto-pago');
+    const vencimientoEl = document.getElementById('modal-vencimiento-pago');
+    if (!select) return;
+    const cuota = (state.pensiones?.pagos || []).find(p => `${p.id}` === `${select.value}`);
+    if (!cuota) return;
+    conceptoEl.textContent = cuota.concepto || '';
+    montoEl.textContent = formatearMoneda(cuota.importeFinal || cuota.monto);
+    vencimientoEl.textContent = formatearFechaCorta(cuota.vencimiento);
+    state.cuotaSeleccionada = cuota;
+}
+
+async function confirmarPagoSimulado() {
+    if (!state.cuotaSeleccionada) return;
+    await fetchJson(`/alumno/pagos/${state.cuotaSeleccionada.id}/pagar`, 'No se pudo registrar el pago', {
+        method: 'PUT'
+    });
+    mostrarMensajeExito('Pago registrado correctamente');
+    cerrarModalPago();
+    await cargarPensiones(state.pensiones?.periodoActual);
 }
 
 /* ============================================================
@@ -1118,7 +1243,7 @@ async function refrescarEstadoMatricula() {
 
 async function cargarDatosIniciales() {
     try {
-        const [perfil, resumen, cursos, horario, pagos] = await Promise.all([
+        const [perfil, resumen, cursos, horario, pensiones] = await Promise.all([
             fetchJson('/alumno/info', 'No se pudo obtener la información del alumno'),
             fetchJson('/alumno/matricula/actual', 'No se pudo obtener la matrícula actual'),
             fetchJson('/alumno/matricula/cursos', 'No se pudieron cargar los cursos'),
@@ -1130,10 +1255,16 @@ async function cargarDatosIniciales() {
         state.resumen = resumen;
         state.cursosMatriculados = Array.isArray(cursos) ? cursos : [];
         state.horario = Array.isArray(horario) ? horario : [];
-        state.pagos = Array.isArray(pagos) ? pagos : [];
+        state.pensiones = {
+            periodosDisponibles: pensiones?.periodosDisponibles || [],
+            periodoActual: pensiones?.periodoActual || null,
+            pagos: pensiones?.pagos || [],
+            totales: pensiones?.totales || {}
+        };
 
         actualizarResumenMatricula();
         actualizarDatosPensiones();
+        poblarSelectorPeriodos();
         actualizarFichaAlumno();
         renderCursosInscritos();
         renderHorarioTablas();
@@ -1171,4 +1302,13 @@ document.addEventListener('DOMContentLoaded', () => {
         btnPdf.title = '';
         btnPdf.addEventListener('click', descargarHorarioPdf);
     }
+
+    document.getElementById('selector-periodo-pensiones')?.addEventListener('change', (e) => {
+        cargarPensiones(e.target.value);
+    });
+    document.getElementById('btn-realizar-pago')?.addEventListener('click', () => abrirModalPago());
+    document.getElementById('select-cuota-pago')?.addEventListener('change', actualizarDetalleModalPago);
+    document.getElementById('btn-cancelar-pago')?.addEventListener('click', cerrarModalPago);
+    document.getElementById('btn-cancelar-pago-footer')?.addEventListener('click', cerrarModalPago);
+    document.getElementById('btn-confirmar-pago')?.addEventListener('click', confirmarPagoSimulado);
 });
