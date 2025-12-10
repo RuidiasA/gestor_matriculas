@@ -129,7 +129,7 @@ label { display: block; color: var(--color-texto); font-weight: 600; font-size: 
 
 /* Tablas */
 .table-wrapper, .tabla-wrapper { width: 100%; overflow: auto; border: 1px solid var(--color-borde); border-radius: var(--radius-lg); background: rgba(255,255,255,0.02); }
-.admin-table { width: 100%; border-collapse: collapse; min-width: 560px; }
+.admin-table { width: 100%; border-collapse: collapse; }
 .admin-table thead th { text-align: left; color: var(--color-texto-suave); font-weight: 600; font-size: 12px; letter-spacing: 0.02em; padding: 12px; text-transform: uppercase; border-bottom: 1px solid var(--color-borde); background: rgba(255,255,255,0.02); }
 .admin-table tbody td { padding: 12px; color: var(--color-texto); border-bottom: 1px solid var(--color-borde); font-size: 14px; }
 .admin-table tbody tr:hover { background: rgba(255,255,255,0.03); }

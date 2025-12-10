@@ -41,11 +41,13 @@ html::-webkit-scrollbar{ display: none}
 /* =============================================================
    SECCIÓN CURSOS
    ============================================================= */
-.admin-panel { display: grid; grid-template-columns: 1.8fr 1fr; gap: var(--space-4); }
-.panel-izquierdo, .panel-derecho { display: flex; flex-direction: column; gap: var(--space-4); }
+.admin-panel { display: grid; grid-template-columns: 1.8fr 1fr; gap: var(--space-4); max-height: 88vh; }
+.panel-izquierdo, .panel-derecho { display: flex; flex-direction: column; gap: var(--space-4); max-height: 88vh; }
+.panel-derecho { overflow-y: auto; height: 100%; }
+.table-wrapper--cursos { max-height: 54vh; }
+.panel-derecho::-webkit-scrollbar { display: none; }
 .card--buscar-cursos .card__actions { gap: var(--space-2); }
 .cursos-form { display: flex; flex-direction: column; gap: var(--space-4); }
-.table-wrapper--cursos { max-height: 100%; }
 .detalle-card { display: flex; flex-direction: column; gap: var(--space-4); }
 .detalle-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: var(--space-3); }
 .detalle-label { color: var(--color-texto); text-transform: uppercase; letter-spacing: 0.06em; }
@@ -67,8 +69,11 @@ html::-webkit-scrollbar{ display: none}
 /* =============================================================
    SECCIÓN SECCIONES
    ============================================================= */
-.secciones-grid { display: grid; grid-template-columns: 1.8fr 1fr; gap: var(--space-4); }
-.secciones-col { display: flex; flex-direction: column; gap: var(--space-4); }
+.secciones-grid { display: grid; grid-template-columns: 1.8fr 1fr; gap: var(--space-4); max-height: 88vh; }
+.secciones-col { display: flex; flex-direction: column; gap: var(--space-4); max-height: 88vh; }
+.seccion-ficha, .table-wrapper--secciones { overflow-y: auto; }
+.table-wrapper--secciones { max-height: 45vh; border: 1px solid var(--color-borde); border-radius: var(--radius-lg); }
+.seccion-ficha::-webkit-scrollbar, .table-wrapper--secciones::-webkit-scrollbar { display: none }
 .form-grid-secciones, .form-grid-cursos { display: grid; grid-template-columns: repeat(3, minmax(180px, 1fr)); gap: var(--space-3); }
 .form-actions-busqueda-cursos { display: flex; justify-content: space-between; }
 .form-actions { display: flex; gap: var(--space-2); align-items: flex-end }
@@ -83,12 +88,15 @@ html::-webkit-scrollbar{ display: none}
 .tab-content { display: none; }
 .tab-content.active { display: block; }
 .form-busqueda-secciones .form-grid-secciones { grid-template-columns: repeat(2, 1fr) }
+#tablaSecciones { max-height: 40vh;  }
 
 /* =============================================================
    SECCIÓN ALUMNOS
    ============================================================= */
 .alumnos-grid { display: grid; grid-template-columns: 1.8fr 1fr; gap: var(--space-4); }
 .ficha__grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-3); }
+.ficha-alumno { overflow-y: auto; }
+.ficha-alumno::-webkit-scrollbar { display: none; }
 .panel-header { display: flex; justify-content: space-between; }
 .resumen-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: var(--space-3); }
 .historial { display: flex; flex-direction: column; gap: var(--space-3); }

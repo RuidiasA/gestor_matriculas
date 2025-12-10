@@ -79,7 +79,7 @@
     .historial-container-seccion {
         padding: 30px;
         border-radius: 18px;
-        max-height: 85vh;
+        overflow-y: auto;
     }
 }
 
