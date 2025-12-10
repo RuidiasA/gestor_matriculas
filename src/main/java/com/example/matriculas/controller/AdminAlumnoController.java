@@ -42,13 +42,15 @@ public class AdminAlumnoController {
     }
 
     @GetMapping("/{id}/matriculas")
-    public List<CursoMatriculadoDTO> obtenerCursos(@PathVariable Long id, @RequestParam String ciclo) {
-        return alumnoService.obtenerCursos(id, ciclo);
+    public List<CursoMatriculadoDTO> obtenerCursos(@PathVariable Long id) {
+        // Siempre usa el ciclo actual del alumno
+        return alumnoService.obtenerCursosDelCicloActual(id);
     }
 
     @GetMapping("/{id}/resumen")
-    public ResumenMatriculaDTO obtenerResumen(@PathVariable Long id, @RequestParam String ciclo) {
-        return alumnoService.obtenerResumen(id, ciclo);
+    public ResumenMatriculaDTO obtenerResumen(@PathVariable Long id) {
+        // Siempre usa el ciclo actual del alumno
+        return alumnoService.obtenerResumenDelCicloActual(id);
     }
 
     @GetMapping("/{id}/historial")

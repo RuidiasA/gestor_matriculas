@@ -1,6 +1,9 @@
 /* =========================================
    ESTILOS DE PENSIONES
 ========================================= */
+#vista-pensiones {
+    width: 100%;
+}
 
 /* --- Dashboard (Tarjetas) --- */
 .pensiones-dashboard {

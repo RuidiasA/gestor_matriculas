@@ -38,7 +38,6 @@ function mostrarVista(vista, event) {
         vistas.matricula?.classList.remove('hidden');
         asideDerecho?.classList.remove('hidden');
         body.classList.remove('layout-2-cols');
-        renderHorarioTablas();
     } else if (vista === 'solicitud') {
         vistas.solicitud?.classList.remove('hidden');
         asideDerecho?.classList.add('hidden');

@@ -73,7 +73,7 @@ public class AlumnoPortalService {
     private final EvidenciaStorageService evidenciaStorageService;
 
 
-    @Transactional(readOnly = true)
+    @Transactional
     public AlumnoPerfilDTO obtenerPerfil() {
         Alumno alumno = obtenerAlumnoActual();
         String ciclo = obtenerCicloActual(alumno);
@@ -235,7 +235,7 @@ public class AlumnoPortalService {
         }
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public PensionesResponseDTO obtenerPagos(String periodo) {
         Alumno alumno = obtenerAlumnoActual();
         List<String> periodosDisponibles = matriculaRepository.findDistinctCiclosByAlumnoId(alumno.getId());
@@ -944,15 +944,32 @@ public class AlumnoPortalService {
         return guardada;
     }
 
+    @Transactional
     private void actualizarTotales(Matricula matricula) {
+
+        // 1. Recalcular créditos y horas
         List<DetalleMatricula> detalles = detalleMatriculaRepository.findByMatriculaId(matricula.getId());
-        int creditos = detalles.stream().map(det -> Optional.ofNullable(det.getCreditos()).orElse(0)).mapToInt(Integer::intValue).sum();
-        int horas = detalles.stream().map(det -> Optional.ofNullable(det.getHorasSemanales()).orElse(0)).mapToInt(Integer::intValue).sum();
+
+        int creditos = detalles.stream()
+                .map(det -> Optional.ofNullable(det.getCreditos()).orElse(0))
+                .mapToInt(Integer::intValue)
+                .sum();
+
+        int horas = detalles.stream()
+                .map(det -> Optional.ofNullable(det.getHorasSemanales()).orElse(0))
+                .mapToInt(Integer::intValue)
+                .sum();
+
         matricula.setTotalCreditos(creditos);
         matricula.setTotalHoras(horas);
-        matricula.setMontoTotal((double) creditos * 100);
+
+        // 2. Regenerar o actualizar cuotas con la nueva sumatoria de créditos
+        pensionCuotaService.generarCuotasSiNoExisten(matricula);
+
+        // 3. No calcules montoTotal aquí; lo calcula PensionCuotaService
         matriculaRepository.save(matricula);
     }
+
 
     private PensionCuotaDTO mapearCuota(PensionCuota cuota) {
         String concepto = cuota.getTipoConcepto() == TipoConcepto.MATRICULA

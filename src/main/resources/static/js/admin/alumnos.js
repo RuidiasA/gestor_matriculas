@@ -28,7 +28,6 @@ export function createAlumnosModule(tools) {
     const btnGuardarContacto = document.getElementById('btnGuardarContacto');
     const estadoContacto = document.getElementById('estadoContacto');
 
-    const selectorCiclo = document.getElementById('selectorCiclo');
     const tablaCursos = document.querySelector('#tablaCursosMatriculados tbody');
     const totalCursos = document.getElementById('totalCursos');
     const totalCreditos = document.getElementById('totalCreditos');
@@ -64,13 +63,6 @@ export function createAlumnosModule(tools) {
             btnRefrescar.addEventListener('click', buscarAlumnos);
         }
 
-        if (selectorCiclo) {
-            selectorCiclo.addEventListener('change', () => {
-                if (alumnoSeleccionado) {
-                    cargarDetalleAcademico(alumnoSeleccionado.id, selectorCiclo.value);
-                }
-            });
-        }
 
         if (btnEditarContacto) {
             btnEditarContacto.addEventListener('click', () => habilitarEdicion(true));
@@ -142,8 +134,7 @@ export function createAlumnosModule(tools) {
                 renderizarHistorial([], null, null);
                 alumnoSeleccionado = alumno;
                 cargarFicha(alumno);
-                cargarPeriodos(alumno);
-                if (selectorCiclo.value) cargarDetalleAcademico(alumno.id, selectorCiclo.value);
+                cargarDetalleAcademico(alumno.id, alumno.cicloActual);
             });
             tablaAlumnos.appendChild(tr);
         });
@@ -169,38 +160,26 @@ export function createAlumnosModule(tools) {
         limpiarEstadoContacto();
     }
 
-    function cargarPeriodos(alumno) {
-        selectorCiclo.innerHTML = '';
-        const periodos = alumno.periodos || [];
-        const ordenados = [...periodos].sort((a, b) => b.localeCompare(a));
-        const cicloActual = alumno.cicloActual || ordenados[0];
-        selectorCiclo.disabled = false;
+    async function cargarDetalleAcademico(idAlumno, cicloActual) {
 
-        if (!ordenados.length) {
-            selectorCiclo.disabled = true;
-            selectorCiclo.innerHTML = '<option value="">Sin ciclos</option>';
-            renderizarCursos([]);
-            renderizarResumen({});
+        // Si no recibimos cicloActual, usamos el del alumno seleccionado
+        if (!cicloActual) {
+            cicloActual = alumnoSeleccionado?.cicloActual || null;
+        }
+
+        if (!cicloActual) {
+            tools.showToast("No se pudo determinar el ciclo del alumno", "error");
             return;
         }
 
-        ordenados.forEach(ciclo => {
-            const opt = document.createElement('option');
-            opt.value = ciclo;
-            opt.textContent = ciclo;
-            selectorCiclo.appendChild(opt);
-        });
-
-        selectorCiclo.value = cicloActual || ordenados[0];
-    }
-
-    async function cargarDetalleAcademico(idAlumno, ciclo) {
-        if (!ciclo) return;
         mostrarSkeletonCursos('Cargando cursos...');
+
         try {
+            const ciclo = encodeURIComponent(cicloActual);
+
             const [cursosRes, resumenRes, historialRes] = await Promise.all([
-                fetch(`/admin/alumnos/${idAlumno}/matriculas?ciclo=${encodeURIComponent(ciclo)}`),
-                fetch(`/admin/alumnos/${idAlumno}/resumen?ciclo=${encodeURIComponent(ciclo)}`),
+                fetch(`/admin/alumnos/${idAlumno}/matriculas?ciclo=${ciclo}`),
+                fetch(`/admin/alumnos/${idAlumno}/resumen?ciclo=${ciclo}`),
                 fetch(`/admin/alumnos/${idAlumno}/historial`)
             ]);
 
@@ -213,10 +192,13 @@ export function createAlumnosModule(tools) {
             const historial = await historialRes.json();
 
             const historialNormalizado = Array.isArray(historial) ? historial : [];
+
             historialMatriculasCache = historialNormalizado;
+
             renderizarCursos(cursos);
             renderizarResumen(resumen);
-            renderizarHistorial(historialNormalizado, idAlumno, ciclo);
+            renderizarHistorial(historialNormalizado, idAlumno, cicloActual);
+
         } catch (err) {
             mostrarSkeletonCursos(err.message || 'Sin información');
             tools.showToast('No se pudo cargar el detalle académico', 'error');
@@ -410,8 +392,6 @@ export function createAlumnosModule(tools) {
         cursosPorCicloCache = {};
         tablaAlumnos.querySelectorAll('tr').forEach(fila => fila.classList.remove('selected'));
         cargarFicha({});
-        selectorCiclo.innerHTML = '';
-        selectorCiclo.disabled = true;
         renderizarCursos([]);
         renderizarResumen({});
         renderizarHistorial([], null, null);

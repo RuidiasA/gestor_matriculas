@@ -60,11 +60,36 @@
         <!-- ======================================================
              VISTA — MATRÍCULA
         ======================================================= -->
-        <section id="vista-matricula">
-            <h1>PORTAL DE MATRÍCULA</h1>
+        <section id="vista-matricula" class="vista-matricula">
 
             <div class="matricula-layout">
                 <div class="col-izquierda">
+                    <article class="card inscritos-card">
+                        <header class="card__header">
+                            <div>
+                                <p class="eyebrow">Carga actual</p>
+                                <h3>Cursos matriculados</h3>
+                                <p class="muted">Gestiona retiros y mantén tu carga al día.</p>
+                            </div>
+                        </header>
+                        <div class="table-wrapper table-wrapper--inscritos">
+                            <table class="admin-table alumno-table alumno-table--compact">
+                                <thead>
+                                <tr>
+                                    <th>Sección</th>
+                                    <th>Curso</th>
+                                    <th>Créditos</th>
+                                    <th>Modalidad</th>
+                                    <th>Docente</th>
+                                    <th class="col-acciones">Acción</th>
+                                </tr>
+                                </thead>
+                                <tbody id="tabla-inscritos-body">
+                                <tr><td colspan="6" class="estado-vacio">Aún no tienes cursos matriculados.</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </article>
                     <article class="card tabla-cursos-card">
                             <header class="card__header">
                                 <div>
@@ -180,66 +205,13 @@
                             <button class="btn-outline" id="btn-descargar-resumen" type="button" disabled title="Función no disponible">Descargar PDF</button>
                         </div>
                     </article>
-
-                    <article class="card inscritos-card">
-                        <header class="card__header">
-                            <div>
-                                <p class="eyebrow">Carga actual</p>
-                                <h3>Cursos matriculados</h3>
-                                <p class="muted">Gestiona retiros y mantén tu carga al día.</p>
-                            </div>
-                        </header>
-                        <div class="table-wrapper table-wrapper--inscritos">
-                            <table class="admin-table alumno-table alumno-table--compact">
-                                <thead>
-                                <tr>
-                                    <th>Sección</th>
-                                    <th>Curso</th>
-                                    <th>Créditos</th>
-                                    <th>Modalidad</th>
-                                    <th>Docente</th>
-                                    <th class="col-acciones">Acción</th>
-                                </tr>
-                                </thead>
-                                <tbody id="tabla-inscritos-body">
-                                <tr><td colspan="6" class="estado-vacio">Aún no tienes cursos matriculados.</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </article>
                 </aside>
             </div>
-
-            <article class="horario-card">
-                <header class="card__header-horario">
-                    <div>
-                        <h2>HORARIO</h2>
-                    </div>
-                </header>
-                <div class="tabla-horario-completa">
-                    <div class="horario-completo">
-                        <div class="horario-header-grid">
-                            <div class="horario-header-cell">Hora</div>
-                            <div class="horario-header-cell">Lunes</div>
-                            <div class="horario-header-cell">Martes</div>
-                            <div class="horario-header-cell">Miércoles</div>
-                            <div class="horario-header-cell">Jueves</div>
-                            <div class="horario-header-cell">Viernes</div>
-                            <div class="horario-header-cell">Sábado</div>
-                        </div>
-                        <div class="horario-grid" data-horario="matricula"></div>
-                    </div>
-                </div>
-            </article>
         </section>
         <!-- ======================================================
             VISTA — HORARIO
        ======================================================= -->
         <section id="vista-horario" class="hidden vista-horario">
-
-            <div class="main__container-item">
-                <h1>HORARIO DEL ESTUDIANTE</h1>
-            </div>
 
             <div class="horario-layout">
 
@@ -327,10 +299,6 @@
              VISTA — PENSIONES
         ======================================================= -->
         <section id="vista-pensiones" class="hidden">
-
-            <div class="main__container-item">
-                <h1>ESTADO DE CUENTA</h1>
-            </div>
 
             <div class="pensiones-dashboard">
 

@@ -188,6 +188,33 @@ public class AlumnoService {
         return matriculaRepository.findDistinctCiclosByAlumnoId(id);
     }
 
+    @Transactional(readOnly = true)
+    public String obtenerCicloActual(Long alumnoId) {
+        Alumno alumno = alumnoRepository.findById(alumnoId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Alumno no encontrado"));
+
+        if (alumno.getCicloActual() == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "El alumno no tiene ciclo actual registrado");
+        }
+
+        return alumno.getCicloActual().toString(); // ejemplo: "2026-1"
+    }
+
+    @Transactional(readOnly = true)
+    public List<CursoMatriculadoDTO> obtenerCursosDelCicloActual(Long alumnoId) {
+        String cicloActual = obtenerCicloActual(alumnoId);
+        return obtenerCursos(alumnoId, cicloActual);
+    }
+
+    @Transactional(readOnly = true)
+    public ResumenMatriculaDTO obtenerResumenDelCicloActual(Long alumnoId) {
+        String cicloActual = obtenerCicloActual(alumnoId);
+        return obtenerResumen(alumnoId, cicloActual);
+    }
+
+
     // ===============================================================
     // ADMIN: Cursos matriculados por ciclo
     // ===============================================================
@@ -281,59 +308,68 @@ public class AlumnoService {
     // ===============================================================
     private ResumenMontos calcularMontos(Long alumnoId, String ciclo, Matricula matricula) {
 
+        // ============================================
+        // 1. Recuperar las cuotas registradas (pagos)
+        // ============================================
         List<PensionCuota> pagos = pensionCuotaRepository.findByAlumnoAndPeriodo(alumnoId, ciclo);
 
         BigDecimal montoMatricula = BigDecimal.ZERO;
-        BigDecimal montoPensionPromedio = BigDecimal.ZERO;
+        BigDecimal sumaPensionesPagadas = BigDecimal.ZERO;
         BigDecimal moraTotal = BigDecimal.ZERO;
-        BigDecimal descuentos = BigDecimal.ZERO;
-        BigDecimal sumaPensiones = BigDecimal.ZERO;
-
-        int conteoPensiones = 0;
+        BigDecimal descuentosTotal = BigDecimal.ZERO;
 
         for (PensionCuota p : pagos) {
 
-            String tipo = p.getTipoConcepto() != null ? p.getTipoConcepto().name() : "";
-
-            BigDecimal monto = (p.getImporteFinal() != null)
+            BigDecimal importeFinal = p.getImporteFinal() != null
                     ? BigDecimal.valueOf(p.getImporteFinal())
                     : BigDecimal.ZERO;
 
-            switch (tipo) {
-                case "MATRICULA" -> montoMatricula = montoMatricula.add(monto);
-                case "PENSION" -> {
-                    sumaPensiones = sumaPensiones.add(monto);
-                    conteoPensiones++;
-                }
+            switch (p.getTipoConcepto()) {
+
+                case MATRICULA -> montoMatricula = montoMatricula.add(importeFinal);
+
+                case PENSION -> sumaPensionesPagadas = sumaPensionesPagadas.add(importeFinal);
             }
 
             if (p.getMora() != null) {
                 moraTotal = moraTotal.add(BigDecimal.valueOf(p.getMora()));
             }
+
             if (p.getDescuento() != null) {
-                descuentos = descuentos.add(BigDecimal.valueOf(p.getDescuento()));
+                descuentosTotal = descuentosTotal.add(BigDecimal.valueOf(p.getDescuento()));
             }
         }
 
-        if (conteoPensiones > 0) {
-            montoPensionPromedio = sumaPensiones.divide(
-                    BigDecimal.valueOf(conteoPensiones),
-                    2,
-                    RoundingMode.HALF_UP
-            );
+        // ============================================
+        // 2. Calcular precio real de una pensión
+        //    (créditos totales * 50)
+        // ============================================
+        BigDecimal precioPension = BigDecimal.ZERO;
+
+        if (matricula != null && matricula.getTotalCreditos() != null) {
+            precioPension = BigDecimal.valueOf(matricula.getTotalCreditos())
+                    .multiply(BigDecimal.valueOf(50)); // <-- regla de negocio
         }
 
+        // ============================================
+        // 3. Calcular monto total del ciclo
+        //
+        // total = matrícula + pensionesPagadas + mora - descuentos
+        //
+        // (NO usar montoTotal del campo legacy de matrícula)
+        // ============================================
         BigDecimal totalCalculado =
-                (matricula != null && matricula.getMontoTotal() != null)
-                        ? BigDecimal.valueOf(matricula.getMontoTotal())
-                        : montoMatricula.add(sumaPensiones).add(moraTotal).subtract(descuentos);
+                montoMatricula
+                        .add(sumaPensionesPagadas)
+                        .add(moraTotal)
+                        .subtract(descuentosTotal);
 
         return new ResumenMontos(
-                montoMatricula.doubleValue(),
-                montoPensionPromedio.doubleValue(),
-                moraTotal.doubleValue(),
-                descuentos.doubleValue(),
-                totalCalculado.doubleValue()
+                montoMatricula.doubleValue(),              // matrícula del ciclo
+                precioPension.doubleValue(),               // costo real de 1 pensión
+                moraTotal.doubleValue(),                   // moras acumuladas
+                descuentosTotal.doubleValue(),             // descuentos
+                totalCalculado.doubleValue()               // monto total del ciclo
         );
     }
 

@@ -13,16 +13,13 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.time.temporal.TemporalAdjusters;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 public class PensionCuotaService {
 
-    private static final double MONTO_MATRICULA = 350.0;
-    private static final double MONTO_PENSION = 800.0;
+    private static final double COSTO_MATRICULA = 400.0;
 
     private final PensionCuotaRepository pensionCuotaRepository;
 
@@ -31,29 +28,101 @@ public class PensionCuotaService {
         if (matricula == null || matricula.getAlumno() == null || matricula.getCicloAcademico() == null) {
             return List.of();
         }
-        List<PensionCuota> existentes = pensionCuotaRepository
-                .findByAlumnoAndPeriodo(matricula.getAlumno().getId(), matricula.getCicloAcademico());
-        if (!existentes.isEmpty()) {
-            return existentes;
-        }
+
+        Long alumnoId = matricula.getAlumno().getId();
+        String ciclo = matricula.getCicloAcademico();
+
+        int creditos = Optional.ofNullable(matricula.getTotalCreditos()).orElse(0);
+        double costoPensionCuota = creditos * 50.0;
+
+        List<PensionCuota> existentes =
+                pensionCuotaRepository.findByAlumnoAndPeriodo(alumnoId, ciclo);
+
         LocalDate fechaBase = Optional.ofNullable(matricula.getFechaMatricula())
-                .map(fecha -> fecha.toLocalDate())
+                .map(f -> f.toLocalDate())
                 .orElse(LocalDate.now());
 
-        List<PensionCuota> cuotas = new ArrayList<>();
+        List<PensionCuota> resultado = new ArrayList<>();
 
-        PensionCuota matriculaCuota = construirCuota(matricula, TipoConcepto.MATRICULA, null,
-                fechaBase.plusDays(7), MONTO_MATRICULA);
-        cuotas.add(matriculaCuota);
+        // =========================================================================
+        // 1. MATRÍCULA — Única cuota
+        // =========================================================================
+        PensionCuota cuotaMatricula = existentes.stream()
+                .filter(c -> c.getTipoConcepto() == TipoConcepto.MATRICULA)
+                .findFirst()
+                .orElseGet(() -> {
+                    PensionCuota nueva = new PensionCuota();
+                    nueva.setAlumno(matricula.getAlumno());
+                    nueva.setMatricula(matricula);
+                    nueva.setPeriodoAcademico(ciclo);
+                    nueva.setTipoConcepto(TipoConcepto.MATRICULA);
+                    nueva.setNumeroCuota(null);
+                    return nueva;
+                });
 
-        LocalDate primerVencimiento = fechaBase.withDayOfMonth(Math.min(28, fechaBase.getDayOfMonth()));
-        for (int i = 1; i <= 5; i++) {
-            LocalDate vencimiento = primerVencimiento.plusMonths(i - 1)
-                    .with(TemporalAdjusters.lastDayOfMonth());
-            PensionCuota cuota = construirCuota(matricula, TipoConcepto.PENSION, i, vencimiento, MONTO_PENSION);
-            cuotas.add(cuota);
+        // Actualizar vencimiento incluso si ya existía (pero no si está pagada)
+        if (cuotaMatricula.getEstadoPago() == null || cuotaMatricula.getEstadoPago() != EstadoPago.PAGADO) {
+            cuotaMatricula.setFechaVencimiento(fechaBase.plusDays(7));
+            cuotaMatricula.setImporteOriginal(COSTO_MATRICULA);
+            cuotaMatricula.setDescuento(0.0);
+            cuotaMatricula.setMora(0.0);
+            cuotaMatricula.recalcularImporteFinal();
         }
-        return pensionCuotaRepository.saveAll(cuotas);
+        resultado.add(cuotaMatricula);
+
+
+        // =========================================================================
+        // 2. PENSIONES — 5 cuotas
+        // =========================================================================
+        final Matricula matriculaFinal = matricula;
+        final String cicloFinal = ciclo;
+
+        List<PensionCuota> pensionesExistentes = existentes.stream()
+                .filter(c -> c.getTipoConcepto() == TipoConcepto.PENSION)
+                .sorted(Comparator.comparing(c -> Optional.ofNullable(c.getNumeroCuota()).orElse(0)))
+                .toList();
+
+        final LocalDate primerVencimiento = fechaBase.withDayOfMonth(
+                Math.min(28, fechaBase.getDayOfMonth())
+        );
+
+        int NUM_CUOTAS = 5;
+
+        for (int i = 1; i <= NUM_CUOTAS; i++) {
+
+            final int numeroCuota = i; // ¡IMPORTANTE!
+
+            PensionCuota cuota = pensionesExistentes.stream()
+                    .filter(c -> Objects.equals(c.getNumeroCuota(), numeroCuota))
+                    .findFirst()
+                    .orElseGet(() -> {
+                        PensionCuota nueva = new PensionCuota();
+                        nueva.setAlumno(matriculaFinal.getAlumno());
+                        nueva.setMatricula(matriculaFinal);
+                        nueva.setPeriodoAcademico(cicloFinal);
+                        nueva.setTipoConcepto(TipoConcepto.PENSION);
+                        nueva.setNumeroCuota(numeroCuota);
+                        return nueva;
+                    });
+
+            // Actualizar vencimiento si no está pagada
+            if (cuota.getEstadoPago() == null || cuota.getEstadoPago() != EstadoPago.PAGADO) {
+                cuota.setFechaVencimiento(
+                        primerVencimiento.plusMonths(numeroCuota - 1)
+                                .with(TemporalAdjusters.lastDayOfMonth())
+                );
+                cuota.setImporteOriginal(costoPensionCuota);
+                cuota.setDescuento(0.0);
+                cuota.setMora(0.0);
+                cuota.recalcularImporteFinal();
+            }
+
+            resultado.add(cuota);
+        }
+
+
+
+        return pensionCuotaRepository.saveAll(resultado);
     }
 
     @Transactional(readOnly = true)
@@ -65,49 +134,38 @@ public class PensionCuotaService {
     public PensionCuota registrarPago(Long cuotaId, Long alumnoId) {
         PensionCuota cuota = pensionCuotaRepository.findByIdAndAlumnoId(cuotaId, alumnoId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pago no encontrado"));
+
         if (cuota.getEstadoPago() == EstadoPago.PAGADO) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "La cuota ya fue pagada");
         }
+
         cuota.actualizarEstadoPorVencimiento(LocalDate.now());
-        if (cuota.getEstadoPago() == EstadoPago.PAGADO) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "La cuota ya fue pagada");
-        }
+
         cuota.setEstadoPago(EstadoPago.PAGADO);
         cuota.setFechaPago(LocalDate.now());
+
         return pensionCuotaRepository.save(cuota);
     }
 
     @Transactional
     public void actualizarEstadosVencidos(List<PensionCuota> cuotas) {
+        if (cuotas == null || cuotas.isEmpty()) return;
+
         LocalDate hoy = LocalDate.now();
-        boolean actualizar = false;
+        boolean requiereGuardar = false;
+
         for (PensionCuota cuota : cuotas) {
-            EstadoPago antes = cuota.getEstadoPago();
+            EstadoPago estadoAntes = cuota.getEstadoPago();
             cuota.actualizarEstadoPorVencimiento(hoy);
-            if (antes != cuota.getEstadoPago()) {
-                actualizar = true;
+
+            if (estadoAntes != cuota.getEstadoPago()) {
+                requiereGuardar = true;
             }
         }
-        if (cuotas.isEmpty() || !actualizar) {
-            return;
+
+        if (requiereGuardar) {
+            pensionCuotaRepository.saveAll(cuotas);
         }
-        pensionCuotaRepository.saveAll(cuotas);
     }
 
-    private PensionCuota construirCuota(Matricula matricula, TipoConcepto tipo, Integer numeroCuota,
-                                        LocalDate vencimiento, double monto) {
-        PensionCuota cuota = new PensionCuota();
-        cuota.setAlumno(matricula.getAlumno());
-        cuota.setMatricula(matricula);
-        cuota.setPeriodoAcademico(matricula.getCicloAcademico());
-        cuota.setTipoConcepto(tipo);
-        cuota.setNumeroCuota(numeroCuota);
-        cuota.setFechaVencimiento(vencimiento);
-        cuota.setImporteOriginal(monto);
-        cuota.setMora(0.0);
-        cuota.setDescuento(0.0);
-        cuota.setEstadoPago(EstadoPago.PENDIENTE);
-        cuota.recalcularImporteFinal();
-        return cuota;
-    }
 }
