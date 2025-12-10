@@ -145,6 +145,7 @@
 .badge.pendiente{ background-color: #ffcc80; color: #ef6c00; }
 .badge.futuro   { background-color: #eceff1; color: #607d8b; }
 .badge.vencido  { background-color: #ffcdd2; color: #c62828; }
+.badge.atrasado { background-color: #ffcdd2; color: #c62828; }
 
 /* --- Iconos de Acción --- */
 .action-cell {
@@ -159,6 +160,68 @@
 
 .icon-disabled {
     color: #ccc;
+}
+
+.fila-total-periodo td {
+    font-weight: 700;
+    background: #f8f9fb;
+}
+
+/* --- Modal de pago --- */
+.modal {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.4);
+    z-index: 1000;
+}
+
+.modal.hidden {
+    display: none;
+}
+
+.modal__dialog {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    width: min(480px, 90vw);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+}
+
+.modal__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.modal__close {
+    background: transparent;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.modal__body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.modal__resumen {
+    background: #f7f9fc;
+    border-radius: 10px;
+    padding: 12px;
+    font-size: 0.95rem;
+}
+
+.modal__footer {
+    margin-top: 16px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
 }
 
 /* ============================================================

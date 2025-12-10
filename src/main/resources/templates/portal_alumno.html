@@ -373,14 +373,10 @@
 
                 <div class="selector-ciclo">
                     <label>Periodo:</label>
-                    <select>
-                        <option>2025 - II (Actual)</option>
-                        <option>2025 - I</option>
-                        <option>2024 - II</option>
-                    </select>
+                    <select id="selector-periodo-pensiones"></select>
                 </div>
 
-                <button class="btn-pagar">
+                <button class="btn-pagar" id="btn-realizar-pago">
                     <ion-icon name="card-outline"></ion-icon>
                     REALIZAR PAGO
                 </button>
@@ -401,46 +397,34 @@
                     </tr>
                     </thead>
 
-                    <tbody>
-                    <tr>
-                        <td>15 Ago, 2025</td>
-                        <td>Matrícula 2025-II</td>
-                        <td>350.00</td>
-                        <td>Tarjeta</td>
-                        <td>350.00</td>
-                        <td><span class="badge pagado">Pagado</span></td>
-                        <td class="action-cell">
-                            <ion-icon name="document-text-outline" class="icon-btn"></ion-icon>
-                        </td>
-                    </tr>
-
-                    <tr>
-                        <td>30 Ago, 2025</td>
-                        <td>Pensión 1 (Agosto)</td>
-                        <td>800.00</td>
-                        <td>Yape</td>
-                        <td>800.00</td>
-                        <td><span class="badge pagado">Pagado</span></td>
-                        <td class="action-cell">
-                            <ion-icon name="document-text-outline" class="icon-btn"></ion-icon>
-                        </td>
-                    </tr>
-
-                    <tr>
-                        <td>30 Jul, 2025</td>
-                        <td>Pensión 0 (Julio)</td>
-                        <td>850.00</td>
-                        <td>Depósito</td>
-                        <td>850.00</td>
-                        <td><span class="badge pagado">Pagado</span></td>
-                        <td class="action-cell">
-                            <ion-icon name="document-text-outline" class="icon-btn"></ion-icon>
-                        </td>
-                    </tr>
-                    </tbody>
+                    <tbody id="tabla-pensiones-body"></tbody>
                 </table>
             </div>
         </section>
+
+        <div id="modal-pago" class="modal hidden">
+            <div class="modal__dialog">
+                <header class="modal__header">
+                    <h3>Simular pago</h3>
+                    <button class="modal__close" type="button" id="btn-cancelar-pago">×</button>
+                </header>
+                <div class="modal__body">
+                    <label class="form-field" for="select-cuota-pago">
+                        <span>Selecciona la cuota</span>
+                        <select id="select-cuota-pago"></select>
+                    </label>
+                    <div class="modal__resumen">
+                        <p><strong>Concepto:</strong> <span id="modal-concepto-pago">—</span></p>
+                        <p><strong>Monto a pagar:</strong> <span id="modal-monto-pago">—</span></p>
+                        <p><strong>Vencimiento:</strong> <span id="modal-vencimiento-pago">—</span></p>
+                    </div>
+                </div>
+                <footer class="modal__footer">
+                    <button class="btn-outline" type="button" id="btn-cancelar-pago-footer">Cancelar</button>
+                    <button class="btn-primary" type="button" id="btn-confirmar-pago">Confirmar pago</button>
+                </footer>
+            </div>
+        </div>
 
         <!-- ======================================================
              VISTA — SOLICITUD

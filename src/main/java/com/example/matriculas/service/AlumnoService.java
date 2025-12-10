@@ -9,12 +9,12 @@ import com.example.matriculas.dto.ResumenMatriculaDTO;
 import com.example.matriculas.model.Alumno;
 import com.example.matriculas.model.DetalleMatricula;
 import com.example.matriculas.model.Matricula;
-import com.example.matriculas.model.Pago;
+import com.example.matriculas.model.PensionCuota;
 import com.example.matriculas.model.Usuario;
 import com.example.matriculas.model.enums.EstadoAlumno;
 import com.example.matriculas.repository.AlumnoRepository;
 import com.example.matriculas.repository.MatriculaRepository;
-import com.example.matriculas.repository.PagoRepository;
+import com.example.matriculas.repository.PensionCuotaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -39,7 +39,7 @@ public class AlumnoService {
     private final AlumnoRepository alumnoRepository;
     private final UsuarioService usuarioService;
     private final MatriculaRepository matriculaRepository;
-    private final PagoRepository pagoRepository;
+    private final PensionCuotaRepository pensionCuotaRepository;
 
     private static final Pattern CORREO_PATTERN = Pattern.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");
     private static final Pattern TELEFONO_PATTERN = Pattern.compile("^\\d{9}$");
@@ -281,7 +281,7 @@ public class AlumnoService {
     // ===============================================================
     private ResumenMontos calcularMontos(Long alumnoId, String ciclo, Matricula matricula) {
 
-        List<Pago> pagos = pagoRepository.findByAlumnoIdAndPeriodo(alumnoId, ciclo);
+        List<PensionCuota> pagos = pensionCuotaRepository.findByAlumnoAndPeriodo(alumnoId, ciclo);
 
         BigDecimal montoMatricula = BigDecimal.ZERO;
         BigDecimal montoPensionPromedio = BigDecimal.ZERO;
@@ -291,12 +291,12 @@ public class AlumnoService {
 
         int conteoPensiones = 0;
 
-        for (Pago p : pagos) {
+        for (PensionCuota p : pagos) {
 
-            String tipo = p.getTipo() != null ? p.getTipo().name() : "";
+            String tipo = p.getTipoConcepto() != null ? p.getTipoConcepto().name() : "";
 
-            BigDecimal monto = (p.getMonto() != null)
-                    ? BigDecimal.valueOf(p.getMonto())
+            BigDecimal monto = (p.getImporteFinal() != null)
+                    ? BigDecimal.valueOf(p.getImporteFinal())
                     : BigDecimal.ZERO;
 
             switch (tipo) {
@@ -305,8 +305,13 @@ public class AlumnoService {
                     sumaPensiones = sumaPensiones.add(monto);
                     conteoPensiones++;
                 }
-                case "MORA" -> moraTotal = moraTotal.add(monto);
-                case "DESCUENTO" -> descuentos = descuentos.add(monto);
+            }
+
+            if (p.getMora() != null) {
+                moraTotal = moraTotal.add(BigDecimal.valueOf(p.getMora()));
+            }
+            if (p.getDescuento() != null) {
+                descuentos = descuentos.add(BigDecimal.valueOf(p.getDescuento()));
             }
         }
 
