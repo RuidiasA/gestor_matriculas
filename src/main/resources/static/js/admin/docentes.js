@@ -176,9 +176,10 @@ export function createDocentesModule(tools) {
             return;
         }
         docentes.forEach(doc => {
+            const codigoDocente = doc.docCodigo ?? doc.codigo;
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td>${doc.codigo || '-'}</td>
+                <td>${codigoDocente || '-'}</td>
                 <td>${doc.nombreCompleto || '-'}</td>
                 <td>${doc.dni || '-'}</td>
                 <td>${doc.estado || '-'}</td>
@@ -238,8 +239,9 @@ export function createDocentesModule(tools) {
 
     function renderizarFichaDocente(detalle) {
         const nombreCompleto = (detalle.nombreCompleto || `${detalle.nombres || ''} ${detalle.apellidos || ''}`).trim();
+        const codigoDocente = detalle.docCodigo || detalle.codigo || '-';
         inputsDocente.nombreCompleto.textContent = nombreCompleto || '-';
-        inputsDocente.codigo.textContent = detalle.codigo || '-';
+        inputsDocente.codigo.textContent = codigoDocente || '-';
         inputsDocente.estado.textContent = detalle.estado || '-';
         inputsDocente.estado.className = 'badge';
         inputsDocente.estado.classList.add(detalle.estado === 'ACTIVO' || detalle.estado === 'Activo' ? 'badge--success' : 'badge--info');
